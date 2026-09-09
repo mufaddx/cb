@@ -1,5 +1,10 @@
 # Antigravity — Creator Campaign Marketplace
 
+Product name: **Vidlix**, deployed at **app.vidlix.in**. "Antigravity"
+is this build's internal codename throughout the code/docs — not a
+rebrand task by itself, just the name to know when wiring up the
+production domain (see `.env.example`'s `APP_URL`/`API_URL`).
+
 This is the **foundation** of the full platform described in the
 master build spec: a production-shaped monorepo with a real MySQL
 schema, real auth/RBAC, an enforced state machine for every stateful
