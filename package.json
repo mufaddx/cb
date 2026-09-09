@@ -1,0 +1,26 @@
+{
+  "name": "antigravity-platform",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Creator Campaign Marketplace Platform (Antigravity) - monorepo",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "npm run build --workspace=packages/shared && npm run build --workspace=packages/db && npm run build --workspace=apps/api && npm run build --workspace=apps/web",
+    "dev:api": "npm run dev --workspace=apps/api",
+    "dev:web": "npm run dev --workspace=apps/web",
+    "test": "npm run test --workspace=apps/api",
+    "lint": "npm run lint --workspace=apps/api && npm run lint --workspace=apps/web",
+    "db:generate": "npm run generate --workspace=packages/db",
+    "db:migrate": "npm run migrate:dev --workspace=packages/db",
+    "db:seed": "npm run seed --workspace=packages/db"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  }
+}

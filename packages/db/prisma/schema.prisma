@@ -1,0 +1,1064 @@
+// Antigravity Platform — core schema (spec §55-59)
+//
+// Conventions:
+//  - Every table has an `id` (cuid) and `createdAt`.
+//  - Money fields are Decimal(12,2) — never Float.
+//  - Financial/audit tables (WalletTransaction, AuditLog, PaymentEvent)
+//    are append-only at the application layer: no update/delete
+//    service method is exposed for them.
+//  - snake_case table/column names via @@map / @map for SQL ergonomics;
+//    Prisma Client still exposes camelCase in TypeScript.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// =================================================================
+// IDENTITY / RBAC
+// =================================================================
+
+enum UserStatus {
+  PENDING_VERIFICATION
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
+}
+
+model User {
+  id                String     @id @default(cuid())
+  email             String     @unique
+  phone             String?
+  passwordHash      String     @map("password_hash")
+  status            UserStatus @default(PENDING_VERIFICATION)
+  emailVerifiedAt   DateTime?  @map("email_verified_at")
+  lastLoginAt       DateTime?  @map("last_login_at")
+  createdAt         DateTime   @default(now()) @map("created_at")
+  updatedAt         DateTime   @updatedAt @map("updated_at")
+
+  roles             UserRole[]
+  brand             Brand?
+  creator           Creator?
+  otpCodes          OtpCode[]
+  notifications     Notification[]
+  agreementAccepts  AgreementAcceptance[]
+  supportTickets    SupportTicket[]
+  documents         Document[]
+
+  @@map("users")
+}
+
+model Role {
+  id        String     @id @default(cuid())
+  name      String     @unique // matches shared Role enum
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  users     UserRole[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  userId String @map("user_id")
+  roleId String @map("role_id")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+enum OtpPurpose {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+  LOGIN_2FA
+}
+
+model OtpCode {
+  id          String     @id @default(cuid())
+  userId      String     @map("user_id")
+  purpose     OtpPurpose
+  codeHash    String     @map("code_hash")
+  attempts    Int        @default(0)
+  maxAttempts Int        @default(5) @map("max_attempts")
+  expiresAt   DateTime   @map("expires_at")
+  consumedAt  DateTime?  @map("consumed_at")
+  createdAt   DateTime   @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, purpose])
+  @@map("otp_codes")
+}
+
+// =================================================================
+// BRANDS / CREATORS
+// =================================================================
+
+model Brand {
+  id                String   @id @default(cuid())
+  userId            String   @unique @map("user_id")
+  companyName       String   @map("company_name")
+  contactPerson     String   @map("contact_person")
+  phone             String?
+  website           String?
+  industry          String?
+  billingAddress    Json?    @map("billing_address")
+  gstin             String?
+  description       String?  @db.Text
+  logoKey           String?  @map("logo_key")
+  onboardingStep    Int      @default(0) @map("onboarding_step")
+  onboardingComplete Boolean @default(false) @map("onboarding_complete")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaigns Campaign[]
+  products  Product[]
+  wallet    Wallet?
+  categories BrandCategory[]
+
+  @@map("brands")
+}
+
+enum AvailabilityStatus {
+  AVAILABLE
+  BUSY
+  PAUSED
+}
+
+model Creator {
+  id               String             @id @default(cuid())
+  userId           String             @unique @map("user_id")
+  fullName         String             @map("full_name")
+  displayName      String             @map("display_name")
+  phone            String?
+  bio              String?            @db.Text
+  profilePhotoKey  String?            @map("profile_photo_key")
+  location         String?
+  languages        Json?
+  availability     AvailabilityStatus @default(AVAILABLE)
+  campaignPreferences Json?           @map("campaign_preferences")
+  contentFormats   Json?              @map("content_formats")
+  kycStatus        String             @default("NOT_STARTED") @map("kyc_status")
+  qualityScore     Decimal            @default(0) @db.Decimal(5, 2) @map("quality_score")
+  completionRate   Decimal            @default(0) @db.Decimal(5, 2) @map("completion_rate")
+  retentionRate    Decimal            @default(0) @db.Decimal(5, 2) @map("retention_rate")
+  riskScore        Decimal            @default(0) @db.Decimal(5, 2) @map("risk_score")
+  onboardingStep   Int                @default(0) @map("onboarding_step")
+  onboardingComplete Boolean          @default(false) @map("onboarding_complete")
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categories       CreatorCategory[]
+  instagramAccount InstagramAccount?
+  wallet           Wallet?
+  offers           CampaignOffer[]
+  assignments      CampaignAssignment[]
+  kycRecords       KycRecord[]
+  shippingAddresses ShippingAddress[]
+  withdrawals      Withdrawal[]
+
+  @@map("creators")
+}
+
+model Category {
+  id       String  @id @default(cuid())
+  name     String
+  slug     String  @unique
+  parentId String? @map("parent_id")
+
+  parent   Category?  @relation("CategoryParent", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryParent")
+  creators CreatorCategory[]
+  brands   BrandCategory[]
+  campaigns Campaign[]
+
+  @@map("categories")
+}
+
+model CreatorCategory {
+  creatorId  String @map("creator_id")
+  categoryId String @map("category_id")
+
+  creator  Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([creatorId, categoryId])
+  @@map("creator_categories")
+}
+
+model BrandCategory {
+  brandId    String @map("brand_id")
+  categoryId String @map("category_id")
+
+  brand    Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([brandId, categoryId])
+  @@map("brand_categories")
+}
+
+// =================================================================
+// INSTAGRAM
+// =================================================================
+
+enum InstagramStatus {
+  NOT_CONNECTED
+  CONNECTED
+  NEEDS_RECONNECTION
+  SYNC_FAILED
+}
+
+model InstagramAccount {
+  id                   String           @id @default(cuid())
+  creatorId            String           @unique @map("creator_id")
+  igUserId             String           @map("ig_user_id")
+  username             String
+  profileImageKey      String?          @map("profile_image_key")
+  accessTokenEncrypted String           @db.Text @map("access_token_encrypted")
+  tokenExpiresAt       DateTime?        @map("token_expires_at")
+  status               InstagramStatus  @default(CONNECTED)
+  connectedAt          DateTime         @default(now()) @map("connected_at")
+  lastSyncedAt         DateTime?        @map("last_synced_at")
+
+  creator   Creator                    @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  snapshots InstagramMetricSnapshot[]
+
+  @@map("instagram_accounts")
+}
+
+model InstagramMetricSnapshot {
+  id                 String   @id @default(cuid())
+  instagramAccountId String   @map("instagram_account_id")
+  followers          Int
+  avgReach            Int?     @map("avg_reach")
+  avgViews            Int?     @map("avg_views")
+  capturedAt          DateTime @default(now()) @map("captured_at")
+
+  account InstagramAccount @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
+
+  @@index([instagramAccountId, capturedAt])
+  @@map("instagram_metric_snapshots")
+}
+
+// =================================================================
+// CAMPAIGNS
+// =================================================================
+
+enum CampaignType {
+  CLIPPING
+  CREATOR_CONTENT
+  PRODUCT_REVIEW
+}
+
+enum CampaignStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  REJECTED
+  APPROVED
+  PAYMENT_PENDING
+  PAID
+  LIVE
+  MATCHING
+  IN_PROGRESS
+  CONTENT_REVIEW
+  VERIFICATION
+  COMPLETED
+  CANCELLED
+  DISPUTED
+  REFUNDED
+}
+
+enum TargetingMetric {
+  FOLLOWER_COUNT
+  AVERAGE_REACH
+}
+
+model Campaign {
+  id               String          @id @default(cuid())
+  code             String          @unique // human-readable CMP-ID
+  brandId          String          @map("brand_id")
+  type             CampaignType
+  title            String
+  description      String          @db.Text
+  objective        String?
+  categoryId       String?         @map("category_id")
+  subcategory      String?
+  language         String?
+  platform         String          @default("INSTAGRAM")
+  status           CampaignStatus  @default(DRAFT)
+
+  // Requirements / brief — shape depends on `type`, validated at the service layer
+  briefJson        Json?           @map("brief_json")
+
+  // Targeting
+  targetingMetric  TargetingMetric? @map("targeting_metric")
+
+  // Usage rights (§07 step 07)
+  usageRightTypes  Json?           @map("usage_right_types")
+  usageDuration    String?         @map("usage_duration")
+  exclusivityOn    Boolean         @default(false) @map("exclusivity_on")
+  exclusivityJson  Json?           @map("exclusivity_json")
+  retentionDays    Int             @default(30) @map("retention_days")
+  disclosureRequired Boolean       @default(true) @map("disclosure_required")
+
+  // Compliance
+  restrictedCategory String?       @map("restricted_category")
+  requiresManualReview Boolean     @default(false) @map("requires_manual_review")
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  submittedAt DateTime? @map("submitted_at")
+  reviewedAt  DateTime? @map("reviewed_at")
+  approvedAt  DateTime? @map("approved_at")
+  paidAt      DateTime? @map("paid_at")
+  liveAt      DateTime? @map("live_at")
+  completedAt DateTime? @map("completed_at")
+  cancelledAt DateTime? @map("cancelled_at")
+
+  rejectionReason String? @db.Text @map("rejection_reason")
+
+  brand              Brand                      @relation(fields: [brandId], references: [id])
+  category           Category?                  @relation(fields: [categoryId], references: [id])
+  targetingSlabs      CampaignTargetingSlab[]
+  pricingSnapshots    CampaignPricingSnapshot[]
+  offers              CampaignOffer[]
+  assignments         CampaignAssignment[]
+  products            CampaignProduct[]
+  payments            Payment[]
+  agreements          Agreement[]
+  messages            Message[]
+  disputes            Dispute[]
+  documents           Document[]
+
+  @@index([brandId, status])
+  @@map("campaigns")
+}
+
+model CampaignTargetingSlab {
+  id          String   @id @default(cuid())
+  campaignId  String   @map("campaign_id")
+  minValue    Int      @map("min_value")
+  maxValue    Int?     @map("max_value")
+  payoutAmount Decimal @db.Decimal(12, 2) @map("payout_amount")
+  quantity    Int
+  reserved    Int      @default(0)
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  offers   CampaignOffer[]
+
+  @@map("campaign_targeting_slabs")
+}
+
+model CampaignPricingSnapshot {
+  id            String   @id @default(cuid())
+  campaignId    String   @map("campaign_id")
+  subtotal      Decimal  @db.Decimal(12, 2)
+  platformFee   Decimal  @db.Decimal(12, 2) @map("platform_fee")
+  taxAmount     Decimal  @db.Decimal(12, 2) @map("tax_amount")
+  totalAmount   Decimal  @db.Decimal(12, 2) @map("total_amount")
+  snapshotJson  Json     @map("snapshot_json") // full pricing-rule inputs, for audit
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@map("campaign_pricing_snapshots")
+}
+
+model PricingSlab {
+  id            String    @id @default(cuid())
+  campaignType  CampaignType @map("campaign_type")
+  metric        TargetingMetric
+  minValue      Int       @map("min_value")
+  maxValue      Int?      @map("max_value")
+  payoutAmount  Decimal   @db.Decimal(12, 2) @map("payout_amount")
+  feeAmount     Decimal   @db.Decimal(12, 2) @map("fee_amount")
+  effectiveFrom DateTime  @map("effective_from")
+  effectiveTo   DateTime? @map("effective_to")
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@map("pricing_slabs")
+}
+
+model TaxRule {
+  id              String    @id @default(cuid())
+  taxType         String    @map("tax_type") // e.g. GST, TDS
+  rate            Decimal   @db.Decimal(6, 3)
+  threshold       Decimal?  @db.Decimal(12, 2)
+  transactionType String    @map("transaction_type")
+  applicableParty String    @map("applicable_party")
+  jurisdiction    String    @default("IN")
+  invoiceTreatment String?  @map("invoice_treatment")
+  effectiveFrom   DateTime  @map("effective_from")
+  effectiveTo     DateTime? @map("effective_to")
+  active          Boolean   @default(true)
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  @@map("tax_rules")
+}
+
+// =================================================================
+// OFFERS / ASSIGNMENTS
+// =================================================================
+
+enum OfferStatus {
+  OFFERED
+  VIEWED
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+model CampaignOffer {
+  id         String      @id @default(cuid())
+  campaignId String      @map("campaign_id")
+  creatorId  String      @map("creator_id")
+  slabId     String?     @map("slab_id")
+  payoutAmount Decimal   @db.Decimal(12, 2) @map("payout_amount")
+  status     OfferStatus @default(OFFERED)
+  offeredAt  DateTime    @default(now()) @map("offered_at")
+  viewedAt   DateTime?   @map("viewed_at")
+  respondedAt DateTime?  @map("responded_at")
+  expiresAt  DateTime    @map("expires_at")
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  creator  Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  slab     CampaignTargetingSlab? @relation(fields: [slabId], references: [id])
+  assignment CampaignAssignment?
+
+  @@unique([campaignId, creatorId])
+  @@index([creatorId, status])
+  @@map("campaign_offers")
+}
+
+enum AssignmentStatus {
+  OFFERED
+  VIEWED
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  POST_PENDING
+  POST_SUBMITTED
+  VERIFICATION
+  VERIFIED
+  FAILED
+  PAYABLE
+  PAID
+  CANCELLED
+}
+
+enum RetentionStatus {
+  NOT_APPLICABLE
+  PENDING
+  IN_PROGRESS
+  PASSED
+  FAILED
+}
+
+model CampaignAssignment {
+  id           String           @id @default(cuid())
+  campaignId   String           @map("campaign_id")
+  creatorId    String           @map("creator_id")
+  offerId      String           @unique @map("offer_id")
+  status       AssignmentStatus @default(ACCEPTED)
+  payoutAmount Decimal          @db.Decimal(12, 2) @map("payout_amount")
+
+  postUrl          String?   @map("post_url")
+  postScreenshotKey String?  @map("post_screenshot_key")
+  postSubmittedAt   DateTime? @map("post_submitted_at")
+
+  retentionStatus         RetentionStatus @default(NOT_APPLICABLE) @map("retention_status")
+  retentionRequiredUntil  DateTime?       @map("retention_required_until")
+
+  acceptedAt DateTime? @map("accepted_at")
+  verifiedAt DateTime? @map("verified_at")
+  payableAt  DateTime? @map("payable_at")
+  paidAt     DateTime? @map("paid_at")
+  cancelledAt DateTime? @map("cancelled_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  campaign          Campaign             @relation(fields: [campaignId], references: [id])
+  creator           Creator              @relation(fields: [creatorId], references: [id])
+  offer             CampaignOffer        @relation(fields: [offerId], references: [id])
+  shippingAddress   ShippingAddress?
+  shipment          Shipment?
+  contentSubmissions ContentSubmission[]
+  postVerifications PostVerification[]
+  retentionChecks   RetentionCheck[]
+  agreement         Agreement?
+
+  @@index([campaignId, status])
+  @@map("campaign_assignments")
+}
+
+// =================================================================
+// PRODUCTS / SHIPPING (Product Review campaigns)
+// =================================================================
+
+model Product {
+  id             String   @id @default(cuid())
+  brandId        String   @map("brand_id")
+  name           String
+  sku            String?
+  description    String?  @db.Text
+  images         Json?
+  price          Decimal? @db.Decimal(12, 2)
+  variants       Json?
+  inventory      Int      @default(0)
+  shippingInfo   Json?    @map("shipping_info")
+  category       String?
+  productUrl     String?  @map("product_url")
+  archived       Boolean  @default(false)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  brand     Brand             @relation(fields: [brandId], references: [id])
+  campaigns CampaignProduct[]
+
+  @@map("products")
+}
+
+model CampaignProduct {
+  campaignId String @map("campaign_id")
+  productId  String @map("product_id")
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([campaignId, productId])
+  @@map("campaign_products")
+}
+
+model ShippingAddress {
+  id           String   @id @default(cuid())
+  creatorId    String   @map("creator_id")
+  assignmentId String   @unique @map("assignment_id")
+  fullName     String   @map("full_name")
+  phone        String
+  line1        String   @map("line1")
+  line2        String?  @map("line2")
+  landmark     String?
+  city         String
+  state        String
+  pin          String
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  creator    Creator            @relation(fields: [creatorId], references: [id])
+  assignment CampaignAssignment @relation(fields: [assignmentId], references: [id])
+
+  @@map("shipping_addresses")
+}
+
+enum ShipmentStatus {
+  ADDRESS_PENDING
+  ADDRESS_SUBMITTED
+  READY_TO_SHIP
+  SHIPPED
+  IN_TRANSIT
+  DELIVERED
+  DELIVERY_FAILED
+  RETURNED
+  RECEIVED
+}
+
+model Shipment {
+  id                 String         @id @default(cuid())
+  assignmentId       String         @unique @map("assignment_id")
+  status             ShipmentStatus @default(ADDRESS_PENDING)
+  courier            String?
+  trackingNumber     String?        @map("tracking_number")
+  shippedAt          DateTime?      @map("shipped_at")
+  expectedDeliveryAt DateTime?      @map("expected_delivery_at")
+  deliveredAt        DateTime?      @map("delivered_at")
+  receivedAt         DateTime?      @map("received_at")
+  receiptProofKey    String?        @map("receipt_proof_key")
+  issueNotes         String?        @db.Text @map("issue_notes")
+  createdAt          DateTime       @default(now()) @map("created_at")
+  updatedAt          DateTime       @updatedAt @map("updated_at")
+
+  assignment CampaignAssignment @relation(fields: [assignmentId], references: [id])
+
+  @@map("shipments")
+}
+
+// =================================================================
+// CONTENT / VERIFICATION / RETENTION
+// =================================================================
+
+enum SubmissionStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  REVISION_REQUESTED
+  APPROVED
+  REJECTED
+}
+
+model ContentSubmission {
+  id           String           @id @default(cuid())
+  assignmentId String           @map("assignment_id")
+  version      Int              @default(1)
+  fileKey      String           @map("file_key")
+  status       SubmissionStatus @default(SUBMITTED)
+  submittedAt  DateTime         @default(now()) @map("submitted_at")
+  reviewedAt   DateTime?        @map("reviewed_at")
+  reviewedBy   String?          @map("reviewed_by")
+
+  assignment CampaignAssignment @relation(fields: [assignmentId], references: [id])
+  revisions  ContentRevision[]
+
+  @@index([assignmentId, version])
+  @@map("content_submissions")
+}
+
+model ContentRevision {
+  id           String   @id @default(cuid())
+  submissionId String   @map("submission_id")
+  reason       String
+  feedback     String   @db.Text
+  deadline     DateTime?
+  requestedBy  String   @map("requested_by")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  submission ContentSubmission @relation(fields: [submissionId], references: [id])
+
+  @@map("content_revisions")
+}
+
+enum VerificationResult {
+  PASS
+  FAIL
+  PENDING
+}
+
+model PostVerification {
+  id           String              @id @default(cuid())
+  assignmentId String              @map("assignment_id")
+  checkType    String              @map("check_type") // ACCOUNT_MATCH, URL_VALID, HASHTAGS, DISCLOSURE, ...
+  result       VerificationResult  @default(PENDING)
+  automated    Boolean             @default(false)
+  evidenceJson Json?               @map("evidence_json")
+  checkedBy    String?             @map("checked_by")
+  checkedAt    DateTime?           @map("checked_at")
+  createdAt    DateTime            @default(now()) @map("created_at")
+
+  assignment CampaignAssignment @relation(fields: [assignmentId], references: [id])
+
+  @@map("post_verifications")
+}
+
+enum RetentionCheckStatus {
+  PENDING
+  PASSED
+  FAILED
+}
+
+model RetentionCheck {
+  id           String                @id @default(cuid())
+  assignmentId String                @map("assignment_id")
+  dayNumber    Int                   @map("day_number")
+  checkDate    DateTime              @map("check_date")
+  status       RetentionCheckStatus  @default(PENDING)
+  evidenceJson Json?                 @map("evidence_json")
+  createdAt    DateTime              @default(now()) @map("created_at")
+
+  assignment CampaignAssignment @relation(fields: [assignmentId], references: [id])
+
+  @@index([assignmentId])
+  @@map("retention_checks")
+}
+
+// =================================================================
+// WALLET / LEDGER (append-only)
+// =================================================================
+
+enum WalletOwnerType {
+  BRAND
+  CREATOR
+}
+
+model Wallet {
+  id               String          @id @default(cuid())
+  ownerType        WalletOwnerType @map("owner_type")
+  brandId          String?         @unique @map("brand_id")
+  creatorId        String?         @unique @map("creator_id")
+  availableBalance Decimal         @default(0) @db.Decimal(14, 2) @map("available_balance")
+  reservedBalance  Decimal         @default(0) @db.Decimal(14, 2) @map("reserved_balance")
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+
+  brand        Brand?               @relation(fields: [brandId], references: [id])
+  creator      Creator?             @relation(fields: [creatorId], references: [id])
+  transactions WalletTransaction[]
+  withdrawals  Withdrawal[]
+
+  @@map("wallets")
+}
+
+enum WalletTransactionType {
+  DEPOSIT
+  RESERVE
+  RELEASE
+  SPEND
+  CREATOR_EARNING
+  REFUND
+  WITHDRAWAL
+  ADJUSTMENT
+  TAX
+  FEE
+  REVERSAL
+}
+
+// Append-only ledger. No update()/delete() must ever be called against
+// this model from application code — corrections happen via a new
+// REVERSAL or ADJUSTMENT row, never by mutating history.
+model WalletTransaction {
+  id            String                 @id @default(cuid())
+  walletId      String                 @map("wallet_id")
+  type          WalletTransactionType
+  amount        Decimal                @db.Decimal(14, 2) // always positive; `type` implies sign
+  balanceAfter  Decimal                @db.Decimal(14, 2) @map("balance_after")
+  referenceType String?                @map("reference_type") // CAMPAIGN, PAYMENT, WITHDRAWAL, REFUND...
+  referenceId   String?                @map("reference_id")
+  campaignId    String?                @map("campaign_id")
+  metadata      Json?
+  createdBy     String?                @map("created_by")
+  createdAt     DateTime               @default(now()) @map("created_at")
+
+  wallet Wallet @relation(fields: [walletId], references: [id])
+
+  @@index([walletId, createdAt])
+  @@index([referenceType, referenceId])
+  @@map("wallet_transactions")
+}
+
+// =================================================================
+// PAYMENTS / REFUNDS / WITHDRAWALS
+// =================================================================
+
+enum PaymentStatus {
+  CREATED
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+  REFUND_PENDING
+  REFUNDED
+  PARTIALLY_REFUNDED
+  RECONCILIATION_REQUIRED
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  campaignId      String        @map("campaign_id")
+  brandId         String        @map("brand_id")
+  provider        String        // razorpay | mock
+  providerOrderId String?       @map("provider_order_id")
+  providerPaymentId String?     @map("provider_payment_id")
+  amount          Decimal       @db.Decimal(14, 2)
+  currency        String        @default("INR")
+  status          PaymentStatus @default(CREATED)
+  idempotencyKey  String        @unique @map("idempotency_key")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  campaign Campaign       @relation(fields: [campaignId], references: [id])
+  events   PaymentEvent[]
+  refunds  Refund[]
+
+  @@index([brandId, status])
+  @@map("payments")
+}
+
+// Raw provider webhook events, append-only, deduplicated by
+// (provider, providerEventId) — see PaymentWebhookService.
+model PaymentEvent {
+  id               String   @id @default(cuid())
+  paymentId        String?  @map("payment_id")
+  provider         String
+  providerEventId  String   @map("provider_event_id")
+  eventType        String   @map("event_type")
+  payloadJson      Json     @map("payload_json")
+  signatureValid   Boolean  @map("signature_valid")
+  receivedAt       DateTime @default(now()) @map("received_at")
+  processedAt      DateTime? @map("processed_at")
+
+  payment Payment? @relation(fields: [paymentId], references: [id])
+
+  @@unique([provider, providerEventId])
+  @@map("payment_events")
+}
+
+enum RefundStatus {
+  REQUESTED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model Refund {
+  id          String       @id @default(cuid())
+  paymentId   String       @map("payment_id")
+  amount      Decimal      @db.Decimal(14, 2)
+  reason      String       @db.Text
+  status      RefundStatus @default(REQUESTED)
+  initiatedBy String       @map("initiated_by")
+  providerRefundId String? @map("provider_refund_id")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  processedAt DateTime?    @map("processed_at")
+
+  payment Payment @relation(fields: [paymentId], references: [id])
+
+  @@map("refunds")
+}
+
+enum WithdrawalStatus {
+  REQUESTED
+  UNDER_REVIEW
+  APPROVED
+  PAID
+  FAILED
+  REJECTED
+}
+
+model Withdrawal {
+  id             String           @id @default(cuid())
+  creatorId      String           @map("creator_id")
+  walletId       String           @map("wallet_id")
+  amount         Decimal          @db.Decimal(14, 2)
+  upiId          String           @map("upi_id")
+  status         WithdrawalStatus @default(REQUESTED)
+  requestedAt    DateTime         @default(now()) @map("requested_at")
+  reviewedAt     DateTime?        @map("reviewed_at")
+  reviewedBy     String?          @map("reviewed_by")
+  paidAt         DateTime?        @map("paid_at")
+  referenceNumber String?         @map("reference_number")
+  proofKey       String?          @map("proof_key")
+  rejectionReason String?         @db.Text @map("rejection_reason")
+
+  creator Creator @relation(fields: [creatorId], references: [id])
+  wallet  Wallet  @relation(fields: [walletId], references: [id])
+
+  @@index([creatorId, status])
+  @@map("withdrawals")
+}
+
+// =================================================================
+// KYC
+// =================================================================
+
+enum KycStatus {
+  NOT_STARTED
+  SUBMITTED
+  UNDER_REVIEW
+  VERIFIED
+  REJECTED
+  RESUBMISSION_REQUIRED
+}
+
+model KycRecord {
+  id                     String    @id @default(cuid())
+  creatorId              String    @map("creator_id")
+  documentType           String    @map("document_type")
+  documentNumberEncrypted String   @map("document_number_encrypted")
+  documentKey            String    @map("document_key")
+  status                 KycStatus @default(SUBMITTED)
+  submittedAt            DateTime  @default(now()) @map("submitted_at")
+  reviewedAt             DateTime? @map("reviewed_at")
+  reviewedBy             String?   @map("reviewed_by")
+  rejectionReason        String?   @db.Text @map("rejection_reason")
+
+  creator Creator @relation(fields: [creatorId], references: [id])
+
+  @@index([creatorId, status])
+  @@map("kyc_records")
+}
+
+// =================================================================
+// AGREEMENTS / DOCUMENTS
+// =================================================================
+
+model Agreement {
+  id            String   @id @default(cuid())
+  campaignId    String   @map("campaign_id")
+  assignmentId  String   @unique @map("assignment_id")
+  brandId       String   @map("brand_id")
+  creatorId     String   @map("creator_id")
+  version       Int      @default(1)
+  termsVersion  String   @map("terms_version")
+  contentJson   Json     @map("content_json") // full structured terms, §36
+  documentKey   String   @map("document_key") // rendered PDF in object storage
+  documentHash  String   @map("document_hash")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  campaign    Campaign             @relation(fields: [campaignId], references: [id])
+  assignment  CampaignAssignment   @relation(fields: [assignmentId], references: [id])
+  acceptances AgreementAcceptance[]
+
+  @@map("agreements")
+}
+
+model AgreementAcceptance {
+  id           String   @id @default(cuid())
+  agreementId  String   @map("agreement_id")
+  userId       String   @map("user_id")
+  acceptedAt   DateTime @default(now()) @map("accepted_at")
+  ipAddress    String?  @map("ip_address")
+  userAgent    String?  @db.Text @map("user_agent")
+  documentHash String   @map("document_hash")
+
+  agreement Agreement @relation(fields: [agreementId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@map("agreement_acceptances")
+}
+
+model Document {
+  id           String   @id @default(cuid())
+  type         String   // AGREEMENT, INVOICE, RECEIPT, EARNINGS_STATEMENT, REFUND, SHIPPING, EVIDENCE_PACK
+  ownerUserId  String   @map("owner_user_id")
+  campaignId   String?  @map("campaign_id")
+  assignmentId String?  @map("assignment_id")
+  objectKey    String   @map("object_key")
+  hash         String
+  version      Int      @default(1)
+  createdAt    DateTime @default(now()) @map("created_at")
+  createdBy    String?  @map("created_by")
+
+  owner    User      @relation(fields: [ownerUserId], references: [id])
+  campaign Campaign? @relation(fields: [campaignId], references: [id])
+
+  @@index([ownerUserId, type])
+  @@map("documents")
+}
+
+// =================================================================
+// MESSAGING / NOTIFICATIONS
+// =================================================================
+
+enum SenderType {
+  BRAND
+  CREATOR
+  ADMIN
+  SYSTEM
+}
+
+model Message {
+  id            String     @id @default(cuid())
+  campaignId    String     @map("campaign_id")
+  senderId      String?    @map("sender_id") // null for SYSTEM
+  senderType    SenderType @map("sender_type")
+  body          String     @db.Text
+  attachmentKey String?    @map("attachment_key")
+  createdAt     DateTime   @default(now()) @map("created_at")
+
+  campaign Campaign @relation(fields: [campaignId], references: [id])
+
+  @@index([campaignId, createdAt])
+  @@map("messages")
+}
+
+model Notification {
+  id         String    @id @default(cuid())
+  userId     String    @map("user_id")
+  type       String
+  title      String
+  body       String    @db.Text
+  campaignId String?   @map("campaign_id")
+  readAt     DateTime? @map("read_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+// =================================================================
+// DISPUTES / SUPPORT / FRAUD
+// =================================================================
+
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  EVIDENCE_REQUESTED
+  DECISION
+  RESOLVED
+}
+
+model Dispute {
+  id          String        @id @default(cuid())
+  campaignId  String        @map("campaign_id")
+  openedById  String        @map("opened_by_id")
+  type        String
+  reason      String
+  description String        @db.Text
+  status      DisputeStatus @default(OPEN)
+  decision    String?       @db.Text
+  createdAt   DateTime      @default(now()) @map("created_at")
+  resolvedAt  DateTime?     @map("resolved_at")
+
+  campaign Campaign @relation(fields: [campaignId], references: [id])
+
+  @@map("disputes")
+}
+
+model SupportTicket {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  subject   String
+  status    String   @default("OPEN")
+  priority  String   @default("NORMAL")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("support_tickets")
+}
+
+model FraudFlag {
+  id           String    @id @default(cuid())
+  entityType   String    @map("entity_type") // USER, CREATOR, BRAND, CAMPAIGN, PAYMENT
+  entityId     String    @map("entity_id")
+  flagType     String    @map("flag_type")
+  riskScore    Decimal   @db.Decimal(5, 2) @map("risk_score")
+  evidenceJson Json?     @map("evidence_json")
+  status       String    @default("OPEN") // OPEN, REVIEWED, CLEARED, RESTRICTED
+  createdAt    DateTime  @default(now()) @map("created_at")
+  resolvedBy   String?   @map("resolved_by")
+  resolvedAt   DateTime? @map("resolved_at")
+
+  @@index([entityType, entityId])
+  @@map("fraud_flags")
+}
+
+// =================================================================
+// AUDIT LOG (append-only, no update/delete exposed at service layer)
+// =================================================================
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?  @map("actor_id")
+  actorRole  String?  @map("actor_role")
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  oldValue   Json?    @map("old_value")
+  newValue   Json?    @map("new_value")
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([entityType, entityId])
+  @@index([actorId, createdAt])
+  @@map("audit_logs")
+}
