@@ -69,11 +69,13 @@ async function markVerified(tx: Prisma.TransactionClient, assignmentId: string, 
   if (retentionDays === 0) {
     await releasePayout(tx, assignment);
   }
+
+  return tx.campaignAssignment.findUniqueOrThrow({ where: { id: assignmentId } });
 }
 
 async function markFailed(tx: Prisma.TransactionClient, assignmentId: string, actorId: string | null, actorRole: string) {
   assertTransition("CampaignAssignment", ASSIGNMENT_TRANSITIONS, AssignmentStatus.VERIFICATION, AssignmentStatus.FAILED);
-  await tx.campaignAssignment.update({ where: { id: assignmentId }, data: { status: PrismaAssignmentStatus.FAILED } });
+  const updated = await tx.campaignAssignment.update({ where: { id: assignmentId }, data: { status: PrismaAssignmentStatus.FAILED } });
   await recordAudit(tx, {
     actorId,
     actorRole,
@@ -81,6 +83,7 @@ async function markFailed(tx: Prisma.TransactionClient, assignmentId: string, ac
     entityType: "CampaignAssignment",
     entityId: assignmentId,
   });
+  return updated;
 }
 
 /**

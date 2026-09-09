@@ -10,7 +10,10 @@ const ADMIN_ROLES = ["SUPER_ADMIN", "OPERATIONS_ADMIN", "FINANCE_ADMIN", "KYC_AD
 
 const NAV = [
   { href: "/admin", label: "Operations Center" },
+  { href: "/admin/analytics", label: "Analytics" },
   { href: "/admin/campaigns", label: "Campaign Reviews" },
+  { href: "/admin/creators", label: "Creators" },
+  { href: "/admin/brands", label: "Brands" },
   { href: "/admin/verification", label: "Content Verification" },
   { href: "/admin/content", label: "Creator Content Review" },
   { href: "/admin/retention", label: "Retention" },
@@ -64,8 +67,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <ConfirmProvider>
-    <div style={{ display: "flex", minHeight: "100vh" }}>
+    <div className="admin-shell" style={{ display: "flex", minHeight: "100vh" }}>
       <aside
+        className="admin-sidebar"
         style={{
           width: 240,
           flexShrink: 0,
@@ -76,8 +80,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           flexDirection: "column",
         }}
       >
-        <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 24, padding: "0 8px" }}>Antigravity Admin</div>
-        <nav style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1 }}>
+        <div className="admin-sidebar-title" style={{ fontSize: 18, fontWeight: 700, marginBottom: 24, padding: "0 8px" }}>
+          Antigravity Admin
+        </div>
+        <nav className="admin-nav" style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1 }}>
           {NAV.map((item) => {
             const active = pathname === item.href;
             return (
@@ -91,6 +97,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   fontWeight: active ? 600 : 400,
                   color: active ? "#fff" : "rgba(255,255,255,0.7)",
                   background: active ? "rgba(255,255,255,0.12)" : "transparent",
+                  whiteSpace: "nowrap",
                 }}
               >
                 {item.label}
@@ -98,7 +105,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             );
           })}
         </nav>
-        <div style={{ borderTop: "1px solid rgba(255,255,255,0.15)", paddingTop: 16, marginTop: 16 }}>
+        <div className="admin-sidebar-footer" style={{ borderTop: "1px solid rgba(255,255,255,0.15)", paddingTop: 16, marginTop: 16 }}>
           <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", padding: "0 8px", marginBottom: 8 }}>
             {me?.email}
           </div>

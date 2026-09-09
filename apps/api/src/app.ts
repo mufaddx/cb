@@ -37,6 +37,7 @@ import notificationsRoutes from "./modules/notifications/notifications.routes";
 import messagesRoutes from "./modules/messages/messages.routes";
 import fraudRoutes from "./modules/fraud/fraud.routes";
 import agreementsRoutes from "./modules/agreements/agreements.routes";
+import adminRoutes from "./modules/admin/admin.routes";
 
 export function createApp() {
   const app = express();
@@ -94,6 +95,7 @@ export function createApp() {
   app.use("/api/messages", messagesRoutes);
   app.use("/api/fraud", fraudRoutes);
   app.use("/api/agreements", agreementsRoutes);
+  app.use("/api/admin", adminRoutes);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

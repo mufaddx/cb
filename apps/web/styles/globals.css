@@ -129,3 +129,64 @@ a {
   font-size: 13px;
   margin-top: 6px;
 }
+
+/* Wide content (tables, etc.) scrolls inside its own container —
+   the page body itself must never scroll horizontally. */
+.table-scroll {
+  overflow-x: auto;
+}
+
+/* Mobile is not a shrunken desktop layout (spec §66): swap primary
+   nav for a fixed bottom nav, tighten spacing, and always leave room
+   at the bottom of the page so content isn't hidden behind it. */
+.mobile-only {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 16px;
+  }
+  .card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+  .desktop-only {
+    display: none !important;
+  }
+  .mobile-only {
+    display: flex;
+  }
+  /* Reserve space so page content doesn't end up hidden behind the
+     fixed bottom nav (spec §66) — applied to every page rather than
+     per-page so no page has to remember to add it. */
+  body {
+    padding-bottom: 64px;
+  }
+
+  /* Admin console (spec §71): the 240px sidebar becomes a horizontal
+     scrolling strip at the top instead of a shrunken vertical one. */
+  .admin-shell {
+    flex-direction: column;
+  }
+  .admin-sidebar {
+    width: 100% !important;
+    flex-direction: row !important;
+    align-items: center;
+    padding: 10px 12px !important;
+    overflow-x: auto;
+    gap: 12px;
+  }
+  .admin-sidebar-title {
+    margin-bottom: 0 !important;
+    flex-shrink: 0;
+  }
+  .admin-nav {
+    flex-direction: row !important;
+    flex: none !important;
+  }
+  .admin-sidebar-footer {
+    display: none;
+  }
+}
+

@@ -86,6 +86,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
 
   [Role.OPERATIONS_ADMIN]: [
     ...ALL_ADMIN_READ,
+    Permission.USER_MANAGE_ALL,
     Permission.CAMPAIGN_REVIEW,
     Permission.CONTENT_REVIEW,
     Permission.SHIPMENT_MANAGE_ALL,

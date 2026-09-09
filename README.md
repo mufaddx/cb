@@ -255,6 +255,44 @@ npm test --workspace=apps/api
   form have no dedicated frontend yet (the APIs exist and are tested;
   My Deals only covers Clipping's post-URL submission today).
 
+- **Admin directory + analytics** (spec §46/§89): `/api/admin/creators`,
+  `/api/admin/brands` (searchable), and `/api/admin/analytics` (GMV,
+  net revenue estimate, creator payouts, refunds, pending withdrawals,
+  open disputes/fraud flags — every figure a live aggregate query, no
+  fabricated metrics) with matching admin console pages.
+- **Mobile layouts** (spec §66/§67/§71): a real fixed bottom nav for
+  brand/creator pages (Home/Campaigns/Shipments/Wallet for brands,
+  Home/Offers/My Deals/Wallet for creators) swaps in via CSS at
+  ≤768px — not a shrunken desktop nav. The admin sidebar becomes a
+  horizontal scrolling strip on mobile instead.
+- **Styled confirmations** (spec §76): every admin action that used to
+  call `window.confirm`/`window.prompt` now uses a real modal
+  (title/description/impact, a danger-styled confirm button, and a
+  text-input variant for reasons) via `lib/useConfirm.tsx`.
+- **Full public marketing site** (spec §10): How It Works, For Brands,
+  For Creators, Pricing (describes the real computed-rate-card model,
+  no invented numbers), About, FAQ, Contact, Privacy, Terms, Refund
+  Policy, Disclaimer — all linked from a real header/footer. The legal
+  pages are explicitly marked as drafts pending legal review (spec
+  §38), not presented as binding.
+- **Brand campaign frontend** (previously missing entirely): create,
+  list, and a detail page with Submit/Pay/Cancel, pricing breakdown,
+  targeting, offers, assignments, a Deal Room, Product Review
+  shipment creation, and Creator Content review — all against the
+  real APIs. Plus a Products page and a cross-campaign Shipments
+  dashboard.
+- **Creator content flow gap, found and fixed**: Product Review
+  assignments reached `POST_PENDING` after receiving the product with
+  nowhere to submit their review — `submitPost` was Clipping-only and
+  `submitContent` was Creator-Content-only. Product Review now reuses
+  the Creator Content submission/review flow (spec §01 calls it "a
+  specialized Creator Content campaign"), covered by a regression test.
+- **A second real bug found and fixed**: `markAssignmentVerified`/
+  `markAssignmentFailed` didn't return the updated assignment, so
+  approving/rejecting content via the API silently returned no `data`.
+  Caught by a test that checked the return value directly instead of
+  re-fetching — now fixed and returns the assignment.
+
 ## Scope: what is and isn't built
 
 This build covers a full working loop for all three campaign types
@@ -266,21 +304,9 @@ deliberately still does not cover every one of the spec's 96 sections;
 **not yet implemented**, though the schema and architecture already
 account for it:
 
-- Admin screens beyond the Operations Center queues: pricing
-  management UI (slabs/tax rules are DB-only so far), analytics,
-  reports, a creator/brand management directory, and audit log
-  browsing. The data for all of these is real and queryable — no
-  frontend exists to browse most of it yet.
-- Product Review's shipping steps and Creator Content's submission
-  form have no brand/creator-facing frontend yet (APIs exist, tested).
-- Confirmation dialogs on the admin console use the browser's native
-  `confirm`/`prompt` rather than styled modals (spec §76 asks for a
-  title/explanation/impact layout) — functional, not polished.
-- The full public marketing site (§10) — only a trimmed landing page
-  exists.
-- Mobile-specific layouts (bottom nav, bottom sheets) — the design
-  tokens and button system are mobile-ready, but no breakpoint-specific
-  screens exist yet.
+- Pricing management UI (slabs/tax rules are DB-only, edited via seed
+  scripts/DB access — no admin screen to create/version them yet) and
+  audit log browsing (the data is there; no viewer exists).
 - Instagram metric re-sync and payment reconciliation jobs (the
   scheduler only runs retention checks + offer expiry so far).
 - Upgrading Next.js past 14.2.35 — `npm audit` still reports advisories
@@ -306,6 +332,22 @@ inventing parallel patterns.
 - See `packages/db/prisma/schema.prisma` for what's marked immutable
   (`wallet_transactions`, `audit_logs`, `payment_events`) — no
   update/delete method exists for these at the service layer.
+- Cloudflare R2 and Resend credentials in local `.env` have been
+  verified against the real services (a real object was written, read
+  back via a signed URL, and deleted from R2; a real email was
+  delivered via Resend). The Resend account has no verified sending
+  domain yet, so it can only deliver to the account owner's own
+  address in that state — `EMAIL_PROVIDER` is left at `console` until
+  a domain is verified at resend.com/domains, otherwise every real
+  signup's OTP email would silently fail to arrive.
+- **Never paste real credentials into `.env.example`** — it is a
+  committed template, not a secrets file. This happened once during
+  this build (real R2 + Resend keys were found in it before any commit
+  existed); they were moved to local `.env` and the template restored
+  before the first commit, so nothing was ever exposed in git history.
+  If you ever find real secrets in a tracked file, treat it as a live
+  incident: move them to `.env` immediately and rotate them if there's
+  any chance they were already pushed.
 
 Tax rates, GST/TDS treatment, and the agreement/e-signature approach
 must be reviewed by qualified Indian tax and legal counsel before any
