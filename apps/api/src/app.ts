@@ -42,6 +42,16 @@ import adminRoutes from "./modules/admin/admin.routes";
 export function createApp() {
   const app = express();
 
+  // Behind a reverse proxy (Apache/Passenger on Hostinger, or any other
+  // proxy in front of this app) in production/staging — trust the first
+  // hop's X-Forwarded-* headers so req.ip and express-rate-limit's IP
+  // key generator see the real client IP instead of the proxy's own.
+  // Without this, express-rate-limit throws ERR_ERL_UNEXPECTED_X_FORWARDED_FOR
+  // on every request once X-Forwarded-For is present, crashing with 500s.
+  if (env.NODE_ENV !== "development" && env.NODE_ENV !== "test") {
+    app.set("trust proxy", 1);
+  }
+
   app.use(requestId);
   app.use(pinoHttp({ logger, customLogLevel: () => "debug" }));
   app.use(helmet());
