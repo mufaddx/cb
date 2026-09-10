@@ -3,12 +3,22 @@ import { prisma } from "@antigravity/db";
 import { sendSuccess } from "../../lib/apiResponse";
 import { UnauthorizedError, ValidationError } from "../../lib/errors";
 import * as campaignsService from "./campaigns.service";
-import { CreateCampaignSchema, RejectCampaignSchema } from "./campaigns.validation";
+import { CreateCampaignSchema, PricingSlabQuerySchema, RejectCampaignSchema } from "./campaigns.validation";
+import { getActivePricingSlabs } from "./pricing.service";
 import { getStorageProvider } from "../../services/storage";
 
 function requireBrandId(req: Request): string {
   if (!req.auth?.brandId) throw new UnauthorizedError("This action requires a brand profile");
   return req.auth.brandId;
+}
+
+/** Real rate-card ranges for the "Create Campaign" targeting picker —
+ * see PricingSlabQuerySchema; keeps the brand from having to guess
+ * min/max values that happen to match an admin-managed slab. */
+export async function getPricingSlabsHandler(req: Request, res: Response) {
+  const { type, metric } = PricingSlabQuerySchema.parse(req.query);
+  const slabs = await getActivePricingSlabs(prisma, type, metric);
+  sendSuccess(res, slabs);
 }
 
 export async function createCampaignHandler(req: Request, res: Response) {

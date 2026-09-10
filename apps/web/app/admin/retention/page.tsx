@@ -64,7 +64,6 @@ export default function RetentionQueuePage() {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
         <div>
-          <h1 style={{ fontSize: 24, marginBottom: 4 }}>Retention</h1>
           <p className="helper-text" style={{ marginBottom: 20 }}>{queue.length} assignment(s) in their retention window</p>
         </div>
         <Button variant="secondary" loading={runningAll} onClick={runDue}>

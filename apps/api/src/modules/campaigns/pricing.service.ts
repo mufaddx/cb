@@ -88,3 +88,18 @@ export async function computePricingBreakdown(
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
+
+/**
+ * The rate card for one (campaignType, metric) pair, exposed to the
+ * brand so campaign creation can offer real, selectable ranges instead
+ * of blind free-text entry that then fails `computePricingBreakdown`
+ * with "no active pricing slab found" for anything that doesn't
+ * happen to match. Sorted so the frontend can render it top-to-bottom
+ * as a dropdown.
+ */
+export async function getActivePricingSlabs(prisma: PrismaClient, campaignType: CampaignType, metric: TargetingMetric) {
+  return prisma.pricingSlab.findMany({
+    where: { campaignType, metric, active: true },
+    orderBy: { minValue: "asc" },
+  });
+}

@@ -33,6 +33,11 @@ export const CreateCampaignSchema = z
   });
 export type CreateCampaignInput = z.infer<typeof CreateCampaignSchema>;
 
+export const PricingSlabQuerySchema = z.object({
+  type: z.nativeEnum(CampaignType),
+  metric: z.nativeEnum(TargetingMetric),
+});
+
 export const RejectCampaignSchema = z.object({
   reason: z.string().min(5, "A rejection reason is required"),
 });

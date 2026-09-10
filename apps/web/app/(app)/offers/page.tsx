@@ -67,8 +67,6 @@ export default function OffersPage() {
   return (
     <>
       <main style={{ padding: "32px" }}>
-        <h1>Campaign Offers</h1>
-
         {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
 
         {offers.length === 0 ? (

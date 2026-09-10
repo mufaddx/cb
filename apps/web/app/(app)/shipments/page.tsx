@@ -61,8 +61,7 @@ export default function ShipmentsPage() {
   return (
     <>
       <main style={{ padding: "32px" }}>
-        <h1>Shipments</h1>
-        <p className="helper-text" style={{ marginBottom: 20 }}>Product Review campaigns across all your campaigns.</p>
+        <p className="helper-text" style={{ marginBottom: 20 }}>Product shipments across all your campaigns.</p>
         {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
 
         {assignments.length === 0 ? (

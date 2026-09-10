@@ -1,7 +1,7 @@
 import { MarketingHeader } from "../components/MarketingHeader";
 import { MarketingFooter } from "../components/MarketingFooter";
 import { RevealOnScroll } from "../components/RevealOnScroll";
-import { HandshakeIcon, MegaphoneIcon, PackageIcon } from "../components/icons";
+import { HandshakeIcon, MegaphoneIcon } from "../components/icons";
 
 // Signup lives on the app domain (see middleware.ts) — a plain <a>,
 // not next/link, since this page is served from the marketing domain.
@@ -17,14 +17,8 @@ const campaignTypes = [
   {
     icon: HandshakeIcon,
     title: "Creator Content",
-    description: "Creators produce original content to a brief, with revisions and approval built in.",
+    description: "Creators produce original content to a brief — optionally reviewing a product you ship them — with revisions and approval built in.",
     accent: "linear-gradient(135deg, #7c3aed, #a855f7)",
-  },
-  {
-    icon: PackageIcon,
-    title: "Product Review",
-    description: "Brands ship a physical product; creators review it on receipt.",
-    accent: "linear-gradient(135deg, #0891b2, #06b6d4)",
   },
 ];
 
@@ -37,7 +31,7 @@ const steps = [
 ];
 
 const stats = [
-  { value: "3", label: "campaign formats" },
+  { value: "2", label: "campaign formats" },
   { value: "100%", label: "tracked to payout" },
   { value: "0", label: "spreadsheets required" },
 ];
@@ -80,8 +74,8 @@ export default function HomePage() {
             className="animate-fade-up"
             style={{ maxWidth: 600, margin: "0 auto 30px", color: "var(--color-text-secondary)", fontSize: 17.5, animationDelay: "0.12s" }}
           >
-            Brands launch clipping, creator content, and product review campaigns. Creators accept, deliver, and get
-            paid — with verification and retention tracked end to end.
+            Brands launch clipping and creator content campaigns — including product reviews. Creators accept, deliver,
+            and get paid — with verification and retention tracked end to end.
           </p>
           <div className="hero-cta animate-fade-up" style={{ display: "flex", gap: 14, justifyContent: "center", animationDelay: "0.18s" }}>
             <a
@@ -185,7 +179,7 @@ export default function HomePage() {
         <RevealOnScroll>
           <div style={{ textAlign: "center", marginBottom: 44 }}>
             <span className="eyebrow" style={{ marginBottom: 14 }}>Campaign types</span>
-            <h2 style={{ marginTop: 14 }}>Three formats. One platform.</h2>
+            <h2 style={{ marginTop: 14 }}>Two formats. One platform.</h2>
           </div>
         </RevealOnScroll>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 22 }}>

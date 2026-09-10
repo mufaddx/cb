@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { CampaignStatus as PrismaCampaignStatus, PaymentStatus as PrismaPaymentStatus, PrismaClient, WalletTransactionType } from "@prisma/client";
 import {
   AuditAction,
@@ -75,6 +76,54 @@ export async function initiateCampaignPayment(prisma: PrismaClient, campaignId: 
       entityId: created.id,
       newValue: { amount, providerOrderId: intent.providerOrderId },
       metadata: { campaignId },
+    });
+    return created;
+  });
+
+  return { payment, checkoutPayload: intent.checkoutPayload };
+}
+
+/**
+ * Brand adds funds to its wallet directly, independent of any specific
+ * campaign — the "Add Funds" action on the Wallet page. Creates a
+ * Payment with no campaignId; `handleWebhookEvent` below recognises
+ * that on capture and posts a plain DEPOSIT instead of the campaign
+ * RESERVE + LIVE transition a campaign payment triggers.
+ */
+export async function initiateWalletTopup(prisma: PrismaClient, brandId: string, amount: number) {
+  if (!Number.isFinite(amount) || amount <= 0) {
+    throw new ValidationError("Enter an amount greater than zero.");
+  }
+
+  const idempotencyKey = `topup:${brandId}:${randomUUID()}`;
+  const provider = getPaymentProvider();
+  const intent = await provider.createPaymentIntent({
+    amount,
+    currency: "INR",
+    receiptId: idempotencyKey,
+    notes: { brandId, purpose: "WALLET_TOPUP" },
+  });
+
+  const payment = await prisma.$transaction(async (tx) => {
+    const created = await tx.payment.create({
+      data: {
+        campaignId: null,
+        brandId,
+        provider: process.env.PAYMENT_PROVIDER ?? "mock",
+        providerOrderId: intent.providerOrderId,
+        amount,
+        currency: "INR",
+        status: PrismaPaymentStatus.PENDING,
+        idempotencyKey,
+      },
+    });
+    await recordAudit(tx, {
+      actorId: brandId,
+      actorRole: "BRAND",
+      action: AuditAction.PAYMENT_INITIATED,
+      entityType: "Payment",
+      entityId: created.id,
+      newValue: { amount, providerOrderId: intent.providerOrderId, purpose: "WALLET_TOPUP" },
     });
     return created;
   });
@@ -178,6 +227,21 @@ export async function handleWebhookEvent(
       });
 
       const wallet = await getOrCreateWalletForBrand(tx, payment.brandId);
+
+      // A wallet top-up (no campaignId) stops here — it's just money
+      // landing in the brand's available balance, with no campaign to
+      // reserve it against or move to LIVE.
+      if (!payment.campaignId) {
+        await postLedgerEntryWithinTx(tx, {
+          walletId: wallet.id,
+          type: WalletTransactionType.DEPOSIT,
+          amount: Number(payment.amount),
+          referenceType: "PAYMENT",
+          referenceId: payment.id,
+        });
+        return { status: "wallet_topup_confirmed" };
+      }
+
       await postLedgerEntryWithinTx(tx, {
         walletId: wallet.id,
         type: WalletTransactionType.DEPOSIT,

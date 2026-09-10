@@ -13,10 +13,22 @@ export async function initiatePaymentHandler(req: Request, res: Response) {
   sendSuccess(res, result, "Payment intent created.");
 }
 
-/** Admin payment table (spec §48). */
+export async function initiateWalletTopupHandler(req: Request, res: Response) {
+  // WALLET_READ_OWN (the permission gating this route) is held by both
+  // Brand and Creator — only a brand actually has a "pay in to run
+  // campaigns" wallet, so reject a creator explicitly rather than
+  // passing an undefined brandId through.
+  if (!req.auth?.brandId) throw new ValidationError("Only a brand account can add funds to its wallet.");
+  const { amount } = req.body as { amount: number };
+  const result = await paymentsService.initiateWalletTopup(prisma, req.auth.brandId, Number(amount));
+  sendSuccess(res, result, "Top-up initiated.");
+}
+
+/** Admin payment table (spec §48). Includes `brand` directly (not just
+ * via `campaign.brand`) since a wallet top-up has no campaign. */
 export async function listPaymentsHandler(_req: Request, res: Response) {
   const payments = await prisma.payment.findMany({
-    include: { campaign: { include: { brand: true } }, refunds: true },
+    include: { campaign: true, brand: true, refunds: true },
     orderBy: { createdAt: "desc" },
     take: 200,
   });
@@ -46,11 +58,16 @@ export async function devSimulateWebhookHandler(req: Request, res: Response) {
   if (env.NODE_ENV === "production" || env.PAYMENT_PROVIDER !== "mock") {
     throw new ValidationError("This endpoint is only available in development with PAYMENT_PROVIDER=mock");
   }
-  const { campaignId, outcome = "captured" } = req.body as { campaignId: string; outcome?: "captured" | "failed" };
-  const payment = await prisma.payment.findFirstOrThrow({
-    where: { campaignId },
-    orderBy: { createdAt: "desc" },
-  });
+  // A wallet top-up has no campaignId to look it up by, so this also
+  // accepts a direct paymentId (returned from the initiate call).
+  const { campaignId, paymentId, outcome = "captured" } = req.body as {
+    campaignId?: string;
+    paymentId?: string;
+    outcome?: "captured" | "failed";
+  };
+  const payment = paymentId
+    ? await prisma.payment.findUniqueOrThrow({ where: { id: paymentId } })
+    : await prisma.payment.findFirstOrThrow({ where: { campaignId }, orderBy: { createdAt: "desc" } });
 
   const { rawBody, signature } = buildMockWebhookRequest({
     eventType: outcome === "captured" ? "payment.captured" : "payment.failed",

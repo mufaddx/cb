@@ -137,6 +137,7 @@ model Brand {
   products  Product[]
   wallet    Wallet?
   categories BrandCategory[]
+  payments  Payment[]
 
   @@map("brands")
 }
@@ -775,7 +776,11 @@ enum PaymentStatus {
 
 model Payment {
   id              String        @id @default(cuid())
-  campaignId      String        @map("campaign_id")
+  // Null for a wallet top-up (spec: brands can add funds directly,
+  // not only by paying for a specific campaign) — every other kind of
+  // payment still has one. Branch on this, not a separate enum, so
+  // there's exactly one Payment shape and one webhook path for both.
+  campaignId      String?       @map("campaign_id")
   brandId         String        @map("brand_id")
   provider        String        // razorpay | mock
   providerOrderId String?       @map("provider_order_id")
@@ -787,7 +792,8 @@ model Payment {
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime      @updatedAt @map("updated_at")
 
-  campaign Campaign       @relation(fields: [campaignId], references: [id])
+  campaign Campaign?      @relation(fields: [campaignId], references: [id])
+  brand    Brand          @relation(fields: [brandId], references: [id])
   events   PaymentEvent[]
   refunds  Refund[]
 

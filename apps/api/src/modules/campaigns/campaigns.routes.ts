@@ -11,6 +11,14 @@ router.use(requireAuth);
 router.post("/", requirePermission(Permission.CAMPAIGN_CREATE_OWN), asyncHandler(controller.createCampaignHandler));
 router.get("/", requirePermission(Permission.CAMPAIGN_READ_OWN), asyncHandler(controller.listMyCampaignsHandler));
 
+// Fixed path, registered before "/:id" for the same reason as
+// "/review-queue" below.
+router.get(
+  "/pricing-slabs",
+  requirePermission(Permission.CAMPAIGN_CREATE_OWN),
+  asyncHandler(controller.getPricingSlabsHandler)
+);
+
 // Registered before "/:id" — a fixed two-segment path like this
 // doesn't actually collide with a one-segment "/:id" pattern, but the
 // convention (fixed paths before parameterized ones) is kept anyway

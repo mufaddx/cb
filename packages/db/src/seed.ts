@@ -45,35 +45,63 @@ async function main() {
     await prisma.category.upsert({ where: { slug }, update: {}, create: { name, slug } });
   }
 
-  console.log("Seeding pricing slabs (follower-based, clipping)...");
-  const followerSlabs: Array<[number, number | null, number, number]> = [
+  console.log("Seeding pricing slabs (rate card: every campaign type x targeting metric)...");
+  // The brand-facing "Create Campaign" targeting picker (spec: dropdown
+  // ranges, not free-typed numbers) reads these back via
+  // GET /api/campaigns/pricing-slabs — every range it can offer has to
+  // exist here first, or computePricingBreakdown rejects it. Same band
+  // edges across campaign types (so the picker looks consistent); the
+  // payout floor rises with the effort a format actually takes
+  // (Clipping < Product Review < Creator Content).
+  type Slab = [number, number | null, number, number]; // [min, max, payoutAmount, feeAmount]
+  const followerBands: Slab[] = [
     [0, 10_000, 300, 30],
     [10_000, 50_000, 800, 80],
     [50_000, 100_000, 1500, 150],
     [100_000, 500_000, 3500, 300],
     [500_000, null, 8000, 600],
   ];
-  for (const [minValue, maxValue, payoutAmount, feeAmount] of followerSlabs) {
-    const existing = await prisma.pricingSlab.findFirst({
-      where: {
-        campaignType: CampaignType.CLIPPING,
-        metric: TargetingMetric.FOLLOWER_COUNT,
-        minValue,
-      },
-    });
-    if (!existing) {
-      await prisma.pricingSlab.create({
-        data: {
-          campaignType: CampaignType.CLIPPING,
-          metric: TargetingMetric.FOLLOWER_COUNT,
-          minValue,
-          maxValue: maxValue ?? undefined,
-          payoutAmount,
-          feeAmount,
-          effectiveFrom: new Date(),
-          active: true,
-        },
-      });
+  const reachBands: Slab[] = [
+    [0, 500_000, 400, 40],
+    [500_000, 1_000_000, 900, 90],
+    [1_000_000, 2_000_000, 1800, 160],
+    [2_000_000, 3_000_000, 3000, 260],
+    [3_000_000, 5_000_000, 5000, 400],
+    [5_000_000, null, 9000, 700],
+  ];
+  // Multiplies the Clipping bands above for the other two formats —
+  // keeps every band's relative pricing consistent without repeating
+  // five/six numbers three times over.
+  const typeMultiplier: Record<string, number> = {
+    [CampaignType.CLIPPING]: 1,
+    [CampaignType.PRODUCT_REVIEW]: 1.3,
+    [CampaignType.CREATOR_CONTENT]: 1.6,
+  };
+
+  for (const campaignType of [CampaignType.CLIPPING, CampaignType.CREATOR_CONTENT, CampaignType.PRODUCT_REVIEW]) {
+    const multiplier = typeMultiplier[campaignType];
+    for (const [metric, bands] of [
+      [TargetingMetric.FOLLOWER_COUNT, followerBands],
+      [TargetingMetric.AVERAGE_REACH, reachBands],
+    ] as const) {
+      for (const [minValue, maxValue, basePayoutAmount, baseFeeAmount] of bands) {
+        const existing = await prisma.pricingSlab.findFirst({
+          where: { campaignType, metric, minValue },
+        });
+        if (existing) continue;
+        await prisma.pricingSlab.create({
+          data: {
+            campaignType,
+            metric,
+            minValue,
+            maxValue: maxValue ?? undefined,
+            payoutAmount: Math.round((basePayoutAmount * multiplier) / 10) * 10,
+            feeAmount: Math.round((baseFeeAmount * multiplier) / 10) * 10,
+            effectiveFrom: new Date(),
+            active: true,
+          },
+        });
+      }
     }
   }
 

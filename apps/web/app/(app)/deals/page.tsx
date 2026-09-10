@@ -136,8 +136,6 @@ export default function DealsPage() {
   return (
     <>
       <main style={{ padding: "32px" }}>
-        <h1>My Deals</h1>
-
         {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
 
         {assignments.length === 0 ? (

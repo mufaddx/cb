@@ -33,6 +33,17 @@ export async function issueRefund(
   if (!payment.providerPaymentId) {
     throw new ConflictError("This payment has no provider payment id to refund against");
   }
+  if (!payment.campaignId) {
+    // This flow's ledger reversal (WalletTransactionType.REFUND) debits
+    // reservedBalance, which a wallet top-up never has any of — it went
+    // straight to availableBalance with no RESERVE step. Refunding a
+    // top-up needs a different debit path; not built yet.
+    throw new ConflictError("Wallet top-ups can't be refunded from this screen yet — this only handles campaign payments.");
+  }
+  // Captured as a local so it stays narrowed to `string` inside the
+  // $transaction closure below — TS can't carry the guard above's
+  // narrowing of `payment.campaignId` into a separate function scope.
+  const campaignId = payment.campaignId;
   if (payment.status !== PrismaPaymentStatus.PAID && payment.status !== PrismaPaymentStatus.PARTIALLY_REFUNDED) {
     throw new ConflictError(`Payment cannot be refunded from status ${payment.status}`);
   }
@@ -75,7 +86,7 @@ export async function issueRefund(
       amount,
       referenceType: "REFUND",
       referenceId: refund.id,
-      campaignId: payment.campaignId,
+      campaignId,
     });
 
     const willBeFullyRefunded = alreadyRefunded + amount >= Number(payment.amount) - 0.01;
@@ -92,7 +103,7 @@ export async function issueRefund(
       entityType: "Refund",
       entityId: refund.id,
       newValue: { amount, reason },
-      metadata: { paymentId, campaignId: payment.campaignId },
+      metadata: { paymentId, campaignId },
     });
 
     return updatedRefund;

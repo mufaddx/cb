@@ -60,7 +60,6 @@ export default function VerificationQueuePage() {
 
   return (
     <div>
-      <h1 style={{ fontSize: 24, marginBottom: 4 }}>Content Verification</h1>
       <p className="helper-text" style={{ marginBottom: 20 }}>
         {queue.length} post(s) awaiting manual review (automated checks didn&apos;t reach a confident pass)
       </p>

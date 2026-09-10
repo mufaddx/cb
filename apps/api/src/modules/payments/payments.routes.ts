@@ -26,6 +26,12 @@ paymentsRouter.post(
   requirePermission(Permission.CAMPAIGN_READ_OWN),
   asyncHandler(controller.initiatePaymentHandler)
 );
+paymentsRouter.post(
+  "/wallet/topup",
+  requireAuth,
+  requirePermission(Permission.WALLET_READ_OWN),
+  asyncHandler(controller.initiateWalletTopupHandler)
+);
 paymentsRouter.post("/dev/simulate-webhook", asyncHandler(controller.devSimulateWebhookHandler));
 paymentsRouter.get(
   "/admin",

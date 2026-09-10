@@ -39,6 +39,10 @@ export default function WalletPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [topupAmount, setTopupAmount] = useState("");
+  const [topupLoading, setTopupLoading] = useState(false);
+  const [topupError, setTopupError] = useState<string | null>(null);
+  const [topupSuccess, setTopupSuccess] = useState<string | null>(null);
 
   function load() {
     apiFetch<Me>("/api/auth/me").then((me) => setAccountType(me.brand ? "BRAND" : "CREATOR"));
@@ -67,11 +71,37 @@ export default function WalletPage() {
     }
   }
 
+  async function addFunds(e: React.FormEvent) {
+    e.preventDefault();
+    setTopupError(null);
+    setTopupSuccess(null);
+    setTopupLoading(true);
+    try {
+      const result = await apiFetch<{ payment: { id: string } }>("/api/payments/wallet/topup", {
+        method: "POST",
+        body: { amount: Number(topupAmount) },
+      });
+      // PAYMENT_PROVIDER=mock in this environment — there's no real
+      // checkout to hand off to, so this drives the same signed
+      // webhook a real gateway would send, the identical pattern
+      // campaigns/[id]'s "Pay Now" already uses for campaign payments.
+      await apiFetch("/api/payments/dev/simulate-webhook", {
+        method: "POST",
+        body: { paymentId: result.payment.id, outcome: "captured" },
+      }).catch(() => null);
+      setTopupSuccess(`₹${topupAmount} added to your wallet.`);
+      setTopupAmount("");
+      load();
+    } catch (err) {
+      setTopupError(err instanceof ApiClientError ? err.message : "Something went wrong.");
+    } finally {
+      setTopupLoading(false);
+    }
+  }
+
   return (
     <>
       <main style={{ padding: "32px" }}>
-        <h1>Wallet</h1>
-
         <div className="card" style={{ marginBottom: 24 }}>
           <div className="helper-text">Available Balance</div>
           <div style={{ fontSize: 32, fontWeight: 700 }}>₹{wallet?.availableBalance ?? "—"}</div>
@@ -99,9 +129,27 @@ export default function WalletPage() {
 
         {accountType === "BRAND" && (
           <div className="card" style={{ marginBottom: 24 }}>
-            <p style={{ margin: 0, fontSize: 14 }}>
-              Funds are added by paying for a campaign. <Link href="/campaigns/create" style={{ color: "var(--color-primary)" }}>Create a campaign</Link> to add funds.
+            <h3>Add Funds</h3>
+            <p className="helper-text" style={{ marginBottom: 16 }}>
+              Top up your available balance directly, or pay for a specific{" "}
+              <Link href="/campaigns/create" style={{ color: "var(--color-primary)" }}>campaign</Link> when you create one.
             </p>
+            <form onSubmit={addFunds} style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <input
+                className="input"
+                type="number"
+                min={100}
+                step="1"
+                placeholder="Amount (₹)"
+                required
+                value={topupAmount}
+                onChange={(e) => setTopupAmount(e.target.value)}
+                style={{ maxWidth: 200 }}
+              />
+              <Button type="submit" loading={topupLoading}>Add Funds</Button>
+            </form>
+            {topupError && <p className="error-text" style={{ marginTop: 12, marginBottom: 0 }}>{topupError}</p>}
+            {topupSuccess && <p style={{ color: "var(--color-success)", fontSize: 13, marginTop: 12, marginBottom: 0 }}>{topupSuccess}</p>}
           </div>
         )}
 

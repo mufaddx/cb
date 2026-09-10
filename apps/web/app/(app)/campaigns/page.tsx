@@ -46,8 +46,7 @@ export default function CampaignsPage() {
   return (
     <>
       <main style={{ padding: "32px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <h1>Campaigns</h1>
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 20 }}>
           <Link href="/campaigns/create">
             <Button>+ Create Campaign</Button>
           </Link>

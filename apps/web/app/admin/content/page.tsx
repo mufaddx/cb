@@ -68,7 +68,6 @@ export default function ContentReviewQueuePage() {
 
   return (
     <div>
-      <h1 style={{ fontSize: 24, marginBottom: 4 }}>Creator Content Review</h1>
       <p className="helper-text" style={{ marginBottom: 20 }}>{queue.length} submission(s) awaiting review</p>
       {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
 

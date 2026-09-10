@@ -51,7 +51,6 @@ const QUEUES: QueueCardDef[] = [
 export default function OperationsCenterPage() {
   return (
     <div>
-      <h1 style={{ fontSize: 26, marginBottom: 4 }}>Operations Center</h1>
       <p className="helper-text" style={{ marginBottom: 24 }}>
         Every count below is live from the database — not cached.
       </p>

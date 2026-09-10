@@ -11,7 +11,8 @@ interface PaymentItem {
   status: string;
   provider: string;
   createdAt: string;
-  campaign: { title: string; code: string; brand: { companyName: string } };
+  campaign: { title: string; code: string } | null;
+  brand: { companyName: string };
   refunds: Array<{ amount: string; status: string }>;
 }
 
@@ -65,7 +66,6 @@ export default function PaymentsPage() {
 
   return (
     <div>
-      <h1 style={{ fontSize: 24, marginBottom: 4 }}>Payments & Refunds</h1>
       <p className="helper-text" style={{ marginBottom: 20 }}>{payments.length} most recent</p>
       {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
 
@@ -85,11 +85,17 @@ export default function PaymentsPage() {
             {payments.map((p) => {
               const refunded = p.refunds.filter((r) => r.status === "COMPLETED").reduce((s, r) => s + Number(r.amount), 0);
               const remaining = Number(p.amount) - refunded;
-              const canRefund = (p.status === "PAID" || p.status === "PARTIALLY_REFUNDED") && remaining > 0;
+              const canRefund = p.campaign !== null && (p.status === "PAID" || p.status === "PARTIALLY_REFUNDED") && remaining > 0;
               return (
                 <tr key={p.id} style={{ borderBottom: "1px solid var(--color-border)" }}>
-                  <td style={{ padding: "8px 12px" }}>{p.campaign.code}<div className="helper-text">{p.campaign.title}</div></td>
-                  <td style={{ padding: "8px 12px" }}>{p.campaign.brand.companyName}</td>
+                  <td style={{ padding: "8px 12px" }}>
+                    {p.campaign ? (
+                      <>{p.campaign.code}<div className="helper-text">{p.campaign.title}</div></>
+                    ) : (
+                      <span className="badge">Wallet top-up</span>
+                    )}
+                  </td>
+                  <td style={{ padding: "8px 12px" }}>{p.brand.companyName}</td>
                   <td style={{ padding: "8px 12px" }}>₹{p.amount}</td>
                   <td style={{ padding: "8px 12px" }}>{p.status}</td>
                   <td style={{ padding: "8px 12px" }}>{refunded > 0 ? `₹${refunded.toFixed(2)}` : "—"}</td>

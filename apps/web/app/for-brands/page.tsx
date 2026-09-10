@@ -4,7 +4,7 @@ import { MarketingFooter } from "../../components/MarketingFooter";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "";
 
 const points = [
-  { title: "Create", description: "Pick Clipping, Creator Content, or Product Review, and define your brief and targeting." },
+  { title: "Create", description: "Pick Clipping or Creator Content (optionally shipping a product for review), and define your brief and targeting." },
   { title: "Target", description: "Set creator eligibility by follower count or average reach." },
   { title: "Fund", description: "Pay through a verified payment flow — funds are reserved, never spent without confirmation." },
   { title: "Match", description: "Eligible creators are automatically matched and offered your campaign." },

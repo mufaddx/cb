@@ -26,7 +26,6 @@ export default function AdminBrandsPage() {
 
   return (
     <div>
-      <h1 style={{ fontSize: 24, marginBottom: 4 }}>Brands</h1>
       <p className="helper-text" style={{ marginBottom: 20 }}>{brands?.length ?? "…"} shown</p>
       {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
 

@@ -59,7 +59,6 @@ export default function FraudQueuePage() {
 
   return (
     <div>
-      <h1 style={{ fontSize: 24, marginBottom: 4 }}>Fraud & Risk</h1>
       <p className="helper-text" style={{ marginBottom: 20 }}>
         {queue.length} open flag(s) — raising a flag never restricts anything by itself; only an explicit review does.
       </p>

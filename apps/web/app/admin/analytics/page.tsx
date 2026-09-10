@@ -41,7 +41,6 @@ export default function AdminAnalyticsPage() {
 
   return (
     <div>
-      <h1 style={{ fontSize: 24, marginBottom: 4 }}>Analytics</h1>
       <p className="helper-text" style={{ marginBottom: 20 }}>
         Every figure below is a live aggregate query, not a cached or estimated metric.
       </p>
