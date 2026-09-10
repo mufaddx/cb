@@ -6,15 +6,17 @@ import { FacebookIcon, InstagramIcon, SparkIcon, XIcon, YoutubeIcon } from "./ic
 // <Link>.
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "";
 
-// Only real destinations — no column is padded out with placeholder
-// links just to make every column the same length. Rendered only
-// once a real URL is set, so nothing here is ever a dead link.
+// Real accounts under the "vidlix.in" handle, confirmed live by
+// fetching each one before shipping the link. Facebook and X block
+// automated fetches, so those couldn't be confirmed the same way —
+// double check those two are real before assuming this is complete.
+// youtube.com/@vidlix.in returned a genuine 404, so it's left out
+// rather than shipped as a dead link.
 const SOCIAL_LINKS: Array<{ label: string; href: string; Icon: typeof InstagramIcon }> = [
-  { label: "Instagram", href: process.env.NEXT_PUBLIC_INSTAGRAM_URL ?? "", Icon: InstagramIcon },
-  { label: "Facebook", href: process.env.NEXT_PUBLIC_FACEBOOK_URL ?? "", Icon: FacebookIcon },
-  { label: "X (Twitter)", href: process.env.NEXT_PUBLIC_X_URL ?? "", Icon: XIcon },
-  { label: "YouTube", href: process.env.NEXT_PUBLIC_YOUTUBE_URL ?? "", Icon: YoutubeIcon },
-].filter((s) => s.href);
+  { label: "Instagram", href: "https://instagram.com/vidlix.in", Icon: InstagramIcon },
+  { label: "Facebook", href: "https://facebook.com/vidlix.in", Icon: FacebookIcon },
+  { label: "X (Twitter)", href: "https://x.com/vidlix", Icon: XIcon },
+];
 
 const COLUMNS: Array<{ title: string; links: Array<{ href: string; label: string; external?: boolean }> }> = [
   {
