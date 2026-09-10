@@ -39,6 +39,7 @@ enum UserStatus {
 model User {
   id                String     @id @default(cuid())
   email             String     @unique
+  name              String?
   phone             String?
   passwordHash      String     @map("password_hash")
   status            UserStatus @default(PENDING_VERIFICATION)

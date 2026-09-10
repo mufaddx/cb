@@ -6,7 +6,7 @@ import { startBackgroundJobs, stopBackgroundJobs } from "./jobs/scheduler";
 const app = createApp();
 
 const server = app.listen(env.PORT, () => {
-  logger.info(`Antigravity API listening on :${env.PORT} (${env.NODE_ENV})`);
+  logger.info(`Vidlix API listening on :${env.PORT} (${env.NODE_ENV})`);
   startBackgroundJobs();
 });
 

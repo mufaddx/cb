@@ -1,7 +1,12 @@
 import { z } from "zod";
 
 export const SignupSchema = z.object({
+  name: z.string().trim().min(2, "Enter your full name"),
   email: z.string().email(),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^[6-9]\d{9}$/, "Enter a valid 10-digit mobile number"),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")

@@ -10,7 +10,8 @@
     "migrate:dev": "prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy",
     "studio": "prisma studio",
-    "seed": "ts-node src/seed.ts"
+    "seed": "ts-node src/seed.ts",
+    "create-admin": "ts-node src/create-admin.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.18.0"

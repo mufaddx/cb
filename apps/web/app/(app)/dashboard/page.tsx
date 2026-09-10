@@ -7,6 +7,7 @@ import { apiFetch, ApiClientError } from "@/lib/apiClient";
 interface Me {
   id: string;
   email: string;
+  name: string | null;
   roles: string[];
   brand: { companyName: string } | null;
   creator: { displayName: string } | null;
@@ -49,7 +50,7 @@ export default function DashboardPage() {
   return (
     <>
       <main className="container" style={{ padding: "48px 24px" }}>
-        <h1>Good morning, {me.brand?.companyName ?? me.creator?.displayName ?? me.email}</h1>
+        <h1>Good morning, {me.brand?.companyName ?? me.creator?.displayName ?? me.name ?? me.email}</h1>
         <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 24 }}>
           <div className="card" style={{ maxWidth: 360, flex: "1 1 280px" }}>
             <h3>Wallet</h3>

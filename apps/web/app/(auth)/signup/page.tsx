@@ -20,7 +20,9 @@ function SignupForm() {
   const defaultType = params.get("as") === "creator" ? "CREATOR" : "BRAND";
 
   const [accountType, setAccountType] = useState<"BRAND" | "CREATOR">(defaultType);
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -34,7 +36,7 @@ function SignupForm() {
       await apiFetch("/api/auth/signup", {
         method: "POST",
         auth: false,
-        body: { email, password, accountType },
+        body: { name, email, phone, password, accountType },
       });
       router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
     } catch (err) {
@@ -73,8 +75,25 @@ function SignupForm() {
       </div>
 
       <form onSubmit={handleSubmit}>
+        <label className="label" htmlFor="name">Full name</label>
+        <input id="name" className="input" type="text" required value={name} onChange={(e) => setName(e.target.value)} style={{ marginBottom: 16 }} />
+
         <label className="label" htmlFor="email">Email</label>
         <input id="email" className="input" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} style={{ marginBottom: 16 }} />
+
+        <label className="label" htmlFor="phone">Mobile number</label>
+        <input
+          id="phone"
+          className="input"
+          type="tel"
+          inputMode="numeric"
+          required
+          placeholder="10-digit mobile number"
+          maxLength={10}
+          value={phone}
+          onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+          style={{ marginBottom: 16 }}
+        />
 
         <label className="label" htmlFor="password">Password</label>
         <div style={{ position: "relative", marginBottom: 8 }}>

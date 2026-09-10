@@ -60,7 +60,13 @@ export async function signup(prisma: PrismaClient, input: SignupInput) {
   const user = await prisma.$transaction(async (tx) => {
     const role = await tx.role.findUniqueOrThrow({ where: { name: roleName } });
     const created = await tx.user.create({
-      data: { email: input.email, passwordHash, status: UserStatus.PENDING_VERIFICATION },
+      data: {
+        email: input.email,
+        name: input.name,
+        phone: input.phone,
+        passwordHash,
+        status: UserStatus.PENDING_VERIFICATION,
+      },
     });
     await tx.userRole.create({ data: { userId: created.id, roleId: role.id } });
     await recordAudit(tx, {
@@ -77,9 +83,9 @@ export async function signup(prisma: PrismaClient, input: SignupInput) {
   const code = await issueOtp(prisma, user.id, OtpPurpose.EMAIL_VERIFICATION);
   await getEmailProvider().send({
     to: user.email,
-    subject: "Verify your email — Antigravity",
-    html: `<p>Your verification code is <strong>${code}</strong>. It expires in ${env.OTP_TTL_MINUTES} minutes.</p>`,
-    text: `Your verification code is ${code}. It expires in ${env.OTP_TTL_MINUTES} minutes.`,
+    subject: "Verify your email — Vidlix",
+    html: `<p>Hi ${user.name},</p><p>Your Vidlix verification code is <strong>${code}</strong>. It expires in ${env.OTP_TTL_MINUTES} minutes.</p>`,
+    text: `Hi ${user.name}, your Vidlix verification code is ${code}. It expires in ${env.OTP_TTL_MINUTES} minutes.`,
   });
 
   return { userId: user.id, maskedEmail: maskEmail(user.email) };
@@ -91,11 +97,12 @@ export async function resendOtp(prisma: PrismaClient, email: string) {
   if (!user || user.emailVerifiedAt) return { maskedEmail: maskEmail(email) };
 
   const code = await issueOtp(prisma, user.id, OtpPurpose.EMAIL_VERIFICATION);
+  const greeting = user.name ? `Hi ${user.name},` : "Hi,";
   await getEmailProvider().send({
     to: user.email,
-    subject: "Your new verification code — Antigravity",
-    html: `<p>Your verification code is <strong>${code}</strong>. It expires in ${env.OTP_TTL_MINUTES} minutes.</p>`,
-    text: `Your verification code is ${code}.`,
+    subject: "Your new verification code — Vidlix",
+    html: `<p>${greeting}</p><p>Your Vidlix verification code is <strong>${code}</strong>. It expires in ${env.OTP_TTL_MINUTES} minutes.</p>`,
+    text: `${greeting} Your Vidlix verification code is ${code}.`,
   });
   return { maskedEmail: maskEmail(email) };
 }
@@ -193,11 +200,12 @@ export async function forgotPassword(prisma: PrismaClient, email: string) {
     entityType: "User",
     entityId: user.id,
   });
+  const greeting = user.name ? `Hi ${user.name},` : "Hi,";
   await getEmailProvider().send({
     to: user.email,
-    subject: "Reset your password — Antigravity",
-    html: `<p>Your password reset code is <strong>${code}</strong>. It expires in ${env.OTP_TTL_MINUTES} minutes. If you didn't request this, you can ignore this email.</p>`,
-    text: `Your password reset code is ${code}. It expires in ${env.OTP_TTL_MINUTES} minutes. If you didn't request this, you can ignore this email.`,
+    subject: "Reset your password — Vidlix",
+    html: `<p>${greeting}</p><p>Your Vidlix password reset code is <strong>${code}</strong>. It expires in ${env.OTP_TTL_MINUTES} minutes. If you didn't request this, you can ignore this email.</p>`,
+    text: `${greeting} Your Vidlix password reset code is ${code}. It expires in ${env.OTP_TTL_MINUTES} minutes. If you didn't request this, you can ignore this email.`,
   });
   return { maskedEmail: maskEmail(email) };
 }
@@ -261,6 +269,7 @@ async function issueTokensFor(prisma: PrismaClient, userId: string) {
     user: {
       id: user.id,
       email: user.email,
+      name: user.name,
       roles,
       hasBrandProfile: Boolean(user.brand),
       hasCreatorProfile: Boolean(user.creator),

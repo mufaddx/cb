@@ -21,7 +21,7 @@ const EnvSchema = z.object({
 
   EMAIL_PROVIDER: z.enum(["console", "resend"]).default("console"),
   RESEND_API_KEY: z.string().optional(),
-  RESEND_FROM_EMAIL: z.string().default("Antigravity <notifications@yourdomain.com>"),
+  RESEND_FROM_EMAIL: z.string().default("Vidlix <notifications@yourdomain.com>"),
 
   STORAGE_PROVIDER: z.enum(["local", "r2"]).default("local"),
   R2_ACCOUNT_ID: z.string().optional(),

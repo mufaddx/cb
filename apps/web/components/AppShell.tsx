@@ -24,6 +24,7 @@ const CREATOR_NAV = [
 
 interface Me {
   email: string;
+  name: string | null;
   brand: { companyName: string } | null;
   creator: { displayName: string } | null;
 }
@@ -50,7 +51,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const accountType = me?.brand ? "BRAND" : me?.creator ? "CREATOR" : null;
   const nav = accountType === "BRAND" ? BRAND_NAV : accountType === "CREATOR" ? CREATOR_NAV : [];
-  const displayName = me?.brand?.companyName ?? me?.creator?.displayName ?? me?.email ?? "";
+  const displayName = me?.brand?.companyName ?? me?.creator?.displayName ?? me?.name ?? me?.email ?? "";
   const initial = displayName ? displayName.trim().charAt(0).toUpperCase() : "";
 
   function logout() {

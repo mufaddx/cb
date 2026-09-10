@@ -62,6 +62,8 @@ export async function meHandler(req: Request, res: Response) {
   sendSuccess(res, {
     id: user.id,
     email: user.email,
+    name: user.name,
+    phone: user.phone,
     roles: user.roles.map((r) => r.role.name),
     brand: user.brand,
     creator: user.creator,
