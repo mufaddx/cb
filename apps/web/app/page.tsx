@@ -83,9 +83,10 @@ export default function HomePage() {
             Brands launch clipping, creator content, and product review campaigns. Creators accept, deliver, and get
             paid — with verification and retention tracked end to end.
           </p>
-          <div className="animate-fade-up" style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap", animationDelay: "0.18s" }}>
+          <div className="hero-cta animate-fade-up" style={{ display: "flex", gap: 14, justifyContent: "center", animationDelay: "0.18s" }}>
             <a
               href={`${APP_URL}/signup?as=brand`}
+              className="hero-cta-btn"
               style={{
                 background: "var(--color-text)",
                 color: "var(--color-white)",
@@ -95,12 +96,14 @@ export default function HomePage() {
                 fontSize: 15.5,
                 boxShadow: "var(--shadow-lg)",
                 transition: "transform var(--duration-fast) ease",
+                whiteSpace: "nowrap",
               }}
             >
-              Create a Campaign →
+              Create a Campaign
             </a>
             <a
               href={`${APP_URL}/signup?as=creator`}
+              className="hero-cta-btn"
               style={{
                 background: "var(--color-white)",
                 border: "1px solid var(--color-border-strong)",
@@ -108,6 +111,7 @@ export default function HomePage() {
                 borderRadius: "var(--radius-control)",
                 fontWeight: 600,
                 fontSize: 15.5,
+                whiteSpace: "nowrap",
               }}
             >
               Join as a Creator

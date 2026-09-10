@@ -393,4 +393,18 @@ a {
     margin-left: 0 !important;
     padding-top: 52px;
   }
+
+  /* Hero CTA buttons (Create a Campaign / Join as a Creator): at
+     desktop size they're free to wrap onto separate lines, but on a
+     phone width they should read as one deliberate button pair, not
+     one stacked above the other. Shrunk to actually fit side by side
+     down to narrow phones. */
+  .hero-cta {
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+  }
+  .hero-cta-btn {
+    padding: 12px 14px !important;
+    font-size: 13.5px !important;
+  }
 }
