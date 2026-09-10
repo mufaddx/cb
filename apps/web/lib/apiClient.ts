@@ -59,7 +59,13 @@ export async function apiFetch<T>(
   return json.data;
 }
 
-export type UploadPurpose = "post-screenshot" | "creator-content" | "shipment-proof" | "kyc-document" | "withdrawal-proof";
+export type UploadPurpose =
+  | "post-screenshot"
+  | "creator-content"
+  | "campaign-asset"
+  | "shipment-proof"
+  | "kyc-document"
+  | "withdrawal-proof";
 
 /**
  * Real multipart upload to `POST /api/uploads` — returns the storage
