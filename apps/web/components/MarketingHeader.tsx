@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SparkIcon } from "./icons";
 
 // Login/signup live on the app domain (see middleware.ts), so from
 // the marketing site they must be a real cross-origin link, not a
@@ -17,34 +18,62 @@ const NAV = [
 
 export function MarketingHeader() {
   return (
-    <header style={{ borderBottom: "1px solid var(--color-border)" }}>
-      <div className="container" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px" }}>
-        <Link href="/" style={{ fontSize: 20, fontWeight: 700, color: "var(--color-text)" }}>
-          Antigravity
+    <header
+      style={{
+        position: "sticky",
+        top: 0,
+        zIndex: 50,
+        borderBottom: "1px solid var(--color-border)",
+        background: "rgba(246, 247, 251, 0.82)",
+        backdropFilter: "blur(10px)",
+        WebkitBackdropFilter: "blur(10px)",
+      }}
+    >
+      <div className="container" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 24px" }}>
+        <Link href="/" style={{ display: "flex", alignItems: "center", gap: 9, color: "var(--color-text)" }}>
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 30,
+              height: 30,
+              borderRadius: 8,
+              background: "var(--gradient-brand)",
+              boxShadow: "var(--shadow-glow)",
+              flexShrink: 0,
+            }}
+          >
+            <SparkIcon width={17} height={17} stroke="#fff" />
+          </span>
+          <span style={{ fontSize: 19, fontWeight: 750, letterSpacing: "-0.02em" }}>Vidlix</span>
         </Link>
-        <nav style={{ display: "flex", gap: 22, alignItems: "center" }}>
+        <nav className="desktop-only" style={{ display: "flex", gap: 26, alignItems: "center" }}>
           {NAV.map((item) => (
-            <Link key={item.href} href={item.href} style={{ fontSize: 14, color: "var(--color-text)" }}>
+            <Link key={item.href} href={item.href} style={{ fontSize: 14, fontWeight: 500, color: "var(--color-text-secondary)" }}>
               {item.label}
             </Link>
           ))}
-          <a href={`${APP_URL}/login`} style={{ fontSize: 14, color: "var(--color-text)" }}>
-            Login
+        </nav>
+        <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+          <a href={`${APP_URL}/login`} className="desktop-only" style={{ fontSize: 14, fontWeight: 500, color: "var(--color-text)" }}>
+            Log in
           </a>
           <a
             href={`${APP_URL}/signup`}
             style={{
-              background: "var(--color-primary)",
+              background: "var(--color-text)",
               color: "var(--color-white)",
-              padding: "10px 18px",
+              padding: "9px 18px",
               borderRadius: "var(--radius-control)",
               fontWeight: 600,
               fontSize: 14,
+              transition: "background-color var(--duration-fast) ease",
             }}
           >
             Get Started
           </a>
-        </nav>
+        </div>
       </div>
     </header>
   );

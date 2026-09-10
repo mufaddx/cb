@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Button } from "../../components/Button";
-import { AppHeader } from "../../components/AppHeader";
-import { apiFetch, ApiClientError } from "../../lib/apiClient";
+import { Button } from "@/components/Button";
+import { apiFetch, ApiClientError } from "@/lib/apiClient";
 
 interface Campaign {
   id: string;
@@ -46,7 +45,6 @@ export default function CampaignsPage() {
 
   return (
     <>
-      <AppHeader />
       <main className="container" style={{ padding: "48px 24px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <h1>Campaigns</h1>

@@ -1,44 +1,76 @@
-/* Antigravity design system tokens (spec §05). Centralized here —
-   every component reads colors/spacing from these variables rather
-   than hardcoding hex values, so the palette can move in one place. */
+/* Vidlix design system tokens (spec §05). Centralized here — every
+   component reads colors/spacing/motion from these variables rather
+   than hardcoding values, so the look can move in one place. */
 
 :root {
-  --color-bg: #f7f8fa;
-  --color-dark: #0b1020;
+  --color-bg: #f6f7fb;
+  --color-bg-subtle: #eef0f7;
+  --color-dark: #0b0f1a;
+  --color-dark-elevated: #12172a;
   --color-white: #ffffff;
+
   --color-primary: #4f46e5;
   --color-primary-hover: #4338ca;
   --color-primary-active: #3730a3;
+  --color-primary-soft: #eef0fe;
+  --color-accent: #06b6d4;
+
   --color-success: #16a34a;
+  --color-success-soft: #ecfdf3;
   --color-warning: #f59e0b;
+  --color-warning-soft: #fffaeb;
   --color-danger: #dc2626;
   --color-danger-hover: #b91c1c;
+  --color-danger-soft: #fef2f2;
+
   --color-text: #111827;
   --color-text-secondary: #6b7280;
+  --color-text-faint: #9ca3af;
   --color-border: #e5e7eb;
+  --color-border-strong: #d1d5db;
 
-  --radius-card: 14px;
+  --gradient-brand: linear-gradient(135deg, #4f46e5 0%, #6366f1 45%, #06b6d4 100%);
+  --gradient-hero-bg: radial-gradient(60% 55% at 15% 0%, rgba(79, 70, 229, 0.14) 0%, rgba(79, 70, 229, 0) 60%),
+    radial-gradient(50% 45% at 100% 10%, rgba(6, 182, 212, 0.12) 0%, rgba(6, 182, 212, 0) 60%);
+
+  --radius-card: 16px;
   --radius-control: 10px;
+  --radius-pill: 999px;
+
+  --shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.04);
   --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
+  --shadow-md: 0 4px 10px rgba(16, 24, 40, 0.06), 0 2px 4px rgba(16, 24, 40, 0.04);
+  --shadow-lg: 0 12px 32px rgba(16, 24, 40, 0.10), 0 4px 10px rgba(16, 24, 40, 0.05);
+  --shadow-glow: 0 8px 24px rgba(79, 70, 229, 0.25);
 
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 0.15s;
+  --duration-base: 0.25s;
 
-  --h1-size: 56px;
-  --h2-size: 36px;
+  --sidebar-width: 260px;
+
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  --h1-size: 60px;
+  --h2-size: 38px;
   --h3-size: 26px;
-  --body-size: 15px;
+  --body-size: 15.5px;
 }
 
 @media (max-width: 768px) {
   :root {
-    --h1-size: 34px;
-    --h2-size: 26px;
+    --h1-size: 36px;
+    --h2-size: 27px;
     --h3-size: 21px;
   }
 }
 
 * {
   box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 html,
@@ -49,15 +81,18 @@ body {
   color: var(--color-text);
   font-family: var(--font-sans);
   font-size: var(--body-size);
-  line-height: 1.5;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 h1,
 h2,
 h3 {
   margin: 0 0 0.5em;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-weight: 750;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
   color: var(--color-text);
 }
 h1 {
@@ -68,6 +103,7 @@ h2 {
 }
 h3 {
   font-size: var(--h3-size);
+  letter-spacing: -0.015em;
 }
 
 a {
@@ -76,7 +112,7 @@ a {
 }
 
 .container {
-  max-width: 1120px;
+  max-width: 1160px;
   margin: 0 auto;
   padding: 0 24px;
 }
@@ -87,6 +123,51 @@ a {
   border-radius: var(--radius-card);
   padding: 24px;
   box-shadow: var(--shadow-card);
+  transition: box-shadow var(--duration-base) var(--ease-out), transform var(--duration-base) var(--ease-out), border-color var(--duration-base) var(--ease-out);
+}
+
+.card-interactive:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border-strong);
+  transform: translateY(-2px);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-subtle);
+  color: var(--color-text-secondary);
+}
+.badge-success {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+.badge-warning {
+  background: var(--color-warning-soft);
+  color: #92620a;
+}
+.badge-danger {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
 }
 
 .input {
@@ -98,7 +179,7 @@ a {
   font-family: var(--font-sans);
   color: var(--color-text);
   background: var(--color-white);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
 }
 .input:focus {
   outline: none;
@@ -136,6 +217,63 @@ a {
   overflow-x: auto;
 }
 
+/* ---- Scroll-reveal + entrance animation utilities ----
+   Applied via a tiny client component (see RevealOnScroll.tsx) that
+   toggles `.is-visible` through IntersectionObserver; everything is a
+   plain CSS transition so it costs nothing when JS hasn't run yet
+   (elements are still visible by default — see the reduced-motion
+   and no-JS fallback below) and respects prefers-reduced-motion. */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-up {
+  animation: fadeInUp 0.6s var(--ease-out) both;
+}
+
+@keyframes floatSlow {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+.animate-float {
+  animation: floatSlow 6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .animate-float {
+    animation: none;
+  }
+}
+
 /* Mobile is not a shrunken desktop layout (spec §66): swap primary
    nav for a fixed bottom nav, tighten spacing, and always leave room
    at the bottom of the page so content isn't hidden behind it. */
@@ -164,29 +302,40 @@ a {
     padding-bottom: 64px;
   }
 
-  /* Admin console (spec §71): the 240px sidebar becomes a horizontal
-     scrolling strip at the top instead of a shrunken vertical one. */
-  .admin-shell {
+  /* Admin console + app shell (spec §71): the fixed sidebar becomes a
+     horizontal scrolling strip at the top instead of a shrunken
+     vertical one. */
+  .admin-shell,
+  .app-shell {
     flex-direction: column;
   }
-  .admin-sidebar {
+  .admin-sidebar,
+  .app-sidebar {
+    position: static !important;
     width: 100% !important;
+    height: auto !important;
     flex-direction: row !important;
     align-items: center;
     padding: 10px 12px !important;
     overflow-x: auto;
     gap: 12px;
   }
-  .admin-sidebar-title {
+  .admin-sidebar-title,
+  .app-sidebar-title {
     margin-bottom: 0 !important;
     flex-shrink: 0;
   }
-  .admin-nav {
+  .admin-nav,
+  .app-sidebar-nav {
     flex-direction: row !important;
     flex: none !important;
   }
-  .admin-sidebar-footer {
+  .admin-sidebar-footer,
+  .app-sidebar-footer {
     display: none;
   }
+  .admin-content,
+  .app-content {
+    margin-left: 0 !important;
+  }
 }
-

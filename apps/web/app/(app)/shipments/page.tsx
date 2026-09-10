@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Button } from "../../components/Button";
-import { AppHeader } from "../../components/AppHeader";
-import { apiFetch, ApiClientError } from "../../lib/apiClient";
+import { Button } from "@/components/Button";
+import { apiFetch, ApiClientError } from "@/lib/apiClient";
 
 interface Assignment {
   id: string;
@@ -61,7 +60,6 @@ export default function ShipmentsPage() {
 
   return (
     <>
-      <AppHeader />
       <main className="container" style={{ padding: "48px 24px" }}>
         <h1>Shipments</h1>
         <p className="helper-text" style={{ marginBottom: 20 }}>Product Review campaigns across all your campaigns.</p>

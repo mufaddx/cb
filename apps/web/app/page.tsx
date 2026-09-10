@@ -1,14 +1,28 @@
 import { MarketingHeader } from "../components/MarketingHeader";
 import { MarketingFooter } from "../components/MarketingFooter";
+import { RevealOnScroll } from "../components/RevealOnScroll";
+import { HandshakeIcon, MegaphoneIcon, PackageIcon } from "../components/icons";
 
 // Signup lives on the app domain (see middleware.ts) — a plain <a>,
 // not next/link, since this page is served from the marketing domain.
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "";
 
 const campaignTypes = [
-  { title: "Clipping", description: "Creators re-cut and post brand-supplied video for reach, under defined usage rights." },
-  { title: "Creator Content", description: "Creators produce original content to a brief, with revisions and approval built in." },
-  { title: "Product Review", description: "Brands ship a physical product; creators review it on receipt." },
+  {
+    icon: MegaphoneIcon,
+    title: "Clipping",
+    description: "Creators re-cut and post brand-supplied video for reach, under defined usage rights.",
+  },
+  {
+    icon: HandshakeIcon,
+    title: "Creator Content",
+    description: "Creators produce original content to a brief, with revisions and approval built in.",
+  },
+  {
+    icon: PackageIcon,
+    title: "Product Review",
+    description: "Brands ship a physical product; creators review it on receipt.",
+  },
 ];
 
 const steps = [
@@ -19,76 +33,238 @@ const steps = [
   { title: "Verify & Pay Out", description: "Content and retention are verified before payout is released." },
 ];
 
+const stats = [
+  { value: "3", label: "campaign formats" },
+  { value: "100%", label: "tracked to payout" },
+  { value: "0", label: "spreadsheets required" },
+];
+
 export default function HomePage() {
   return (
     <main>
       <MarketingHeader />
 
-      <section className="container" style={{ padding: "72px 24px", textAlign: "center" }}>
-        <h1 style={{ maxWidth: 820, margin: "0 auto 20px" }}>Turn Your Campaign Into Creator-Powered Reach.</h1>
-        <p style={{ maxWidth: 620, margin: "0 auto 32px", color: "var(--color-text-secondary)", fontSize: 17 }}>
-          Brands launch clipping, creator content, and product review campaigns. Creators accept, deliver, and get
-          paid — with verification and retention tracked end to end.
-        </p>
-        <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
-          <a
-            href={`${APP_URL}/signup?as=brand`}
-            style={{ background: "var(--color-primary)", color: "var(--color-white)", padding: "14px 24px", borderRadius: "var(--radius-control)", fontWeight: 600 }}
+      <section
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          background: "var(--gradient-hero-bg), var(--color-bg)",
+        }}
+      >
+        <div
+          className="animate-float"
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            top: "-120px",
+            right: "-100px",
+            width: 360,
+            height: 360,
+            borderRadius: "50%",
+            background: "var(--gradient-brand)",
+            opacity: 0.14,
+            filter: "blur(10px)",
+          }}
+        />
+        <div className="container" style={{ position: "relative", padding: "104px 24px 88px", textAlign: "center" }}>
+          <div className="animate-fade-up" style={{ display: "flex", justifyContent: "center" }}>
+            <span className="eyebrow">Built for Indian creator campaigns</span>
+          </div>
+          <h1 className="animate-fade-up" style={{ maxWidth: 860, margin: "22px auto 22px", animationDelay: "0.06s" }}>
+            Turn your campaign into <span style={{ backgroundImage: "var(--gradient-brand)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>creator-powered reach</span>.
+          </h1>
+          <p
+            className="animate-fade-up"
+            style={{ maxWidth: 620, margin: "0 auto 36px", color: "var(--color-text-secondary)", fontSize: 18, animationDelay: "0.12s" }}
           >
-            Create a Campaign
-          </a>
-          <a
-            href={`${APP_URL}/signup?as=creator`}
-            style={{ background: "var(--color-white)", border: "1px solid var(--color-border)", padding: "14px 24px", borderRadius: "var(--radius-control)", fontWeight: 600 }}
-          >
-            Join as a Creator
-          </a>
-        </div>
-      </section>
-
-      <section className="container" style={{ padding: "48px 24px" }}>
-        <h2 style={{ textAlign: "center", marginBottom: 32 }}>How It Works</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 20 }}>
-          {steps.map((s, i) => (
-            <div key={s.title} className="card">
-              <div style={{ color: "var(--color-primary)", fontWeight: 700, fontSize: 13, marginBottom: 6 }}>STEP {i + 1}</div>
-              <h3 style={{ fontSize: 17 }}>{s.title}</h3>
-              <p style={{ color: "var(--color-text-secondary)", margin: 0, fontSize: 14 }}>{s.description}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section id="campaign-types" className="container" style={{ padding: "48px 24px" }}>
-        <h2 style={{ textAlign: "center", marginBottom: 32 }}>Campaign Types</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 20 }}>
-          {campaignTypes.map((c) => (
-            <div key={c.title} className="card">
-              <h3>{c.title}</h3>
-              <p style={{ color: "var(--color-text-secondary)", margin: 0 }}>{c.description}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="container" style={{ padding: "48px 24px" }}>
-        <div className="card" style={{ textAlign: "center", padding: 40 }}>
-          <h2 style={{ marginBottom: 12 }}>Ready to get started?</h2>
-          <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
+            Brands launch clipping, creator content, and product review campaigns. Creators accept, deliver, and get
+            paid — with verification and retention tracked end to end.
+          </p>
+          <div className="animate-fade-up" style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap", animationDelay: "0.18s" }}>
             <a
               href={`${APP_URL}/signup?as=brand`}
-              style={{ background: "var(--color-primary)", color: "var(--color-white)", padding: "12px 22px", borderRadius: "var(--radius-control)", fontWeight: 600 }}
+              style={{
+                background: "var(--color-text)",
+                color: "var(--color-white)",
+                padding: "15px 26px",
+                borderRadius: "var(--radius-control)",
+                fontWeight: 600,
+                fontSize: 15.5,
+                boxShadow: "var(--shadow-lg)",
+                transition: "transform var(--duration-fast) ease",
+              }}
             >
-              Create a Campaign
+              Create a Campaign →
             </a>
             <a
               href={`${APP_URL}/signup?as=creator`}
-              style={{ background: "var(--color-white)", border: "1px solid var(--color-border)", padding: "12px 22px", borderRadius: "var(--radius-control)", fontWeight: 600 }}
+              style={{
+                background: "var(--color-white)",
+                border: "1px solid var(--color-border-strong)",
+                padding: "15px 26px",
+                borderRadius: "var(--radius-control)",
+                fontWeight: 600,
+                fontSize: 15.5,
+              }}
             >
               Join as a Creator
             </a>
           </div>
+
+          <div
+            className="animate-fade-up"
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: 48,
+              marginTop: 64,
+              flexWrap: "wrap",
+              animationDelay: "0.24s",
+            }}
+          >
+            {stats.map((s) => (
+              <div key={s.label}>
+                <div style={{ fontSize: 32, fontWeight: 750, letterSpacing: "-0.02em" }}>{s.value}</div>
+                <div style={{ fontSize: 13, color: "var(--color-text-secondary)", fontWeight: 500 }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
+      </section>
+
+      <section className="container" style={{ padding: "88px 24px 56px" }}>
+        <RevealOnScroll>
+          <div style={{ textAlign: "center", marginBottom: 44 }}>
+            <span className="eyebrow" style={{ marginBottom: 14 }}>How it works</span>
+            <h2 style={{ marginTop: 14 }}>From brief to payout, on one rail</h2>
+            <p style={{ color: "var(--color-text-secondary)", fontSize: 16, maxWidth: 520, margin: "0 auto" }}>
+              Every campaign moves through the same verified pipeline — no step gets skipped, and nothing gets lost in a DM thread.
+            </p>
+          </div>
+        </RevealOnScroll>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 20 }}>
+          {steps.map((s, i) => (
+            <RevealOnScroll key={s.title} delayMs={i * 70}>
+              <div className="card card-interactive" style={{ height: "100%" }}>
+                <div
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 30,
+                    height: 30,
+                    borderRadius: 8,
+                    background: "var(--color-primary-soft)",
+                    color: "var(--color-primary)",
+                    fontWeight: 700,
+                    fontSize: 13,
+                    marginBottom: 14,
+                  }}
+                >
+                  {i + 1}
+                </div>
+                <h3 style={{ fontSize: 16.5 }}>{s.title}</h3>
+                <p style={{ color: "var(--color-text-secondary)", margin: 0, fontSize: 14, lineHeight: 1.6 }}>{s.description}</p>
+              </div>
+            </RevealOnScroll>
+          ))}
+        </div>
+      </section>
+
+      <section id="campaign-types" className="container" style={{ padding: "56px 24px" }}>
+        <RevealOnScroll>
+          <div style={{ textAlign: "center", marginBottom: 44 }}>
+            <span className="eyebrow" style={{ marginBottom: 14 }}>Campaign types</span>
+            <h2 style={{ marginTop: 14 }}>Three formats. One platform.</h2>
+          </div>
+        </RevealOnScroll>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 22 }}>
+          {campaignTypes.map((c, i) => {
+            const Icon = c.icon;
+            return (
+              <RevealOnScroll key={c.title} delayMs={i * 90}>
+                <div className="card card-interactive" style={{ height: "100%", padding: 28 }}>
+                  <div
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: 44,
+                      height: 44,
+                      borderRadius: 12,
+                      background: "var(--gradient-brand)",
+                      marginBottom: 18,
+                    }}
+                  >
+                    <Icon width={22} height={22} stroke="#fff" />
+                  </div>
+                  <h3>{c.title}</h3>
+                  <p style={{ color: "var(--color-text-secondary)", margin: 0, fontSize: 14.5, lineHeight: 1.65 }}>{c.description}</p>
+                </div>
+              </RevealOnScroll>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="container" style={{ padding: "72px 24px 96px" }}>
+        <RevealOnScroll>
+          <div
+            style={{
+              position: "relative",
+              overflow: "hidden",
+              borderRadius: 24,
+              padding: "56px 40px",
+              textAlign: "center",
+              background: "var(--color-dark)",
+              color: "#fff",
+            }}
+          >
+            <div
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: "radial-gradient(60% 80% at 50% 0%, rgba(79,70,229,0.35) 0%, rgba(79,70,229,0) 70%)",
+              }}
+            />
+            <div style={{ position: "relative" }}>
+              <h2 style={{ color: "#fff", marginBottom: 12 }}>Ready to get started?</h2>
+              <p style={{ color: "rgba(255,255,255,0.68)", marginBottom: 30, fontSize: 16 }}>
+                Launch your first campaign or accept your first offer today.
+              </p>
+              <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
+                <a
+                  href={`${APP_URL}/signup?as=brand`}
+                  style={{
+                    background: "#fff",
+                    color: "var(--color-dark)",
+                    padding: "14px 24px",
+                    borderRadius: "var(--radius-control)",
+                    fontWeight: 600,
+                    fontSize: 15,
+                  }}
+                >
+                  Create a Campaign
+                </a>
+                <a
+                  href={`${APP_URL}/signup?as=creator`}
+                  style={{
+                    background: "rgba(255,255,255,0.08)",
+                    border: "1px solid rgba(255,255,255,0.25)",
+                    color: "#fff",
+                    padding: "14px 24px",
+                    borderRadius: "var(--radius-control)",
+                    fontWeight: 600,
+                    fontSize: 15,
+                  }}
+                >
+                  Join as a Creator
+                </a>
+              </div>
+            </div>
+          </div>
+        </RevealOnScroll>
       </section>
 
       <MarketingFooter />

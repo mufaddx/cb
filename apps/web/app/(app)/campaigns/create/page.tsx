@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "../../../components/Button";
-import { AppHeader } from "../../../components/AppHeader";
-import { apiFetch, ApiClientError, uploadFile } from "../../../lib/apiClient";
+import { Button } from "@/components/Button";
+import { apiFetch, ApiClientError, uploadFile } from "@/lib/apiClient";
 
 type CampaignType = "CLIPPING" | "CREATOR_CONTENT" | "PRODUCT_REVIEW";
 
@@ -115,7 +114,6 @@ export default function CreateCampaignPage() {
 
   return (
     <>
-      <AppHeader />
       <main className="container" style={{ padding: "48px 24px", maxWidth: 640 }}>
         <h1>Create Campaign</h1>
         <p className="helper-text" style={{ marginBottom: 24 }}>

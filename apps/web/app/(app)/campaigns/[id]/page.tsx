@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Button } from "../../../components/Button";
-import { AppHeader } from "../../../components/AppHeader";
-import { apiFetch, ApiClientError } from "../../../lib/apiClient";
-import { useConfirm } from "../../../lib/useConfirm";
+import { Button } from "@/components/Button";
+import { apiFetch, ApiClientError } from "@/lib/apiClient";
+import { useConfirm } from "@/lib/useConfirm";
 
 interface Campaign {
   id: string;
@@ -150,7 +149,6 @@ export default function CampaignDetailPage() {
 
   return (
     <>
-      <AppHeader />
       <main className="container" style={{ padding: "48px 24px", maxWidth: 880 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: 24 }}>
           <div>

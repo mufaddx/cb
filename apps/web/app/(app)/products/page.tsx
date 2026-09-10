@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button } from "../../components/Button";
-import { AppHeader } from "../../components/AppHeader";
-import { apiFetch, ApiClientError } from "../../lib/apiClient";
+import { Button } from "@/components/Button";
+import { apiFetch, ApiClientError } from "@/lib/apiClient";
 
 interface Product {
   id: string;
@@ -67,7 +66,6 @@ export default function ProductsPage() {
 
   return (
     <>
-      <AppHeader />
       <main className="container" style={{ padding: "48px 24px", maxWidth: 720 }}>
         <h1>Products</h1>
         <p className="helper-text" style={{ marginBottom: 20 }}>Needed to launch a Product Review campaign.</p>

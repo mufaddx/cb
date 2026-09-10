@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button } from "../../components/Button";
-import { AppHeader } from "../../components/AppHeader";
-import { apiFetch, ApiClientError } from "../../lib/apiClient";
+import { Button } from "@/components/Button";
+import { apiFetch, ApiClientError } from "@/lib/apiClient";
 
 interface Offer {
   id: string;
@@ -67,7 +66,6 @@ export default function OffersPage() {
 
   return (
     <>
-      <AppHeader />
       <main className="container" style={{ padding: "48px 24px", maxWidth: 720 }}>
         <h1>Campaign Offers</h1>
 

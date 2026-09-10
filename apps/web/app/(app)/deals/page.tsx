@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button } from "../../components/Button";
-import { AppHeader } from "../../components/AppHeader";
-import { apiFetch, ApiClientError, uploadFile } from "../../lib/apiClient";
+import { Button } from "@/components/Button";
+import { apiFetch, ApiClientError, uploadFile } from "@/lib/apiClient";
 
 interface Shipment {
   status: string;
@@ -136,7 +135,6 @@ export default function DealsPage() {
 
   return (
     <>
-      <AppHeader />
       <main className="container" style={{ padding: "48px 24px", maxWidth: 720 }}>
         <h1>My Deals</h1>
 

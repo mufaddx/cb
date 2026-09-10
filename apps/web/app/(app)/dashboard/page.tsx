@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AppHeader } from "../../components/AppHeader";
-import { apiFetch, ApiClientError } from "../../lib/apiClient";
+import { apiFetch, ApiClientError } from "@/lib/apiClient";
 
 interface Me {
   id: string;
@@ -49,7 +48,6 @@ export default function DashboardPage() {
 
   return (
     <>
-      <AppHeader />
       <main className="container" style={{ padding: "48px 24px" }}>
         <h1>Good morning, {me.brand?.companyName ?? me.creator?.displayName ?? me.email}</h1>
         <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 24 }}>
