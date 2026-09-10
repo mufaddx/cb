@@ -54,6 +54,11 @@ export async function resetPasswordHandler(req: Request, res: Response) {
   sendSuccess(res, result, "Password reset successfully.");
 }
 
+export async function logoutHandler(req: Request, res: Response) {
+  await authService.logout(prisma, req.auth!.sub);
+  sendSuccess(res, null, "Logged out.");
+}
+
 export async function meHandler(req: Request, res: Response) {
   const user = await prisma.user.findUniqueOrThrow({
     where: { id: req.auth!.sub },

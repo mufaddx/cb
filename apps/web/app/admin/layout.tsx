@@ -283,6 +283,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
             <button
               onClick={() => {
+                apiFetch("/api/auth/logout", { method: "POST" }).catch(() => null);
                 clearTokens();
                 router.push("/login");
               }}

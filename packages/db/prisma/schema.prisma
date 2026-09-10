@@ -42,6 +42,13 @@ model User {
   name              String?
   phone             String?
   passwordHash      String     @map("password_hash")
+  // Bumped on logout/password reset to invalidate every outstanding
+  // refresh token at once — checked only during refresh (not on every
+  // access-token-authenticated request), so a "logged out" session
+  // stops working as soon as its 15-minute access token expires,
+  // instead of the refresh token staying valid for its full 30 days
+  // with no way to revoke it server-side.
+  tokenVersion      Int        @default(0) @map("token_version")
   status            UserStatus @default(PENDING_VERIFICATION)
   emailVerifiedAt   DateTime?  @map("email_verified_at")
   lastLoginAt       DateTime?  @map("last_login_at")

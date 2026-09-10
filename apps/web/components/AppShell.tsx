@@ -79,6 +79,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pageTitle = nav.find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))?.label ?? "";
 
   function logout() {
+    // Best-effort — invalidates the refresh token server-side so it
+    // can't be reused if it were ever stolen, but the local tokens are
+    // cleared and the redirect happens regardless of whether this call
+    // succeeds (the user should never get stuck unable to log out
+    // just because the API was briefly unreachable).
+    apiFetch("/api/auth/logout", { method: "POST" }).catch(() => null);
     clearTokens();
     router.push("/login");
   }

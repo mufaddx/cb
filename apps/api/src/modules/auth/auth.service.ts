@@ -206,8 +206,30 @@ export async function login(prisma: PrismaClient, email: string, password: strin
 }
 
 export async function refreshTokens(prisma: PrismaClient, refreshToken: string) {
-  const { sub: userId } = verifyRefreshToken(refreshToken);
+  const { sub: userId, tokenVersion } = verifyRefreshToken(refreshToken);
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user || user.tokenVersion !== tokenVersion) {
+    // Either the account is gone, or this refresh token predates a
+    // logout/password reset that bumped tokenVersion — reject either
+    // way rather than silently minting a fresh session for it.
+    throw new UnauthenticatedError("Invalid refresh token");
+  }
   return issueTokensFor(prisma, userId);
+}
+
+/** Invalidates every refresh token issued before this call — the
+ * only real way to make "log out" mean something for a stateless JWT
+ * refresh token, which otherwise stays valid for its full 30-day
+ * life with no server-side way to revoke it. */
+export async function logout(prisma: PrismaClient, userId: string) {
+  await prisma.user.update({ where: { id: userId }, data: { tokenVersion: { increment: 1 } } });
+  await recordAudit(prisma, {
+    actorId: userId,
+    actorRole: null,
+    action: AuditAction.USER_LOGGED_OUT,
+    entityType: "User",
+    entityId: userId,
+  });
 }
 
 export async function forgotPassword(prisma: PrismaClient, email: string) {
@@ -256,7 +278,10 @@ export async function resetPassword(prisma: PrismaClient, email: string, code: s
   const passwordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
   await prisma.$transaction(async (tx) => {
     await tx.otpCode.update({ where: { id: otp.id }, data: { consumedAt: new Date() } });
-    await tx.user.update({ where: { id: user.id }, data: { passwordHash } });
+    // Bumping tokenVersion here logs out every other session too — if
+    // the password needed resetting, any refresh token issued before
+    // now should stop working, not stay valid until it naturally expires.
+    await tx.user.update({ where: { id: user.id }, data: { passwordHash, tokenVersion: { increment: 1 } } });
     await recordAudit(tx, {
       actorId: user.id,
       actorRole: null,
@@ -284,7 +309,7 @@ async function issueTokensFor(prisma: PrismaClient, userId: string) {
     brandId: user.brand?.id,
     creatorId: user.creator?.id,
   });
-  const refreshToken = signRefreshToken(user.id);
+  const refreshToken = signRefreshToken(user.id, user.tokenVersion);
 
   return {
     accessToken,

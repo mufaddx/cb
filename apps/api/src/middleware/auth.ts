@@ -29,18 +29,18 @@ export function signAccessToken(payload: AccessTokenPayload): string {
   return jwt.sign(payload, env.JWT_SECRET, { expiresIn: env.JWT_ACCESS_TTL as ExpiresIn });
 }
 
-export function signRefreshToken(userId: string): string {
-  return jwt.sign({ sub: userId, type: "refresh" }, env.JWT_SECRET, {
+export function signRefreshToken(userId: string, tokenVersion: number): string {
+  return jwt.sign({ sub: userId, type: "refresh", tokenVersion }, env.JWT_SECRET, {
     expiresIn: env.JWT_REFRESH_TTL as ExpiresIn,
   });
 }
 
-export function verifyRefreshToken(token: string): { sub: string } {
+export function verifyRefreshToken(token: string): { sub: string; tokenVersion: number } {
   const decoded = jwt.verify(token, env.JWT_SECRET) as jwt.JwtPayload;
-  if (decoded.type !== "refresh" || typeof decoded.sub !== "string") {
+  if (decoded.type !== "refresh" || typeof decoded.sub !== "string" || typeof decoded.tokenVersion !== "number") {
     throw new UnauthenticatedError("Invalid refresh token");
   }
-  return { sub: decoded.sub };
+  return { sub: decoded.sub, tokenVersion: decoded.tokenVersion };
 }
 
 /** Populates req.auth from a valid Bearer token; does not require one. */
