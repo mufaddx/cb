@@ -27,8 +27,9 @@ export interface RetentionCheckResult {
  * reserved at the campaign level; releasing them back to the brand is
  * the refund/dispute slice, not yet built).
  *
- * No background scheduler exists yet — see `runDueRetentionChecks`
- * for the admin-triggered batch entry point that stands in for one.
+ * `runDueRetentionChecks` is the batch entry point the in-process
+ * scheduler (jobs/scheduler.ts) calls on a timer; it's also usable
+ * directly (e.g. from an admin action) since it's idempotent.
  */
 export async function runRetentionCheck(prisma: PrismaClient, assignmentId: string): Promise<RetentionCheckResult> {
   const assignment = await prisma.campaignAssignment.findUnique({

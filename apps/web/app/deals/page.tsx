@@ -19,7 +19,7 @@ interface Assignment {
   postUrl: string | null;
   retentionStatus: string;
   retentionRequiredUntil: string | null;
-  campaign: { title: string; code: string; type: "CLIPPING" | "CREATOR_CONTENT" | "PRODUCT_REVIEW" };
+  campaign: { id: string; title: string; code: string; type: "CLIPPING" | "CREATOR_CONTENT" | "PRODUCT_REVIEW" };
   shipment: Shipment | null;
   shippingAddress: unknown | null;
 }
@@ -42,6 +42,8 @@ export default function DealsPage() {
 
   // Per-assignment draft state for the various inline forms below.
   const [urlDraft, setUrlDraft] = useState<Record<string, string>>({});
+  const [notesDraft, setNotesDraft] = useState<Record<string, string>>({});
+  const [screenshotKeyDraft, setScreenshotKeyDraft] = useState<Record<string, string>>({});
   const [addressDraft, setAddressDraft] = useState<Record<string, Record<string, string>>>({});
   const [contentKeyDraft, setContentKeyDraft] = useState<Record<string, string>>({});
 
@@ -68,7 +70,35 @@ export default function DealsPage() {
   function submitPost(id: string) {
     const postUrl = urlDraft[id];
     if (!postUrl) return;
-    run(id, () => apiFetch(`/api/assignments/${id}/submit-post`, { method: "POST", body: { postUrl } }));
+    run(id, () =>
+      apiFetch(`/api/assignments/${id}/submit-post`, {
+        method: "POST",
+        body: { postUrl, screenshotKey: screenshotKeyDraft[id], notes: notesDraft[id] },
+      })
+    );
+  }
+
+  async function pickAndUploadScreenshot(id: string, file: File | undefined) {
+    if (!file) return;
+    setBusy(id);
+    setError(null);
+    try {
+      const { key } = await uploadFile(file, "post-screenshot");
+      setScreenshotKeyDraft((prev) => ({ ...prev, [id]: key }));
+    } catch (err) {
+      setError(err instanceof ApiClientError ? err.message : "Screenshot upload failed.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function downloadSourceAsset(campaignId: string) {
+    try {
+      const { url } = await apiFetch<{ url: string }>(`/api/campaigns/${campaignId}/source-asset`);
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (err) {
+      setError(err instanceof ApiClientError ? err.message : "Couldn't get the source video.");
+    }
   }
 
   function submitAddress(id: string) {
@@ -133,14 +163,36 @@ export default function DealsPage() {
                   </div>
                 </div>
 
-                {/* --- Clipping: submit an Instagram post URL --- */}
+                {/* --- Clipping: download the brand's source video, then submit an Instagram post URL --- */}
+                {a.campaign.type === "CLIPPING" && (
+                  <div style={{ marginTop: 16 }}>
+                    <Button variant="secondary" onClick={() => downloadSourceAsset(a.campaign.id)}>
+                      Download Content
+                    </Button>
+                  </div>
+                )}
                 {a.campaign.type === "CLIPPING" && a.status === "POST_PENDING" && (
-                  <div style={{ marginTop: 16, display: "flex", gap: 8 }}>
+                  <div style={{ marginTop: 12 }}>
                     <input
                       className="input"
                       placeholder="https://instagram.com/p/..."
                       value={urlDraft[a.id] ?? ""}
                       onChange={(e) => setUrlDraft((prev) => ({ ...prev, [a.id]: e.target.value }))}
+                      style={{ marginBottom: 8 }}
+                    />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => pickAndUploadScreenshot(a.id, e.target.files?.[0])}
+                      style={{ marginBottom: 8, fontSize: 13, display: "block" }}
+                    />
+                    {screenshotKeyDraft[a.id] && <p className="helper-text" style={{ marginTop: -4 }}>Screenshot attached.</p>}
+                    <textarea
+                      className="input"
+                      placeholder="Notes (optional)"
+                      value={notesDraft[a.id] ?? ""}
+                      onChange={(e) => setNotesDraft((prev) => ({ ...prev, [a.id]: e.target.value }))}
+                      style={{ marginBottom: 8, minHeight: 60, resize: "vertical", fontFamily: "inherit" }}
                     />
                     <Button loading={busy === a.id} onClick={() => submitPost(a.id)}>
                       Submit Post

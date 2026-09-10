@@ -20,13 +20,21 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX
 const PURPOSE_PREFIXES: Record<string, string> = {
   "post-screenshot": "screenshots",
   "creator-content": "creator-submissions", // Creator Content / Product Review video/photo submissions
+  "campaign-asset": "campaign-assets", // Clipping source video the brand supplies (spec §19 step 02, §20)
   "shipment-proof": "shipping",
   "kyc-document": "evidence",
   "withdrawal-proof": "payment-proofs",
 };
 
 const QuerySchema = z.object({
-  purpose: z.enum(["post-screenshot", "creator-content", "shipment-proof", "kyc-document", "withdrawal-proof"]),
+  purpose: z.enum([
+    "post-screenshot",
+    "creator-content",
+    "campaign-asset",
+    "shipment-proof",
+    "kyc-document",
+    "withdrawal-proof",
+  ]),
 });
 
 router.post(

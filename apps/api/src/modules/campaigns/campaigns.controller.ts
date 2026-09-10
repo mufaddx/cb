@@ -4,6 +4,7 @@ import { sendSuccess } from "../../lib/apiResponse";
 import { UnauthorizedError, ValidationError } from "../../lib/errors";
 import * as campaignsService from "./campaigns.service";
 import { CreateCampaignSchema, RejectCampaignSchema } from "./campaigns.validation";
+import { getStorageProvider } from "../../services/storage";
 
 function requireBrandId(req: Request): string {
   if (!req.auth?.brandId) throw new UnauthorizedError("This action requires a brand profile");
@@ -53,6 +54,15 @@ export async function getCampaignOffersHandler(req: Request, res: Response) {
     orderBy: { offeredAt: "desc" },
   });
   sendSuccess(res, offers);
+}
+
+export async function getCampaignSourceAssetHandler(req: Request, res: Response) {
+  const key = await campaignsService.getCampaignSourceAssetKey(prisma, req.params.id, {
+    brandId: req.auth?.brandId,
+    creatorId: req.auth?.creatorId,
+  });
+  const url = await getStorageProvider().getSignedDownloadUrl(key);
+  sendSuccess(res, { url });
 }
 
 export async function submitCampaignHandler(req: Request, res: Response) {

@@ -252,6 +252,41 @@ export async function getCampaignForAdmin(prisma: PrismaClient, campaignId: stri
   return campaign;
 }
 
+/**
+ * Signed download URL for the Clipping source video (spec §19 step 02
+ * upload, §20's "Source Asset" card, §21's "Download Content" for the
+ * accepted creator). The key lives in `briefJson.sourceAssetKey` since
+ * only Clipping campaigns have one — there's no dedicated column.
+ *
+ * Access is limited to the owning brand or a creator who has actually
+ * accepted an offer on this campaign (a CampaignAssignment row only
+ * ever exists post-acceptance — see schema.prisma), never anyone who
+ * merely received an offer.
+ */
+export async function getCampaignSourceAssetKey(
+  prisma: PrismaClient,
+  campaignId: string,
+  auth: { brandId?: string; creatorId?: string }
+): Promise<string> {
+  const campaign = await prisma.campaign.findUnique({ where: { id: campaignId } });
+  if (!campaign) throw new NotFoundError("Campaign not found");
+
+  if (auth.brandId) {
+    if (campaign.brandId !== auth.brandId) throw new UnauthorizedError();
+  } else if (auth.creatorId) {
+    const assignment = await prisma.campaignAssignment.findFirst({
+      where: { campaignId, creatorId: auth.creatorId },
+    });
+    if (!assignment) throw new UnauthorizedError("Accept this campaign's offer to access its source asset.");
+  } else {
+    throw new UnauthorizedError();
+  }
+
+  const key = (campaign.briefJson as Record<string, unknown> | null)?.sourceAssetKey;
+  if (typeof key !== "string" || !key) throw new NotFoundError("This campaign has no source asset.");
+  return key;
+}
+
 /** Admin review queue (spec §45): campaigns awaiting a decision. */
 export async function listCampaignReviewQueue(prisma: PrismaClient) {
   return prisma.campaign.findMany({

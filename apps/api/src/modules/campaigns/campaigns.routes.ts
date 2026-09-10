@@ -27,6 +27,10 @@ router.get(
   asyncHandler(controller.getCampaignHandler)
 );
 router.get("/:id/offers", requirePermission(Permission.CAMPAIGN_READ_OWN), asyncHandler(controller.getCampaignOffersHandler));
+// No single permission fits both callers (owning brand vs. an
+// accepted creator) — getCampaignSourceAssetKey does the real
+// authorization check itself, so this just requires *some* login.
+router.get("/:id/source-asset", asyncHandler(controller.getCampaignSourceAssetHandler));
 router.post("/:id/submit", requirePermission(Permission.CAMPAIGN_CREATE_OWN), asyncHandler(controller.submitCampaignHandler));
 router.post("/:id/cancel", requirePermission(Permission.CAMPAIGN_CANCEL_OWN), asyncHandler(controller.cancelCampaignHandler));
 

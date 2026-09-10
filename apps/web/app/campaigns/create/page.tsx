@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "../../../components/Button";
 import { AppHeader } from "../../../components/AppHeader";
-import { apiFetch, ApiClientError } from "../../../lib/apiClient";
+import { apiFetch, ApiClientError, uploadFile } from "../../../lib/apiClient";
 
 type CampaignType = "CLIPPING" | "CREATOR_CONTENT" | "PRODUCT_REVIEW";
 
@@ -38,6 +38,22 @@ export default function CreateCampaignPage() {
   const [slabs, setSlabs] = useState<Slab[]>([{ minValue: "10000", maxValue: "50000", payoutAmount: "800", quantity: "1" }]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sourceAssetKey, setSourceAssetKey] = useState<string | null>(null);
+  const [uploadingAsset, setUploadingAsset] = useState(false);
+
+  async function pickSourceAsset(file: File | undefined) {
+    if (!file) return;
+    setUploadingAsset(true);
+    setError(null);
+    try {
+      const { key } = await uploadFile(file, "campaign-asset");
+      setSourceAssetKey(key);
+    } catch (err) {
+      setError(err instanceof ApiClientError ? err.message : "Video upload failed.");
+    } finally {
+      setUploadingAsset(false);
+    }
+  }
 
   useEffect(() => {
     if (type === "PRODUCT_REVIEW") {
@@ -63,6 +79,10 @@ export default function CreateCampaignPage() {
       setError("Select a product for this Product Review campaign.");
       return;
     }
+    if (type === "CLIPPING" && !sourceAssetKey) {
+      setError("Upload the source video creators will clip and post.");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -76,6 +96,7 @@ export default function CreateCampaignPage() {
           retentionDays: Number(retentionDays),
           disclosureRequired,
           productId: type === "PRODUCT_REVIEW" ? productId : undefined,
+          briefJson: type === "CLIPPING" ? { sourceAssetKey } : undefined,
           targetingSlabs: slabs.map((s) => ({
             minValue: Number(s.minValue),
             maxValue: s.maxValue ? Number(s.maxValue) : null,
@@ -136,6 +157,24 @@ export default function CreateCampaignPage() {
             onChange={(e) => setDescription(e.target.value)}
             style={{ marginBottom: 16, minHeight: 90, resize: "vertical", fontFamily: "inherit" }}
           />
+
+          {type === "CLIPPING" && (
+            <>
+              <label className="label">Source video</label>
+              <p className="helper-text" style={{ marginBottom: 8 }}>
+                The raw footage creators will re-cut and post (spec §19 step 02, §20). Required before you can save.
+              </p>
+              <input
+                type="file"
+                accept="video/*"
+                onChange={(e) => pickSourceAsset(e.target.files?.[0])}
+                style={{ marginBottom: 4, fontSize: 13 }}
+              />
+              {uploadingAsset && <p className="helper-text">Uploading…</p>}
+              {sourceAssetKey && !uploadingAsset && <p className="helper-text">Uploaded — ready to save.</p>}
+              <div style={{ marginBottom: 16 }} />
+            </>
+          )}
 
           {type === "PRODUCT_REVIEW" && (
             <>
