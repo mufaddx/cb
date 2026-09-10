@@ -32,6 +32,8 @@ const APP_PATH_PREFIXES = [
   "/login",
   "/signup",
   "/verify-otp",
+  "/forgot-password",
+  "/reset-password",
 ];
 
 function isAppPath(pathname: string): boolean {

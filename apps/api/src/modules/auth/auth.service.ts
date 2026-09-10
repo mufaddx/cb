@@ -180,6 +180,66 @@ export async function refreshTokens(prisma: PrismaClient, refreshToken: string) 
   return issueTokensFor(prisma, userId);
 }
 
+export async function forgotPassword(prisma: PrismaClient, email: string) {
+  const user = await prisma.user.findUnique({ where: { email } });
+  // Do not reveal whether the account exists — same response either way.
+  if (!user) return { maskedEmail: maskEmail(email) };
+
+  const code = await issueOtp(prisma, user.id, OtpPurpose.PASSWORD_RESET);
+  await recordAudit(prisma, {
+    actorId: user.id,
+    actorRole: null,
+    action: AuditAction.USER_PASSWORD_RESET_REQUESTED,
+    entityType: "User",
+    entityId: user.id,
+  });
+  await getEmailProvider().send({
+    to: user.email,
+    subject: "Reset your password — Antigravity",
+    html: `<p>Your password reset code is <strong>${code}</strong>. It expires in ${env.OTP_TTL_MINUTES} minutes. If you didn't request this, you can ignore this email.</p>`,
+    text: `Your password reset code is ${code}. It expires in ${env.OTP_TTL_MINUTES} minutes. If you didn't request this, you can ignore this email.`,
+  });
+  return { maskedEmail: maskEmail(email) };
+}
+
+export async function resetPassword(prisma: PrismaClient, email: string, code: string, newPassword: string) {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) throw new ValidationError("Invalid or expired code");
+
+  const otp = await prisma.otpCode.findFirst({
+    where: { userId: user.id, purpose: OtpPurpose.PASSWORD_RESET, consumedAt: null },
+    orderBy: { createdAt: "desc" },
+  });
+  if (!otp) throw new ValidationError("Invalid or expired code");
+  if (otp.expiresAt < new Date()) throw new ValidationError("This code has expired. Request a new one.");
+  if (otp.attempts >= otp.maxAttempts) {
+    throw new RateLimitedError("Too many incorrect attempts. Request a new code.");
+  }
+
+  const valid = await bcrypt.compare(code, otp.codeHash);
+  if (!valid) {
+    await prisma.otpCode.update({ where: { id: otp.id }, data: { attempts: { increment: 1 } } });
+    throw new ValidationError("Incorrect code");
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+  await prisma.$transaction(async (tx) => {
+    await tx.otpCode.update({ where: { id: otp.id }, data: { consumedAt: new Date() } });
+    await tx.user.update({ where: { id: user.id }, data: { passwordHash } });
+    await recordAudit(tx, {
+      actorId: user.id,
+      actorRole: null,
+      action: AuditAction.USER_PASSWORD_RESET,
+      entityType: "User",
+      entityId: user.id,
+    });
+  });
+
+  // Log the user straight in — they just proved control of the account
+  // via the emailed code, same trust level as a normal password login.
+  return issueTokensFor(prisma, user.id);
+}
+
 async function issueTokensFor(prisma: PrismaClient, userId: string) {
   const user = await prisma.user.findUniqueOrThrow({
     where: { id: userId },

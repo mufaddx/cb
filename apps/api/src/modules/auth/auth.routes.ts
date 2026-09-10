@@ -16,6 +16,8 @@ router.post("/otp/resend", otpLimiter, asyncHandler(controller.resendOtpHandler)
 router.post("/otp/verify", otpLimiter, asyncHandler(controller.verifyOtpHandler));
 router.post("/login", authLimiter, asyncHandler(controller.loginHandler));
 router.post("/refresh", authLimiter, asyncHandler(controller.refreshHandler));
+router.post("/password/forgot", otpLimiter, asyncHandler(controller.forgotPasswordHandler));
+router.post("/password/reset", otpLimiter, asyncHandler(controller.resetPasswordHandler));
 router.get("/me", requireAuth, asyncHandler(controller.meHandler));
 
 export default router;
