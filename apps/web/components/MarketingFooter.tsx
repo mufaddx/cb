@@ -60,8 +60,8 @@ export function MarketingFooter() {
   return (
     <footer style={{ borderTop: "1px solid var(--color-border)", marginTop: 48, background: "var(--color-white)" }}>
       <div className="container" style={{ padding: "48px 24px 32px" }}>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "32px 64px", marginBottom: 36 }}>
-          <div style={{ flex: "1 1 240px" }}>
+        <div className="footer-columns" style={{ display: "grid", gridTemplateColumns: "1.3fr repeat(4, 1fr)", gap: "28px 40px" }}>
+          <div className="footer-brand-col">
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
               <span
                 style={{
@@ -79,38 +79,35 @@ export function MarketingFooter() {
               </span>
               <span style={{ fontWeight: 750, fontSize: 15, letterSpacing: "-0.02em" }}>Vidlix</span>
             </div>
-            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", maxWidth: 260, margin: "0 0 16px" }}>
-              Creator campaigns, run end to end — matching, verification, and payouts on one platform.
+            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: "0 0 14px", whiteSpace: "nowrap" }}>
+              Creator campaigns, run end to end.
             </p>
+            {SOCIAL_LINKS.length > 0 && (
+              <div style={{ display: "flex", gap: 10 }}>
+                {SOCIAL_LINKS.map(({ label, href, Icon }) => (
+                  <a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: 32,
+                      height: 32,
+                      borderRadius: 9,
+                      background: "var(--color-bg-subtle)",
+                      color: "var(--color-text-secondary)",
+                    }}
+                  >
+                    <Icon width={16} height={16} />
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
-          {SOCIAL_LINKS.length > 0 && (
-            <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-              {SOCIAL_LINKS.map(({ label, href, Icon }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={label}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: 36,
-                    height: 36,
-                    borderRadius: 9,
-                    background: "var(--color-bg-subtle)",
-                    color: "var(--color-text-secondary)",
-                  }}
-                >
-                  <Icon width={17} height={17} />
-                </a>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="footer-columns" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "28px 40px" }}>
           {COLUMNS.map((col) => (
             <div key={col.title}>
               <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 10 }}>{col.title}</div>

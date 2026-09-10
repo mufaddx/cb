@@ -408,10 +408,14 @@ a {
     font-size: 13.5px !important;
   }
 
-  /* Footer link columns (Platform/Get Started/Company/Legal): one
-     row of 4 at desktop width, but 4 equal columns squeeze unreadably
-     narrow on a phone — paired 2-per-row there instead. */
+  /* Footer: brand+socials sits beside the 4 link columns in one row
+     at desktop width; on a phone that's 5 columns fighting for space,
+     so the brand block spans the full row on top and the link
+     columns pair up 2-per-row underneath instead. */
   .footer-columns {
     grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .footer-brand-col {
+    grid-column: 1 / -1;
   }
 }
