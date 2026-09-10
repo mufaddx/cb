@@ -1,11 +1,12 @@
-import { SparkIcon } from "@/components/icons";
+import { ArrowLeftIcon } from "@/components/icons";
 
 // Login/signup/etc. live entirely on app.vidlix.in (see middleware.ts)
 // with no marketing chrome of their own, so there was previously no
 // way back to the marketing site short of the browser's own back
-// button — nothing if the page was opened directly. The logo here is
+// button — nothing if the page was opened directly. This icon is
 // that way back, as a real cross-origin <a> (not next/link — a
-// different domain, same reasoning as MarketingHeader).
+// different domain, same reasoning as MarketingHeader). Just the
+// icon, not a full logo header bar — the card is the page here.
 const MARKETING_URL = process.env.NEXT_PUBLIC_MARKETING_URL || "https://vidlix.in";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -14,34 +15,34 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       style={{
         minHeight: "100vh",
         display: "flex",
-        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "24px",
         background: "var(--gradient-hero-bg), var(--color-bg)",
       }}
     >
-      <header style={{ padding: "22px 24px" }}>
-        <a href={MARKETING_URL} style={{ display: "inline-flex", alignItems: "center", gap: 9, color: "var(--color-text)" }}>
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 28,
-              height: 28,
-              borderRadius: 8,
-              background: "var(--gradient-brand)",
-              flexShrink: 0,
-            }}
-          >
-            <SparkIcon width={16} height={16} stroke="#fff" />
-          </span>
-          <span style={{ fontSize: 17, fontWeight: 750, letterSpacing: "-0.02em" }}>Vidlix</span>
+      <div className="card" style={{ position: "relative", width: "100%", maxWidth: 440, padding: "40px 36px" }}>
+        <a
+          href={MARKETING_URL}
+          aria-label="Back to vidlix.in"
+          title="Back to vidlix.in"
+          style={{
+            position: "absolute",
+            top: 18,
+            left: 18,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 32,
+            height: 32,
+            borderRadius: 8,
+            color: "var(--color-text-secondary)",
+            background: "var(--color-bg-subtle)",
+          }}
+        >
+          <ArrowLeftIcon width={17} height={17} />
         </a>
-      </header>
-
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
-        <div className="card" style={{ width: "100%", maxWidth: 440, padding: "40px 36px" }}>
-          {children}
-        </div>
+        <div style={{ paddingTop: 30 }}>{children}</div>
       </div>
     </div>
   );
