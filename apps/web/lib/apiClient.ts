@@ -1,6 +1,29 @@
 "use client";
 
-import type { ApiResponse } from "@antigravity/shared";
+// Inlined from packages/shared/src/api.ts (spec §61's API envelope) rather
+// than imported from @antigravity/shared: apps/web deploys on Vercel with
+// Root Directory = apps/web, which does not see sibling workspace packages
+// unless "Include source files outside of the Root Directory" is enabled
+// project-by-project on the dashboard. This was the single type this app
+// used from that package, so inlining it removes the dependency — and the
+// recurring `Cannot find module '@antigravity/shared'` build failure —
+// entirely, with nothing left to configure in Vercel.
+interface ApiSuccess<T> {
+  success: true;
+  data: T;
+  message?: string;
+  requestId: string;
+}
+
+interface ApiError {
+  success: false;
+  errorCode: string;
+  message: string;
+  details?: unknown;
+  requestId: string;
+}
+
+type ApiResponse<T> = ApiSuccess<T> | ApiError;
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
