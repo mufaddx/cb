@@ -39,15 +39,15 @@ export function Button({ variant = "primary", loading = false, disabled, childre
           font-weight: 600;
           font-family: var(--font-sans);
           cursor: pointer;
-          border: 1px solid transparent;
-          transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.05s ease;
+          border: none;
+          transition: background-color 0.15s ease, color 0.15s ease, transform 0.05s ease;
         }
         .btn:active:not(:disabled) {
           transform: translateY(1px);
         }
         .btn:focus-visible {
-          outline: none;
-          box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.35);
+          outline: 2px solid var(--color-primary);
+          outline-offset: 2px;
         }
         .btn:disabled {
           cursor: not-allowed;
@@ -66,12 +66,11 @@ export function Button({ variant = "primary", loading = false, disabled, childre
         }
 
         .btn-secondary {
-          background: var(--color-white);
+          background: var(--color-bg-subtle);
           color: var(--color-text);
-          border-color: var(--color-border);
         }
         .btn-secondary:hover:not(:disabled) {
-          background: var(--color-bg);
+          background: var(--color-border);
         }
 
         .btn-danger {

@@ -12,6 +12,7 @@ const MARKETING_URL = process.env.NEXT_PUBLIC_MARKETING_URL || "https://vidlix.i
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div
+      className="auth-shell"
       style={{
         minHeight: "100vh",
         display: "flex",
@@ -21,7 +22,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         background: "var(--gradient-hero-bg), var(--color-bg)",
       }}
     >
-      <div className="card" style={{ position: "relative", width: "100%", maxWidth: 440, padding: "40px 36px" }}>
+      <div className="card auth-card" style={{ position: "relative", width: "100%", maxWidth: 440, padding: "40px 36px" }}>
         <a
           href={MARKETING_URL}
           aria-label="Back to vidlix.in"

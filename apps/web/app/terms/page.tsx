@@ -24,7 +24,7 @@ export default function TermsPage() {
         <span className="eyebrow" style={{ marginBottom: 16 }}>Legal</span>
         <h1 style={{ marginTop: 12 }}>Terms of Service</h1>
 
-        <div className="card" style={{ marginBottom: 32, background: "var(--color-warning-soft)", borderColor: "#f2d49a" }}>
+        <div className="card" style={{ marginBottom: 32, background: "var(--color-warning-soft)" }}>
           <strong>This is an early, working draft.</strong> It describes how the platform actually behaves today. It
           has not yet been reviewed by qualified legal counsel, and accepting it does not claim to create an
           automatically enforceable contract until it has been.

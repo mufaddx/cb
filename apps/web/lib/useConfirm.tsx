@@ -88,7 +88,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
             if (e.target === e.currentTarget) close(null);
           }}
         >
-          <div className="card" style={{ maxWidth: 440, width: "100%", boxShadow: "0 12px 32px rgba(0,0,0,0.2)" }}>
+          <div className="card" style={{ maxWidth: 440, width: "100%" }}>
             <h3 style={{ margin: "0 0 8px" }}>{request.title}</h3>
             {request.description && (
               <p style={{ margin: "0 0 8px", color: "var(--color-text-secondary)", fontSize: 14 }}>{request.description}</p>

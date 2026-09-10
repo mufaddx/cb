@@ -62,8 +62,7 @@ function SignupForm() {
               flex: 1,
               textAlign: "left",
               cursor: "pointer",
-              borderColor: accountType === type ? "var(--color-primary)" : "var(--color-border)",
-              borderWidth: accountType === type ? 2 : 1,
+              background: accountType === type ? "var(--color-primary-soft)" : "var(--color-bg-subtle)",
             }}
           >
             <strong>{type === "BRAND" ? "Brand" : "Creator"}</strong>

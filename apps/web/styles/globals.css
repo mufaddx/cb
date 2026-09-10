@@ -140,7 +140,6 @@ a {
   background: rgba(246, 247, 251, 0.85);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--color-border);
   font-size: 16px;
   font-weight: 700;
   color: var(--color-text);
@@ -152,18 +151,22 @@ a {
   padding: 0 24px;
 }
 
+/* Luxury flat style (per explicit user direction): no border, no
+   drop shadow anywhere — separation from the page background comes
+   only from the white-on-off-white color contrast (--color-bg vs
+   --color-white) and generous radius/spacing, not a hairline or a
+   shadow. Applies everywhere this class is used — auth forms, and
+   every brand/creator/admin dashboard card, since they all share it. */
 .card {
   background: var(--color-white);
-  border: 1px solid var(--color-border);
+  border: none;
   border-radius: var(--radius-card);
   padding: 24px;
-  box-shadow: var(--shadow-card);
-  transition: box-shadow var(--duration-base) var(--ease-out), transform var(--duration-base) var(--ease-out), border-color var(--duration-base) var(--ease-out);
+  transition: background-color var(--duration-base) var(--ease-out), transform var(--duration-base) var(--ease-out);
 }
 
 .card-interactive:hover {
-  box-shadow: var(--shadow-md);
-  border-color: var(--color-border-strong);
+  background: var(--color-bg-subtle);
   transform: translateY(-2px);
 }
 
@@ -205,21 +208,24 @@ a {
   color: var(--color-danger);
 }
 
+/* Luxury flat input (no border, no shadow): a filled field instead of
+   an outlined box — bigger, calmer, and the fill itself darkens
+   slightly on focus so there's still a clear "active field" cue
+   without a ring or an outline. */
 .input {
   width: 100%;
-  padding: 11px 14px;
-  border: 1px solid var(--color-border);
+  padding: 14px 16px;
+  border: none;
   border-radius: var(--radius-control);
-  font-size: 15px;
+  font-size: 15.5px;
   font-family: var(--font-sans);
   color: var(--color-text);
-  background: var(--color-white);
-  transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+  background: var(--color-bg-subtle);
+  transition: background-color var(--duration-fast) ease;
 }
 .input:focus {
   outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+  background: var(--color-border);
 }
 .input:disabled {
   background: var(--color-bg);
@@ -417,5 +423,21 @@ a {
   }
   .footer-brand-col {
     grid-column: 1 / -1;
+  }
+
+  /* Auth forms (login/signup/forgot/reset/verify): the centered card
+     with outer page padding left a small floating box with wasted
+     space on both sides on a phone. Full screen instead — the form
+     itself becomes the page, no inset, no rounded edges cutting it
+     off from the screen edge. */
+  .auth-shell {
+    padding: 0 !important;
+    align-items: stretch !important;
+  }
+  .auth-card {
+    max-width: 100% !important;
+    min-height: 100vh;
+    border-radius: 0 !important;
+    padding: 28px 20px !important;
   }
 }

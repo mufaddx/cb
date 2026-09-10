@@ -24,7 +24,7 @@ export default function PrivacyPage() {
         <span className="eyebrow" style={{ marginBottom: 16 }}>Legal</span>
         <h1 style={{ marginTop: 12 }}>Privacy Policy</h1>
 
-        <div className="card" style={{ marginBottom: 32, background: "var(--color-warning-soft)", borderColor: "#f2d49a" }}>
+        <div className="card" style={{ marginBottom: 32, background: "var(--color-warning-soft)" }}>
           <strong>This is an early, working draft.</strong> It describes how the platform actually handles data
           today, in plain language. It has not yet been reviewed by qualified legal counsel and should not be
           treated as a final, binding policy.

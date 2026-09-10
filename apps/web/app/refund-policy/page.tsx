@@ -9,7 +9,7 @@ export default function RefundPolicyPage() {
         <span className="eyebrow" style={{ marginBottom: 16 }}>Legal</span>
         <h1 style={{ marginTop: 12 }}>Refund Policy</h1>
 
-        <div className="card" style={{ marginBottom: 32, background: "var(--color-warning-soft)", borderColor: "#f2d49a" }}>
+        <div className="card" style={{ marginBottom: 32, background: "var(--color-warning-soft)" }}>
           <strong>This is an early, working draft.</strong> It describes how refunds actually work on the platform
           today. It has not yet been reviewed by qualified legal counsel.
         </div>

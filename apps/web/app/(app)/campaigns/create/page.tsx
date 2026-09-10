@@ -134,8 +134,7 @@ export default function CreateCampaignPage() {
                 style={{
                   textAlign: "left",
                   cursor: "pointer",
-                  borderColor: type === t ? "var(--color-primary)" : "var(--color-border)",
-                  borderWidth: type === t ? 2 : 1,
+                  background: type === t ? "var(--color-primary-soft)" : "var(--color-bg-subtle)",
                 }}
               >
                 <strong style={{ fontSize: 14 }}>{TYPE_INFO[t].title}</strong>
