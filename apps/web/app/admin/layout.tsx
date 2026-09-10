@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch, ApiClientError, clearTokens } from "../../lib/apiClient";
 import { ConfirmProvider } from "../../lib/useConfirm";
-import { LogOutIcon, SparkIcon } from "../../components/icons";
+import { LogOutIcon, MenuIcon, SparkIcon } from "../../components/icons";
 
 const ADMIN_ROLES = ["SUPER_ADMIN", "OPERATIONS_ADMIN", "FINANCE_ADMIN", "KYC_ADMIN", "CONTENT_REVIEWER", "SUPPORT_ADMIN"];
 
@@ -50,6 +50,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const [status, setStatus] = useState<"checking" | "ok" | "denied" | "error">("checking");
   const [me, setMe] = useState<{ email: string; roles: string[] } | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Auto-close the mobile drawer whenever a nav link changes the route.
+  useEffect(() => {
+    setDrawerOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     apiFetch<{ email: string; roles: string[] }>("/api/auth/me")
@@ -112,8 +118,59 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <ConfirmProvider>
       <div className="admin-shell" style={{ display: "flex", minHeight: "100vh" }}>
+        <header
+          className="mobile-only"
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 90,
+            alignItems: "center",
+            justifyContent: "space-between",
+            height: 52,
+            padding: "0 16px",
+            background: "var(--color-dark)",
+            color: "#fff",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 24,
+                height: 24,
+                borderRadius: 7,
+                background: "var(--gradient-brand)",
+                flexShrink: 0,
+              }}
+            >
+              <SparkIcon width={13} height={13} stroke="#fff" />
+            </span>
+            <span style={{ fontSize: 15.5, fontWeight: 750 }}>Vidlix Admin</span>
+          </div>
+          <button
+            onClick={() => setDrawerOpen(true)}
+            aria-label="Open menu"
+            style={{ background: "none", border: "none", color: "#fff", padding: 8, display: "flex", borderRadius: 8 }}
+          >
+            <MenuIcon width={20} height={20} />
+          </button>
+        </header>
+
+        {drawerOpen && (
+          <div
+            className="mobile-only"
+            onClick={() => setDrawerOpen(false)}
+            aria-hidden="true"
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 190 }}
+          />
+        )}
+
         <aside
-          className="admin-sidebar"
+          className={`admin-sidebar${drawerOpen ? " is-open" : ""}`}
           style={{
             width: 252,
             flexShrink: 0,

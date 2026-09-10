@@ -85,6 +85,26 @@ export function ArrowLeftIcon(props: IconProps) {
   );
 }
 
+export function MoreIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props} fill="currentColor" stroke="none">
+      <circle cx="12" cy="5" r="1.8" />
+      <circle cx="12" cy="12" r="1.8" />
+      <circle cx="12" cy="19" r="1.8" />
+    </svg>
+  );
+}
+
+export function MenuIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 6h16" />
+      <path d="M4 12h16" />
+      <path d="M4 18h16" />
+    </svg>
+  );
+}
+
 export function LogOutIcon(props: IconProps) {
   return (
     <svg {...base} {...props}>

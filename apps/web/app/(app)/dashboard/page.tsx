@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { apiFetch, ApiClientError } from "@/lib/apiClient";
+import { InstagramConnect } from "@/components/InstagramConnect";
 
 interface Me {
   id: string;
@@ -72,13 +73,16 @@ export default function DashboardPage() {
               </Link>
             </div>
           ) : (
-            <div className="card" style={{ maxWidth: 360, flex: "1 1 280px" }}>
-              <h3>Offers</h3>
-              <p className="helper-text" style={{ marginBottom: 12 }}>See campaign offers waiting for you.</p>
-              <Link href="/offers" style={{ color: "var(--color-primary)", fontWeight: 600 }}>
-                View offers →
-              </Link>
-            </div>
+            <>
+              <InstagramConnect />
+              <div className="card" style={{ maxWidth: 360, flex: "1 1 280px" }}>
+                <h3>Offers</h3>
+                <p className="helper-text" style={{ marginBottom: 12 }}>See campaign offers waiting for you.</p>
+                <Link href="/offers" style={{ color: "var(--color-primary)", fontWeight: 600 }}>
+                  View offers →
+                </Link>
+              </div>
+            </>
           )}
         </div>
       </main>

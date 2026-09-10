@@ -1,11 +1,21 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { apiFetch, clearTokens } from "../lib/apiClient";
 import { BottomNav } from "./BottomNav";
-import { HandshakeIcon, HomeIcon, LogOutIcon, MegaphoneIcon, PackageIcon, SparkIcon, TargetIcon, WalletIcon } from "./icons";
+import {
+  HandshakeIcon,
+  HomeIcon,
+  LogOutIcon,
+  MegaphoneIcon,
+  MoreIcon,
+  PackageIcon,
+  SparkIcon,
+  TargetIcon,
+  WalletIcon,
+} from "./icons";
 
 const BRAND_NAV = [
   { href: "/dashboard", label: "Dashboard", icon: HomeIcon },
@@ -30,24 +40,37 @@ interface Me {
 }
 
 /**
- * Persistent app shell for brand/creator pages (spec §66/67) — a
- * fixed left sidebar on desktop, the existing fixed bottom nav on
- * mobile (both rendered here so a single `(app)` layout gets the
- * right one at every width via CSS, no separate mobile route). Lives
- * in the `(app)` route group's layout.tsx, so it persists across
- * client-side navigation instead of remounting per page like the old
- * per-page <AppHeader /> did.
+ * Persistent app shell for brand/creator pages (spec §66/67).
+ *
+ * Desktop gets a fixed left sidebar. Mobile does NOT get that sidebar
+ * squeezed into a horizontal strip (that was the earlier approach —
+ * it duplicated BottomNav's links in a cramped, easily-cut-off row).
+ * Instead mobile gets its own minimal top bar (logo + a "more" menu
+ * for the account/log-out actions BottomNav has no room for) and
+ * relies on BottomNav for the primary nav links, the same 4 items the
+ * sidebar shows on desktop.
  */
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [me, setMe] = useState<Me | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     apiFetch<Me>("/api/auth/me")
       .then(setMe)
       .catch(() => null);
   }, []);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function onClickAway(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    }
+    document.addEventListener("mousedown", onClickAway);
+    return () => document.removeEventListener("mousedown", onClickAway);
+  }, [menuOpen]);
 
   const accountType = me?.brand ? "BRAND" : me?.creator ? "CREATOR" : null;
   const nav = accountType === "BRAND" ? BRAND_NAV : accountType === "CREATOR" ? CREATOR_NAV : [];
@@ -62,7 +85,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="app-shell" style={{ display: "flex", minHeight: "100vh" }}>
       <aside
-        className="app-sidebar"
+        className="app-sidebar desktop-only"
         style={{
           width: "var(--sidebar-width)",
           flexShrink: 0,
@@ -73,14 +96,12 @@ export function AppShell({ children }: { children: ReactNode }) {
           background: "var(--color-dark)",
           color: "#fff",
           padding: "22px 14px",
-          display: "flex",
           flexDirection: "column",
           overflowY: "auto",
         }}
       >
         <Link
           href="/dashboard"
-          className="app-sidebar-title"
           style={{ display: "flex", alignItems: "center", gap: 9, padding: "4px 10px 26px", color: "#fff" }}
         >
           <span
@@ -100,7 +121,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <span style={{ fontSize: 17, fontWeight: 750, letterSpacing: "-0.02em" }}>Vidlix</span>
         </Link>
 
-        <nav className="app-sidebar-nav" style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1 }}>
+        <nav style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1 }}>
           {nav.map((item) => {
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
             const Icon = item.icon;
@@ -130,7 +151,6 @@ export function AppShell({ children }: { children: ReactNode }) {
         </nav>
 
         <div
-          className="app-sidebar-footer"
           style={{ borderTop: "1px solid rgba(255,255,255,0.12)", paddingTop: 14, marginTop: 14, display: "flex", alignItems: "center", gap: 10 }}
         >
           <div
@@ -161,7 +181,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 textOverflow: "ellipsis",
               }}
             >
-              {displayName || " "}
+              {displayName || " "}
             </div>
             {accountType && (
               <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.55)" }}>
@@ -187,6 +207,117 @@ export function AppShell({ children }: { children: ReactNode }) {
           </button>
         </div>
       </aside>
+
+      {/* Mobile top bar — logo + a "more" menu for account/log-out,
+          since BottomNav below only has room for the 4 nav links. */}
+      <header
+        className="mobile-only"
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 90,
+          alignItems: "center",
+          justifyContent: "space-between",
+          height: 52,
+          padding: "0 16px",
+          background: "var(--color-dark)",
+          color: "#fff",
+        }}
+      >
+        <Link href="/dashboard" style={{ display: "flex", alignItems: "center", gap: 8, color: "#fff" }}>
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 24,
+              height: 24,
+              borderRadius: 7,
+              background: "var(--gradient-brand)",
+              flexShrink: 0,
+            }}
+          >
+            <SparkIcon width={13} height={13} stroke="#fff" />
+          </span>
+          <span style={{ fontSize: 15.5, fontWeight: 750 }}>Vidlix</span>
+        </Link>
+
+        <div ref={menuRef} style={{ position: "relative" }}>
+          <button
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label="More"
+            aria-expanded={menuOpen}
+            style={{ background: "none", border: "none", color: "#fff", padding: 8, display: "flex", borderRadius: 8 }}
+          >
+            <MoreIcon width={20} height={20} />
+          </button>
+          {menuOpen && (
+            <div
+              className="card"
+              style={{
+                position: "absolute",
+                top: "calc(100% + 8px)",
+                right: 0,
+                width: 220,
+                padding: 14,
+                zIndex: 100,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                <div
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: "50%",
+                    background: "var(--color-bg-subtle)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    flexShrink: 0,
+                  }}
+                  aria-hidden="true"
+                >
+                  {initial}
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 13.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {displayName || " "}
+                  </div>
+                  {accountType && (
+                    <div style={{ fontSize: 11.5, color: "var(--color-text-secondary)" }}>
+                      {accountType === "BRAND" ? "Brand account" : "Creator account"}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={logout}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 9,
+                  background: "none",
+                  border: "none",
+                  padding: "9px 6px",
+                  borderRadius: 8,
+                  fontSize: 13.5,
+                  fontWeight: 600,
+                  color: "var(--color-danger)",
+                  cursor: "pointer",
+                }}
+              >
+                <LogOutIcon width={16} height={16} />
+                Log out
+              </button>
+            </div>
+          )}
+        </div>
+      </header>
 
       <main className="app-content" style={{ flex: 1, minWidth: 0, marginLeft: "var(--sidebar-width)" }}>
         {children}

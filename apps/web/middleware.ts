@@ -24,7 +24,6 @@ const APP_PATH_PREFIXES = [
   "/campaigns",
   "/deals",
   "/offers",
-  "/onboarding",
   "/products",
   "/shipments",
   "/wallet",
@@ -34,6 +33,8 @@ const APP_PATH_PREFIXES = [
   "/verify-otp",
   "/forgot-password",
   "/reset-password",
+  "/creator",
+  "/dev",
 ];
 
 function isAppPath(pathname: string): boolean {

@@ -8,6 +8,8 @@ import { getEmailProvider } from "../../services/email";
 import { passwordResetEmail, resendVerificationEmail, verificationEmail } from "../../services/email/templates";
 import { recordAudit } from "../audit/audit.service";
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from "../../middleware/auth";
+import { createBrandProfile } from "../brands/brands.service";
+import { createCreatorProfile } from "../creators/creators.service";
 import type { SignupInput } from "./auth.validation";
 
 const BCRYPT_ROUNDS = 12;
@@ -110,7 +112,7 @@ export async function resendOtp(prisma: PrismaClient, email: string) {
 }
 
 export async function verifyOtp(prisma: PrismaClient, email: string, code: string) {
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await prisma.user.findUnique({ where: { email }, include: { roles: { include: { role: true } } } });
   if (!user) throw new ValidationError("Invalid or expired code");
 
   const otp = await prisma.otpCode.findFirst({
@@ -143,6 +145,25 @@ export async function verifyOtp(prisma: PrismaClient, email: string, code: strin
       entityId: user.id,
     });
   });
+
+  // Signup already collected everything a brand/creator profile needs
+  // (name, account type) — asking again in a separate onboarding step
+  // was pure friction. Create the profile here, right as the account
+  // activates, so a verified user lands straight on their dashboard.
+  const roleNames = user.roles.map((r) => r.role.name);
+  const displayName = user.name ?? user.email;
+  if (roleNames.includes(Role.BRAND)) {
+    await createBrandProfile(prisma, user.id, { companyName: displayName, contactPerson: displayName, categoryIds: [] });
+  } else if (roleNames.includes(Role.CREATOR)) {
+    await createCreatorProfile(prisma, user.id, {
+      fullName: displayName,
+      displayName,
+      languages: [],
+      categoryIds: [],
+      contentFormats: [],
+      campaignPreferences: [],
+    });
+  }
 
   return issueTokensFor(prisma, user.id);
 }

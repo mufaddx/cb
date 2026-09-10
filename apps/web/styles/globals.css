@@ -302,40 +302,33 @@ a {
     padding-bottom: 64px;
   }
 
-  /* Admin console + app shell (spec §71): the fixed sidebar becomes a
-     horizontal scrolling strip at the top instead of a shrunken
-     vertical one. */
-  .admin-shell,
-  .app-shell {
-    flex-direction: column;
-  }
-  .admin-sidebar,
-  .app-sidebar {
-    position: static !important;
-    width: 100% !important;
-    height: auto !important;
-    flex-direction: row !important;
-    align-items: center;
-    padding: 10px 12px !important;
-    overflow-x: auto;
-    gap: 12px;
-  }
-  .admin-sidebar-title,
-  .app-sidebar-title {
-    margin-bottom: 0 !important;
-    flex-shrink: 0;
-  }
-  .admin-nav,
-  .app-sidebar-nav {
-    flex-direction: row !important;
-    flex: none !important;
-  }
-  .admin-sidebar-footer,
-  .app-sidebar-footer {
-    display: none;
-  }
-  .admin-content,
+  /* App shell (brand/creator): the desktop sidebar (.desktop-only) is
+     fully hidden rather than squeezed into a horizontal strip — that
+     duplicated BottomNav's links in a cramped, easily-cut-off row.
+     Mobile gets its own fixed top bar (AppShell's mobile-only header)
+     instead, and relies on BottomNav for primary navigation. */
   .app-content {
     margin-left: 0 !important;
+    padding-top: 52px;
+  }
+
+  /* Admin console: the sidebar becomes an off-canvas drawer (slides
+     in from the left over a backdrop) instead of either a shrunken
+     vertical bar or a horizontal strip — it has too many nav items
+     (13, across 4 sections) to fit any bottom nav or a single row. */
+  .admin-shell {
+    flex-direction: column;
+  }
+  .admin-sidebar {
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform var(--duration-base) var(--ease-out);
+  }
+  .admin-sidebar.is-open {
+    transform: translateX(0);
+  }
+  .admin-content {
+    margin-left: 0 !important;
+    padding-top: 52px;
   }
 }

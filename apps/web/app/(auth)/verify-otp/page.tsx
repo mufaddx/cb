@@ -43,7 +43,10 @@ function VerifyOtpForm() {
         body: { email, code },
       });
       setTokens(result.accessToken, result.refreshToken);
-      router.push("/onboarding");
+      // Signup already collected everything needed for a starter
+      // profile (name, account type) — the backend creates it as part
+      // of verification, so there's no separate onboarding gate here.
+      router.push("/dashboard");
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : "Something went wrong. Please try again.");
     } finally {
