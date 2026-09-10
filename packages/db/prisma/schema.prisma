@@ -10,17 +10,11 @@
 //    Prisma Client still exposes camelCase in TypeScript.
 
 generator client {
-  provider   = "prisma-client-js"
-  // The default "library" engine (embedded Rust addon sharing the
-  // Node process's threads) panics with "timer has gone away" under
-  // strict CPU-quota shared hosting (e.g. Hostinger/CloudLinux CageFS)
-  // where the tokio timer thread gets starved. "binary" runs the query
-  // engine as its own OS process with its own scheduler, avoiding it.
-  engineType = "binary"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

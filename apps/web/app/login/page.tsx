@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "../../components/Button";
-import { apiFetch, ApiClientError, setTokens } from "../../lib/apiClient";
+import { apiFetch, ApiClientError, getAccessToken, setTokens } from "../../lib/apiClient";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -13,6 +13,13 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // middleware.ts always sends app.vidlix.in/ here since the edge
+  // runtime can't read localStorage to know someone's already signed
+  // in — this is where that actually gets checked, client-side.
+  useEffect(() => {
+    if (getAccessToken()) router.replace("/dashboard");
+  }, [router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

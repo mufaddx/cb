@@ -1,6 +1,7 @@
-import Link from "next/link";
 import { MarketingHeader } from "../../components/MarketingHeader";
 import { MarketingFooter } from "../../components/MarketingFooter";
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "";
 
 const points = [
   { title: "Create", description: "Pick Clipping, Creator Content, or Product Review, and define your brief and targeting." },
@@ -28,9 +29,9 @@ export default function ForBrandsPage() {
             </div>
           ))}
         </div>
-        <Link href="/signup?as=brand" style={{ background: "var(--color-primary)", color: "var(--color-white)", padding: "12px 22px", borderRadius: "var(--radius-control)", fontWeight: 600 }}>
+        <a href={`${APP_URL}/signup?as=brand`} style={{ background: "var(--color-primary)", color: "var(--color-white)", padding: "12px 22px", borderRadius: "var(--radius-control)", fontWeight: 600 }}>
           Create a Campaign
-        </Link>
+        </a>
       </section>
       <MarketingFooter />
     </main>

@@ -1,6 +1,9 @@
-import Link from "next/link";
 import { MarketingHeader } from "../components/MarketingHeader";
 import { MarketingFooter } from "../components/MarketingFooter";
+
+// Signup lives on the app domain (see middleware.ts) — a plain <a>,
+// not next/link, since this page is served from the marketing domain.
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "";
 
 const campaignTypes = [
   { title: "Clipping", description: "Creators re-cut and post brand-supplied video for reach, under defined usage rights." },
@@ -28,18 +31,18 @@ export default function HomePage() {
           paid — with verification and retention tracked end to end.
         </p>
         <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
-          <Link
-            href="/signup?as=brand"
+          <a
+            href={`${APP_URL}/signup?as=brand`}
             style={{ background: "var(--color-primary)", color: "var(--color-white)", padding: "14px 24px", borderRadius: "var(--radius-control)", fontWeight: 600 }}
           >
             Create a Campaign
-          </Link>
-          <Link
-            href="/signup?as=creator"
+          </a>
+          <a
+            href={`${APP_URL}/signup?as=creator`}
             style={{ background: "var(--color-white)", border: "1px solid var(--color-border)", padding: "14px 24px", borderRadius: "var(--radius-control)", fontWeight: 600 }}
           >
             Join as a Creator
-          </Link>
+          </a>
         </div>
       </section>
 
@@ -72,18 +75,18 @@ export default function HomePage() {
         <div className="card" style={{ textAlign: "center", padding: 40 }}>
           <h2 style={{ marginBottom: 12 }}>Ready to get started?</h2>
           <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
-            <Link
-              href="/signup?as=brand"
+            <a
+              href={`${APP_URL}/signup?as=brand`}
               style={{ background: "var(--color-primary)", color: "var(--color-white)", padding: "12px 22px", borderRadius: "var(--radius-control)", fontWeight: 600 }}
             >
               Create a Campaign
-            </Link>
-            <Link
-              href="/signup?as=creator"
+            </a>
+            <a
+              href={`${APP_URL}/signup?as=creator`}
               style={{ background: "var(--color-white)", border: "1px solid var(--color-border)", padding: "12px 22px", borderRadius: "var(--radius-control)", fontWeight: 600 }}
             >
               Join as a Creator
-            </Link>
+            </a>
           </div>
         </div>
       </section>

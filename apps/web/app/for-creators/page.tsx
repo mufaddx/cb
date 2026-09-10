@@ -1,6 +1,7 @@
-import Link from "next/link";
 import { MarketingHeader } from "../../components/MarketingHeader";
 import { MarketingFooter } from "../../components/MarketingFooter";
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "";
 
 const points = [
   { title: "Connect Instagram", description: "Official OAuth connection — we never ask for your password." },
@@ -28,9 +29,9 @@ export default function ForCreatorsPage() {
             </div>
           ))}
         </div>
-        <Link href="/signup?as=creator" style={{ background: "var(--color-primary)", color: "var(--color-white)", padding: "12px 22px", borderRadius: "var(--radius-control)", fontWeight: 600 }}>
+        <a href={`${APP_URL}/signup?as=creator`} style={{ background: "var(--color-primary)", color: "var(--color-white)", padding: "12px 22px", borderRadius: "var(--radius-control)", fontWeight: 600 }}>
           Join as a Creator
-        </Link>
+        </a>
       </section>
       <MarketingFooter />
     </main>

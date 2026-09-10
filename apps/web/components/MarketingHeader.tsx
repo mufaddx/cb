@@ -1,5 +1,11 @@
 import Link from "next/link";
 
+// Login/signup live on the app domain (see middleware.ts), so from
+// the marketing site they must be a real cross-origin link, not a
+// Next <Link> (which would try a same-origin client-side transition
+// first). Empty in dev so localhost:3000 keeps working with one host.
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "";
+
 const NAV = [
   { href: "/how-it-works", label: "How It Works" },
   { href: "/for-brands", label: "For Brands" },
@@ -22,11 +28,11 @@ export function MarketingHeader() {
               {item.label}
             </Link>
           ))}
-          <Link href="/login" style={{ fontSize: 14, color: "var(--color-text)" }}>
+          <a href={`${APP_URL}/login`} style={{ fontSize: 14, color: "var(--color-text)" }}>
             Login
-          </Link>
-          <Link
-            href="/signup"
+          </a>
+          <a
+            href={`${APP_URL}/signup`}
             style={{
               background: "var(--color-primary)",
               color: "var(--color-white)",
@@ -37,7 +43,7 @@ export function MarketingHeader() {
             }}
           >
             Get Started
-          </Link>
+          </a>
         </nav>
       </div>
     </header>
