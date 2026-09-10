@@ -48,7 +48,7 @@ const NAV_SECTIONS: Array<{ title: string; items: Array<{ href: string; label: s
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [status, setStatus] = useState<"checking" | "ok" | "denied">("checking");
+  const [status, setStatus] = useState<"checking" | "ok" | "denied" | "error">("checking");
   const [me, setMe] = useState<{ email: string; roles: string[] } | null>(null);
 
   useEffect(() => {
@@ -62,14 +62,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         setStatus("ok");
       })
       .catch((err) => {
-        if (err instanceof ApiClientError) {
-          setStatus("denied");
-        }
+        // A real "you're logged in but not an admin" gets its own
+        // screen below. Anything else (the API unreachable, a network
+        // failure) previously fell through and left this stuck on
+        // "Checking access…" forever, since neither setStatus call
+        // above ever ran — this is that fallback.
+        setStatus(err instanceof ApiClientError ? "denied" : "error");
       });
   }, []);
 
   if (status === "checking") {
     return <main style={{ padding: 48 }}>Checking access…</main>;
+  }
+
+  if (status === "error") {
+    return (
+      <main style={{ padding: 48, maxWidth: 480 }}>
+        <h1 style={{ fontSize: 22 }}>Couldn&apos;t reach the server</h1>
+        <p className="helper-text" style={{ marginBottom: 20 }}>
+          The API didn&apos;t respond. Check your connection and try again.
+        </p>
+        <Link href="/login" style={{ color: "var(--color-primary)", fontWeight: 600 }}>
+          Go to login →
+        </Link>
+      </main>
+    );
   }
 
   if (status === "denied") {
