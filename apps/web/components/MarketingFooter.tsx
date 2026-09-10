@@ -1,11 +1,20 @@
 import Link from "next/link";
-import { SparkIcon } from "./icons";
+import { FacebookIcon, InstagramIcon, SparkIcon, XIcon, YoutubeIcon } from "./icons";
 
 // Same reasoning as MarketingHeader: /login and /signup live on the
 // app domain, so they need a real cross-origin <a>, not a same-origin
-// <Link>. This file previously missed that for its two signup links —
-// they'd have 404'd in production on the marketing domain.
+// <Link>.
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "";
+
+// Only real destinations — no column is padded out with placeholder
+// links just to make every column the same length. Rendered only
+// once a real URL is set, so nothing here is ever a dead link.
+const SOCIAL_LINKS: Array<{ label: string; href: string; Icon: typeof InstagramIcon }> = [
+  { label: "Instagram", href: process.env.NEXT_PUBLIC_INSTAGRAM_URL ?? "", Icon: InstagramIcon },
+  { label: "Facebook", href: process.env.NEXT_PUBLIC_FACEBOOK_URL ?? "", Icon: FacebookIcon },
+  { label: "X (Twitter)", href: process.env.NEXT_PUBLIC_X_URL ?? "", Icon: XIcon },
+  { label: "YouTube", href: process.env.NEXT_PUBLIC_YOUTUBE_URL ?? "", Icon: YoutubeIcon },
+].filter((s) => s.href);
 
 const COLUMNS: Array<{ title: string; links: Array<{ href: string; label: string; external?: boolean }> }> = [
   {
@@ -14,20 +23,24 @@ const COLUMNS: Array<{ title: string; links: Array<{ href: string; label: string
       { href: "/how-it-works", label: "How It Works" },
       { href: "/#campaign-types", label: "Campaign Types" },
       { href: "/pricing", label: "Pricing" },
+      { href: "/blog", label: "Blog" },
     ],
   },
   {
-    title: "For Brands",
+    title: "Get Started",
     links: [
       { href: "/for-brands", label: "For Brands" },
       { href: `${APP_URL}/signup?as=brand`, label: "Create a Campaign", external: true },
+      { href: "/for-creators", label: "For Creators" },
+      { href: `${APP_URL}/signup?as=creator`, label: "Join as a Creator", external: true },
     ],
   },
   {
-    title: "For Creators",
+    title: "Company",
     links: [
-      { href: "/for-creators", label: "For Creators" },
-      { href: `${APP_URL}/signup?as=creator`, label: "Join as a Creator", external: true },
+      { href: "/about", label: "About" },
+      { href: "/contact", label: "Contact" },
+      { href: "/faq", label: "FAQ" },
     ],
   },
   {
@@ -37,13 +50,6 @@ const COLUMNS: Array<{ title: string; links: Array<{ href: string; label: string
       { href: "/terms", label: "Terms of Service" },
       { href: "/refund-policy", label: "Refund Policy" },
       { href: "/disclaimer", label: "Disclaimer" },
-    ],
-  },
-  {
-    title: "Support",
-    links: [
-      { href: "/contact", label: "Contact" },
-      { href: "/faq", label: "FAQ" },
     ],
   },
 ];
@@ -73,9 +79,34 @@ export function MarketingFooter() {
             </span>
             <span style={{ fontWeight: 750, fontSize: 15, letterSpacing: "-0.02em" }}>Vidlix</span>
           </div>
-          <p style={{ fontSize: 13, color: "var(--color-text-secondary)", maxWidth: 220, margin: 0 }}>
+          <p style={{ fontSize: 13, color: "var(--color-text-secondary)", maxWidth: 220, margin: "0 0 16px" }}>
             Creator campaigns, run end to end — matching, verification, and payouts on one platform.
           </p>
+          {SOCIAL_LINKS.length > 0 && (
+            <div style={{ display: "flex", gap: 10 }}>
+              {SOCIAL_LINKS.map(({ label, href, Icon }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 32,
+                    height: 32,
+                    borderRadius: 8,
+                    background: "var(--color-bg-subtle)",
+                    color: "var(--color-text-secondary)",
+                  }}
+                >
+                  <Icon width={16} height={16} />
+                </a>
+              ))}
+            </div>
+          )}
         </div>
         {COLUMNS.map((col) => (
           <div key={col.title}>

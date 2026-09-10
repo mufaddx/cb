@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button } from "../../components/Button";
-import { apiFetch, ApiClientError, getAccessToken, setTokens } from "../../lib/apiClient";
+import { Button } from "@/components/Button";
+import { apiFetch, ApiClientError, getAccessToken, setTokens } from "@/lib/apiClient";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -43,10 +43,11 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="container" style={{ maxWidth: 420, padding: "64px 24px" }}>
-      <h1 style={{ fontSize: 28 }}>Welcome back</h1>
+    <>
+      <h1 style={{ fontSize: 26 }}>Welcome back</h1>
+      <p className="helper-text" style={{ marginBottom: 28, fontSize: 14.5 }}>Log in to your Vidlix account.</p>
 
-      <form onSubmit={handleSubmit} style={{ marginTop: 24 }}>
+      <form onSubmit={handleSubmit}>
         <label className="label" htmlFor="email">Email</label>
         <input id="email" className="input" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} style={{ marginBottom: 16 }} />
 
@@ -80,9 +81,9 @@ export default function LoginPage() {
         </Button>
       </form>
 
-      <p style={{ marginTop: 20, fontSize: 14, color: "var(--color-text-secondary)" }}>
-        Don&apos;t have an account? <Link href="/signup">Create one</Link>
+      <p style={{ marginTop: 20, fontSize: 14, color: "var(--color-text-secondary)", textAlign: "center" }}>
+        Don&apos;t have an account? <Link href="/signup" style={{ fontWeight: 600 }}>Create one</Link>
       </p>
-    </main>
+    </>
   );
 }

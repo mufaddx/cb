@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button } from "../../components/Button";
-import { apiFetch, ApiClientError } from "../../lib/apiClient";
+import { Button } from "@/components/Button";
+import { apiFetch, ApiClientError } from "@/lib/apiClient";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -29,9 +29,9 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <main className="container" style={{ maxWidth: 420, padding: "64px 24px" }}>
-      <h1 style={{ fontSize: 28 }}>Reset your password</h1>
-      <p style={{ color: "var(--color-text-secondary)", marginBottom: 24 }}>
+    <>
+      <h1 style={{ fontSize: 26 }}>Reset your password</h1>
+      <p className="helper-text" style={{ marginBottom: 24, fontSize: 14.5 }}>
         Enter the email on your account and we&apos;ll send a 6-digit reset code.
       </p>
 
@@ -55,9 +55,9 @@ export default function ForgotPasswordPage() {
         </Button>
       </form>
 
-      <p style={{ marginTop: 20, fontSize: 14, color: "var(--color-text-secondary)" }}>
-        Remembered it? <Link href="/login">Log in</Link>
+      <p style={{ marginTop: 20, fontSize: 14, color: "var(--color-text-secondary)", textAlign: "center" }}>
+        Remembered it? <Link href="/login" style={{ fontWeight: 600 }}>Log in</Link>
       </p>
-    </main>
+    </>
   );
 }

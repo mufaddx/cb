@@ -12,16 +12,19 @@ const campaignTypes = [
     icon: MegaphoneIcon,
     title: "Clipping",
     description: "Creators re-cut and post brand-supplied video for reach, under defined usage rights.",
+    accent: "linear-gradient(135deg, #4f46e5, #6366f1)",
   },
   {
     icon: HandshakeIcon,
     title: "Creator Content",
     description: "Creators produce original content to a brief, with revisions and approval built in.",
+    accent: "linear-gradient(135deg, #7c3aed, #a855f7)",
   },
   {
     icon: PackageIcon,
     title: "Product Review",
     description: "Brands ship a physical product; creators review it on receipt.",
+    accent: "linear-gradient(135deg, #0891b2, #06b6d4)",
   },
 ];
 
@@ -62,20 +65,20 @@ export default function HomePage() {
             height: 360,
             borderRadius: "50%",
             background: "var(--gradient-brand)",
-            opacity: 0.14,
-            filter: "blur(10px)",
+            opacity: 0.18,
+            filter: "blur(50px)",
           }}
         />
-        <div className="container" style={{ position: "relative", padding: "104px 24px 88px", textAlign: "center" }}>
+        <div className="container" style={{ position: "relative", padding: "76px 24px 0", textAlign: "center" }}>
           <div className="animate-fade-up" style={{ display: "flex", justifyContent: "center" }}>
             <span className="eyebrow">Built for Indian creator campaigns</span>
           </div>
-          <h1 className="animate-fade-up" style={{ maxWidth: 860, margin: "22px auto 22px", animationDelay: "0.06s" }}>
+          <h1 className="animate-fade-up" style={{ maxWidth: 860, margin: "18px auto 14px", animationDelay: "0.06s" }}>
             Turn your campaign into <span style={{ backgroundImage: "var(--gradient-brand)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>creator-powered reach</span>.
           </h1>
           <p
             className="animate-fade-up"
-            style={{ maxWidth: 620, margin: "0 auto 36px", color: "var(--color-text-secondary)", fontSize: 18, animationDelay: "0.12s" }}
+            style={{ maxWidth: 600, margin: "0 auto 30px", color: "var(--color-text-secondary)", fontSize: 17.5, animationDelay: "0.12s" }}
           >
             Brands launch clipping, creator content, and product review campaigns. Creators accept, deliver, and get
             paid — with verification and retention tracked end to end.
@@ -110,29 +113,33 @@ export default function HomePage() {
               Join as a Creator
             </a>
           </div>
+        </div>
 
+        <div
+          className="animate-fade-up"
+          style={{ position: "relative", borderTop: "1px solid var(--color-border)", marginTop: 52, animationDelay: "0.24s" }}
+        >
           <div
-            className="animate-fade-up"
+            className="container"
             style={{
               display: "flex",
               justifyContent: "center",
-              gap: 48,
-              marginTop: 64,
+              gap: "12px 56px",
               flexWrap: "wrap",
-              animationDelay: "0.24s",
+              padding: "26px 24px",
             }}
           >
             {stats.map((s) => (
-              <div key={s.label}>
-                <div style={{ fontSize: 32, fontWeight: 750, letterSpacing: "-0.02em" }}>{s.value}</div>
-                <div style={{ fontSize: 13, color: "var(--color-text-secondary)", fontWeight: 500 }}>{s.label}</div>
+              <div key={s.label} style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                <span style={{ fontSize: 22, fontWeight: 750, letterSpacing: "-0.02em" }}>{s.value}</span>
+                <span style={{ fontSize: 13, color: "var(--color-text-secondary)", fontWeight: 500 }}>{s.label}</span>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="container" style={{ padding: "88px 24px 56px" }}>
+      <section className="container" style={{ padding: "64px 24px 56px" }}>
         <RevealOnScroll>
           <div style={{ textAlign: "center", marginBottom: 44 }}>
             <span className="eyebrow" style={{ marginBottom: 14 }}>How it works</span>
@@ -192,7 +199,7 @@ export default function HomePage() {
                       width: 44,
                       height: 44,
                       borderRadius: 12,
-                      background: "var(--gradient-brand)",
+                      background: c.accent,
                       marginBottom: 18,
                     }}
                   >

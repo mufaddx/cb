@@ -3,8 +3,8 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Button } from "../../components/Button";
-import { apiFetch, ApiClientError } from "../../lib/apiClient";
+import { Button } from "@/components/Button";
+import { apiFetch, ApiClientError } from "@/lib/apiClient";
 
 export default function SignupPage() {
   return (
@@ -45,8 +45,9 @@ function SignupForm() {
   }
 
   return (
-    <main className="container" style={{ maxWidth: 440, padding: "64px 24px" }}>
-      <h1 style={{ fontSize: 28 }}>Create your account</h1>
+    <>
+      <h1 style={{ fontSize: 26 }}>Create your account</h1>
+      <p className="helper-text" style={{ marginBottom: 24, fontSize: 14.5 }}>Start launching campaigns or accepting offers in minutes.</p>
 
       <div style={{ display: "flex", gap: 12, marginBottom: 24 }}>
         {(["BRAND", "CREATOR"] as const).map((type) => (
@@ -103,9 +104,9 @@ function SignupForm() {
         </Button>
       </form>
 
-      <p style={{ marginTop: 20, fontSize: 14, color: "var(--color-text-secondary)" }}>
-        Already have an account? <Link href="/login">Log in</Link>
+      <p style={{ marginTop: 20, fontSize: 14, color: "var(--color-text-secondary)", textAlign: "center" }}>
+        Already have an account? <Link href="/login" style={{ fontWeight: 600 }}>Log in</Link>
       </p>
-    </main>
+    </>
   );
 }
