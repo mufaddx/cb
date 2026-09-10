@@ -21,6 +21,9 @@ function shell(bodyHtml: string): string {
         <td align="center">
           <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;background:#ffffff;border:1px solid ${BORDER_COLOR};border-radius:16px;overflow:hidden;">
             <tr>
+              <td style="height:4px;background:${BRAND_COLOR};font-size:0;line-height:0;">&nbsp;</td>
+            </tr>
+            <tr>
               <td style="padding:28px 32px 0;">
                 <table role="presentation" cellpadding="0" cellspacing="0">
                   <tr>
@@ -51,9 +54,14 @@ function shell(bodyHtml: string): string {
 }
 
 function codeBox(code: string): string {
-  return `<div style="margin:20px 0;padding:16px;background:${BG_COLOR};border:1px solid ${BORDER_COLOR};border-radius:10px;text-align:center;">
-    <span style="font-size:28px;font-weight:700;letter-spacing:8px;color:${TEXT_COLOR};">${code}</span>
-  </div>`;
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;">
+    <tr>
+      <td style="padding:18px 16px;background:${BG_COLOR};border:1.5px solid ${BRAND_COLOR};border-radius:12px;text-align:center;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;color:${MUTED_COLOR};margin-bottom:8px;">YOUR CODE</div>
+        <div style="font-size:32px;font-weight:700;letter-spacing:10px;color:${TEXT_COLOR};font-family:'SF Mono',Consolas,'Courier New',monospace;">${code}</div>
+      </td>
+    </tr>
+  </table>`;
 }
 
 function greetingLine(name: string | null): string {
