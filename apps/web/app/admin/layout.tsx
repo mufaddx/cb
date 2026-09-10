@@ -115,6 +115,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         .map((r) => r.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()))
         .join(", ") ?? "";
 
+  const pageTitle = NAV_SECTIONS.flatMap((s) => s.items).find((item) => pathname === item.href)?.label ?? "Operations Center";
+
   return (
     <ConfirmProvider>
       <div className="admin-shell" style={{ display: "flex", minHeight: "100vh" }}>
@@ -293,7 +295,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </aside>
         <main className="admin-content" style={{ flex: 1, background: "var(--color-bg)", minWidth: 0, marginLeft: 252 }}>
-          <div style={{ maxWidth: 1160, margin: "0 auto", padding: "32px 32px 64px" }}>{children}</div>
+          <div className="page-header">{pageTitle}</div>
+          <div style={{ padding: "32px" }}>{children}</div>
         </main>
       </div>
     </ConfirmProvider>

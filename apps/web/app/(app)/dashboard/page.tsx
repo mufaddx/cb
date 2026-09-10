@@ -36,21 +36,21 @@ export default function DashboardPage() {
 
   if (error) {
     return (
-      <main className="container" style={{ padding: "64px 24px" }}>
+      <main style={{ padding: "32px" }}>
         <p className="error-text">{error}</p>
       </main>
     );
   }
 
   if (!me) {
-    return <main className="container" style={{ padding: "64px 24px" }}>Loading…</main>;
+    return <main style={{ padding: "32px" }}>Loading…</main>;
   }
 
   const accountType = me.brand ? "BRAND" : "CREATOR";
 
   return (
     <>
-      <main className="container" style={{ padding: "48px 24px" }}>
+      <main style={{ padding: "32px" }}>
         <h1>Good morning, {me.brand?.companyName ?? me.creator?.displayName ?? me.name ?? me.email}</h1>
         <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 24 }}>
           <div className="card" style={{ maxWidth: 360, flex: "1 1 280px" }}>

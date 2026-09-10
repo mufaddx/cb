@@ -66,7 +66,7 @@ export default function ProductsPage() {
 
   return (
     <>
-      <main className="container" style={{ padding: "48px 24px", maxWidth: 720 }}>
+      <main style={{ padding: "32px" }}>
         <h1>Products</h1>
         <p className="helper-text" style={{ marginBottom: 20 }}>Needed to launch a Product Review campaign.</p>
 

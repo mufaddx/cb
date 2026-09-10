@@ -120,19 +120,18 @@ export default function HomePage() {
           style={{ position: "relative", borderTop: "1px solid var(--color-border)", marginTop: 52, animationDelay: "0.24s" }}
         >
           <div
-            className="container"
+            className="hero-stats container"
             style={{
               display: "flex",
               justifyContent: "center",
               gap: "12px 56px",
-              flexWrap: "wrap",
               padding: "26px 24px",
             }}
           >
             {stats.map((s) => (
-              <div key={s.label} style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                <span style={{ fontSize: 22, fontWeight: 750, letterSpacing: "-0.02em" }}>{s.value}</span>
-                <span style={{ fontSize: 13, color: "var(--color-text-secondary)", fontWeight: 500 }}>{s.label}</span>
+              <div key={s.label} className="hero-stat" style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                <span className="hero-stat-value" style={{ fontSize: 22, fontWeight: 750, letterSpacing: "-0.02em" }}>{s.value}</span>
+                <span className="hero-stat-label" style={{ fontSize: 13, color: "var(--color-text-secondary)", fontWeight: 500 }}>{s.label}</span>
               </div>
             ))}
           </div>

@@ -114,15 +114,15 @@ export default function CreateCampaignPage() {
 
   return (
     <>
-      <main className="container" style={{ padding: "48px 24px", maxWidth: 640 }}>
+      <main style={{ padding: "32px" }}>
         <h1>Create Campaign</h1>
-        <p className="helper-text" style={{ marginBottom: 24 }}>
+        <p className="helper-text" style={{ marginBottom: 24, maxWidth: 640 }}>
           A simplified single-page version of the full campaign wizard, though everything it submits is real.
           Pricing is computed from the live rate card, and admin review, payment, and creator matching all follow
           from here.
         </p>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} style={{ maxWidth: 560 }}>
           <label className="label">Campaign Type</label>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 20 }}>
             {(Object.keys(TYPE_INFO) as CampaignType[]).map((t) => (

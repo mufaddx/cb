@@ -76,6 +76,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const nav = accountType === "BRAND" ? BRAND_NAV : accountType === "CREATOR" ? CREATOR_NAV : [];
   const displayName = me?.brand?.companyName ?? me?.creator?.displayName ?? me?.name ?? me?.email ?? "";
   const initial = displayName ? displayName.trim().charAt(0).toUpperCase() : "";
+  const pageTitle = nav.find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))?.label ?? "";
 
   function logout() {
     clearTokens();
@@ -96,6 +97,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           background: "var(--color-dark)",
           color: "#fff",
           padding: "22px 14px",
+          display: "flex",
           flexDirection: "column",
           overflowY: "auto",
         }}
@@ -320,6 +322,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       <main className="app-content" style={{ flex: 1, minWidth: 0, marginLeft: "var(--sidebar-width)" }}>
+        {pageTitle && <div className="page-header">{pageTitle}</div>}
         {children}
       </main>
 

@@ -69,7 +69,7 @@ export default function WalletPage() {
 
   return (
     <>
-      <main className="container" style={{ padding: "48px 24px", maxWidth: 560 }}>
+      <main style={{ padding: "32px" }}>
         <h1>Wallet</h1>
 
         <div className="card" style={{ marginBottom: 24 }}>

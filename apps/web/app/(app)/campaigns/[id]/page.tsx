@@ -149,7 +149,7 @@ export default function CampaignDetailPage() {
 
   return (
     <>
-      <main className="container" style={{ padding: "48px 24px", maxWidth: 880 }}>
+      <main style={{ padding: "32px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: 24 }}>
           <div>
             <div style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>{campaign.code} · {campaign.type}</div>

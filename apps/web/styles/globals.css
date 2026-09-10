@@ -111,6 +111,41 @@ a {
   text-decoration: none;
 }
 
+/* Dashboard/admin pages are not the marketing site — h1 there was
+   inheriting the 60px hero size meant for the landing page, reading
+   as an oversized, overly-bold "tag" instead of a normal page
+   heading. Scoped down to something that actually looks like page
+   content once it sits under the shared header bar (see .page-header
+   below, rendered by AppShell/admin layout). */
+.app-content h1,
+.admin-content h1 {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+/* The shared header bar every dashboard/admin page sits under —
+   rendered once by AppShell/admin layout (not per-page), so every
+   page automatically gets the same title treatment aligned with the
+   sidebar logo row, instead of each page inventing its own heading
+   style. */
+.page-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  height: 64px;
+  padding: 0 32px;
+  background: rgba(246, 247, 251, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--color-border);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
 .container {
   max-width: 1160px;
   margin: 0 auto;
@@ -300,6 +335,33 @@ a {
      per-page so no page has to remember to add it. */
   body {
     padding-bottom: 64px;
+  }
+  .page-header {
+    padding: 0 16px;
+    height: 52px;
+  }
+
+  /* Hero trust bar (3 campaign formats / 100% / 0 spreadsheets):
+     the desktop gap and font sizes never fit three items in one row
+     on a phone-width screen, so they wrapped onto separate lines.
+     Shrunk to actually fit one row down to narrow phones. */
+  .hero-stats {
+    gap: 8px !important;
+    padding: 16px 8px !important;
+    flex-wrap: nowrap;
+  }
+  .hero-stat {
+    gap: 4px !important;
+    flex-direction: column;
+    align-items: center !important;
+    text-align: center;
+  }
+  .hero-stat-value {
+    font-size: 17px !important;
+  }
+  .hero-stat-label {
+    font-size: 10px !important;
+    white-space: nowrap;
   }
 
   /* App shell (brand/creator): the desktop sidebar (.desktop-only) is

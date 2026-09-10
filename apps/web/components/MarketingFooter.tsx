@@ -57,33 +57,32 @@ const COLUMNS: Array<{ title: string; links: Array<{ href: string; label: string
 export function MarketingFooter() {
   return (
     <footer style={{ borderTop: "1px solid var(--color-border)", marginTop: 48, background: "var(--color-white)" }}>
-      <div
-        className="container"
-        style={{ padding: "48px 24px 32px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 28 }}
-      >
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: 24,
-                height: 24,
-                borderRadius: 7,
-                background: "var(--gradient-brand)",
-                flexShrink: 0,
-              }}
-            >
-              <SparkIcon width={13} height={13} stroke="#fff" />
-            </span>
-            <span style={{ fontWeight: 750, fontSize: 15, letterSpacing: "-0.02em" }}>Vidlix</span>
+      <div className="container" style={{ padding: "48px 24px 32px" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "32px 64px", marginBottom: 36 }}>
+          <div style={{ flex: "1 1 240px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: 24,
+                  height: 24,
+                  borderRadius: 7,
+                  background: "var(--gradient-brand)",
+                  flexShrink: 0,
+                }}
+              >
+                <SparkIcon width={13} height={13} stroke="#fff" />
+              </span>
+              <span style={{ fontWeight: 750, fontSize: 15, letterSpacing: "-0.02em" }}>Vidlix</span>
+            </div>
+            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", maxWidth: 260, margin: "0 0 16px" }}>
+              Creator campaigns, run end to end — matching, verification, and payouts on one platform.
+            </p>
           </div>
-          <p style={{ fontSize: 13, color: "var(--color-text-secondary)", maxWidth: 220, margin: "0 0 16px" }}>
-            Creator campaigns, run end to end — matching, verification, and payouts on one platform.
-          </p>
           {SOCIAL_LINKS.length > 0 && (
-            <div style={{ display: "flex", gap: 10 }}>
+            <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
               {SOCIAL_LINKS.map(({ label, href, Icon }) => (
                 <a
                   key={label}
@@ -95,37 +94,40 @@ export function MarketingFooter() {
                     display: "inline-flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    width: 32,
-                    height: 32,
-                    borderRadius: 8,
+                    width: 36,
+                    height: 36,
+                    borderRadius: 9,
                     background: "var(--color-bg-subtle)",
                     color: "var(--color-text-secondary)",
                   }}
                 >
-                  <Icon width={16} height={16} />
+                  <Icon width={17} height={17} />
                 </a>
               ))}
             </div>
           )}
         </div>
-        {COLUMNS.map((col) => (
-          <div key={col.title}>
-            <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 10 }}>{col.title}</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {col.links.map((l) =>
-                l.external ? (
-                  <a key={l.label} href={l.href} style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>
-                    {l.label}
-                  </a>
-                ) : (
-                  <Link key={l.href} href={l.href} style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>
-                    {l.label}
-                  </Link>
-                )
-              )}
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "28px 40px" }}>
+          {COLUMNS.map((col) => (
+            <div key={col.title}>
+              <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 10 }}>{col.title}</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {col.links.map((l) =>
+                  l.external ? (
+                    <a key={l.label} href={l.href} style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>
+                      {l.label}
+                    </a>
+                  ) : (
+                    <Link key={l.href} href={l.href} style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>
+                      {l.label}
+                    </Link>
+                  )
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
       <div
         className="container"

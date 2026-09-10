@@ -135,7 +135,7 @@ export default function DealsPage() {
 
   return (
     <>
-      <main className="container" style={{ padding: "48px 24px", maxWidth: 720 }}>
+      <main style={{ padding: "32px" }}>
         <h1>My Deals</h1>
 
         {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
