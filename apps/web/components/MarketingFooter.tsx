@@ -110,7 +110,7 @@ export function MarketingFooter() {
           )}
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "28px 40px" }}>
+        <div className="footer-columns" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "28px 40px" }}>
           {COLUMNS.map((col) => (
             <div key={col.title}>
               <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 10 }}>{col.title}</div>

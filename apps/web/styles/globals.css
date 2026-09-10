@@ -407,4 +407,11 @@ a {
     padding: 12px 14px !important;
     font-size: 13.5px !important;
   }
+
+  /* Footer link columns (Platform/Get Started/Company/Legal): one
+     row of 4 at desktop width, but 4 equal columns squeeze unreadably
+     narrow on a phone — paired 2-per-row there instead. */
+  .footer-columns {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
 }
