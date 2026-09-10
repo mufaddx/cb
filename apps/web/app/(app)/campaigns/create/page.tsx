@@ -117,8 +117,9 @@ export default function CreateCampaignPage() {
       <main className="container" style={{ padding: "48px 24px", maxWidth: 640 }}>
         <h1>Create Campaign</h1>
         <p className="helper-text" style={{ marginBottom: 24 }}>
-          A simplified single-page version of the full campaign wizard — everything it submits is real: pricing is
-          computed from the live rate card, and admin review/payment/matching all follow from here.
+          A simplified single-page version of the full campaign wizard, though everything it submits is real.
+          Pricing is computed from the live rate card, and admin review, payment, and creator matching all follow
+          from here.
         </p>
 
         <form onSubmit={handleSubmit}>
@@ -160,7 +161,7 @@ export default function CreateCampaignPage() {
             <>
               <label className="label">Source video</label>
               <p className="helper-text" style={{ marginBottom: 8 }}>
-                The raw footage creators will re-cut and post (spec §19 step 02, §20). Required before you can save.
+                The raw footage creators will re-cut and post. Required before you can save this campaign.
               </p>
               <input
                 type="file"
@@ -228,7 +229,7 @@ export default function CreateCampaignPage() {
 
           <label style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 24, fontSize: 14 }}>
             <input type="checkbox" checked={disclosureRequired} onChange={(e) => setDisclosureRequired(e.target.checked)} />
-            Require disclosure (e.g. #ad) in the post
+            Require a sponsored post disclosure
           </label>
 
           {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}

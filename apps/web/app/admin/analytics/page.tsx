@@ -43,7 +43,7 @@ export default function AdminAnalyticsPage() {
     <div>
       <h1 style={{ fontSize: 24, marginBottom: 4 }}>Analytics</h1>
       <p className="helper-text" style={{ marginBottom: 20 }}>
-        Every figure is a live aggregate query — not a fabricated or cached metric (spec §89).
+        Every figure below is a live aggregate query, not a cached or estimated metric.
       </p>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 16, marginBottom: 20 }}>

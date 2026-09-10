@@ -94,7 +94,7 @@ export default function OffersPage() {
 
                 <p className="helper-text" style={{ margin: "12px 0" }}>
                   Retention: {offer.campaign.retentionDays} days · Expires {new Date(offer.expiresAt).toLocaleString()}
-                  {offer.campaign.disclosureRequired && " · Disclosure required (e.g. #ad)"}
+                  {offer.campaign.disclosureRequired && " · Sponsored post disclosure required"}
                 </p>
 
                 {(offer.status === "OFFERED" || offer.status === "VIEWED") && (
