@@ -57,6 +57,16 @@ router.post(
   })
 );
 
+router.get(
+  "/insights",
+  asyncHandler(async (req, res) => {
+    const creatorId = requireCreatorId(req);
+    const periodDays = req.query.days === "7" ? 7 : req.query.days === "90" ? 90 : 30;
+    const summary = await instagramService.getInsightsSummary(prisma, creatorId, periodDays);
+    sendSuccess(res, summary);
+  })
+);
+
 router.post(
   "/disconnect",
   asyncHandler(async (req, res) => {

@@ -141,6 +141,22 @@ export async function disconnectInstagram(prisma: PrismaClient, creatorId: strin
   return getInstagramStatus(prisma, creatorId);
 }
 
+/**
+ * The full Insights breakdown (content counts, top content, per-type
+ * interactions, views/follower trend) shown on the Instagram page —
+ * separate from getInstagramStatus's lightweight followers/avgReach
+ * summary since this needs several extra Graph API calls the basic
+ * status check shouldn't pay for on every page load.
+ */
+export async function getInsightsSummary(prisma: PrismaClient, creatorId: string, periodDays = 30) {
+  const account = await prisma.instagramAccount.findUnique({ where: { creatorId } });
+  if (!account) throw new NotFoundError("Instagram is not connected for this creator");
+
+  const provider = getInstagramProvider();
+  const accessToken = decryptSecret(account.accessTokenEncrypted);
+  return provider.getInsightsSummary(accessToken, periodDays);
+}
+
 export async function requireLatestFollowerCount(prisma: PrismaClient, creatorId: string): Promise<number> {
   const account = await prisma.instagramAccount.findUnique({
     where: { creatorId },

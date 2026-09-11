@@ -1,9 +1,28 @@
 import type {
+  ContentTypeInteractions,
   ExchangeCodeResult,
+  InsightsSummary,
   InstagramProfile,
   InstagramProvider,
+  TopContentItem,
 } from "./InstagramProvider";
 import { env } from "../../config/env";
+
+interface MediaWithMetrics {
+  id: string;
+  mediaType: string;
+  mediaProductType: string;
+  thumbnailUrl: string | null;
+  mediaUrl: string | null;
+  permalink: string;
+  timestamp: string;
+  likes: number;
+  comments: number;
+  reach: number | null;
+  views: number | null; // "plays" on a video/reel, otherwise null (feed photos have no separate view count)
+  shares: number | null;
+  saved: number | null;
+}
 
 /**
  * "Instagram API with Instagram Login" adapter (Meta's newer, creator-
@@ -115,7 +134,9 @@ export class MetaInstagramProvider implements InstagramProvider {
     // fetch above. Never let a failure here (rate limit, a post too
     // new for insights to have settled, missing permission) fail the
     // whole connect/refresh — the profile itself is already good.
-    const engagement: { avgReach?: number; avgViews?: number } = await this.fetchAverageEngagement(accessToken).catch(() => ({}));
+    const media = await this.fetchRecentMediaWithMetrics(accessToken, 12).catch(() => [] as MediaWithMetrics[]);
+    const reaches = media.map((m) => m.reach).filter((v): v is number => v != null);
+    const views = media.map((m) => m.views).filter((v): v is number => v != null);
 
     return {
       igUserId: data.id || igUserId,
@@ -124,47 +145,166 @@ export class MetaInstagramProvider implements InstagramProvider {
       fullName: data.name,
       bio: data.biography,
       followers: data.followers_count,
-      avgReach: engagement.avgReach,
-      avgViews: engagement.avgViews,
+      avgReach: reaches.length ? Math.round(reaches.reduce((a, b) => a + b, 0) / reaches.length) : undefined,
+      avgViews: views.length ? Math.round(views.reduce((a, b) => a + b, 0) / views.length) : undefined,
     };
   }
 
-  /** Averages `reach` (all recent posts) and `plays`/video views (video
-   * posts only) across the last dozen posts — Instagram has no single
-   * "average reach" field, only per-post insights, so this is our own
-   * aggregate rather than something the API hands back directly. One
-   * bad post's insights failing doesn't drop the others from the
-   * average — Promise.allSettled, not allSettled-less Promise.all. */
-  private async fetchAverageEngagement(accessToken: string): Promise<{ avgReach?: number; avgViews?: number }> {
-    const mediaRes = await fetch(`${this.graphBase}/me/media?fields=id,media_type&limit=12&access_token=${accessToken}`);
-    if (!mediaRes.ok) return {};
-    const mediaJson = (await mediaRes.json()) as { data?: Array<{ id: string; media_type: string }> };
+  /** Fetches the account's recent posts/reels plus each one's own
+   * insights in one pass — the shared data source behind fetchProfile's
+   * avg reach/views AND getInsightsSummary's top-content/interactions
+   * breakdown, so those two callers don't duplicate this logic (they
+   * still make separate API calls at separate times; this only avoids
+   * writing the media+insights fetch twice).
+   *
+   * Deliberately does NOT include Stories: Instagram's Graph API only
+   * exposes CURRENTLY ACTIVE stories (via a separate /me/stories edge),
+   * never historical ones — there is no way to reconstruct "26 stories
+   * in the last 30 days" the way Instagram's own app shows it, for any
+   * third-party app. Feed posts and Reels are what's actually available.
+   */
+  private async fetchRecentMediaWithMetrics(accessToken: string, limit: number): Promise<MediaWithMetrics[]> {
+    const mediaRes = await fetch(
+      `${this.graphBase}/me/media?fields=id,media_type,media_product_type,thumbnail_url,media_url,permalink,timestamp,like_count,comments_count&limit=${limit}&access_token=${accessToken}`
+    );
+    if (!mediaRes.ok) return [];
+    const mediaJson = (await mediaRes.json()) as {
+      data?: Array<{
+        id: string;
+        media_type: string;
+        media_product_type: string;
+        thumbnail_url?: string;
+        media_url?: string;
+        permalink: string;
+        timestamp: string;
+        like_count?: number;
+        comments_count?: number;
+      }>;
+    };
     const items = mediaJson.data ?? [];
-    if (items.length === 0) return {};
+    if (items.length === 0) return [];
 
     const results = await Promise.allSettled(
-      items.map(async (item) => {
-        const wantsViews = item.media_type === "VIDEO";
-        const metrics = wantsViews ? "reach,plays" : "reach";
-        const insightsRes = await fetch(`${this.graphBase}/${item.id}/insights?metric=${metrics}&access_token=${accessToken}`);
-        if (!insightsRes.ok) throw new Error(`insights fetch failed for ${item.id}`);
-        const insightsJson = (await insightsRes.json()) as { data?: Array<{ name: string; values?: Array<{ value: number }> }> };
-        const byName = new Map((insightsJson.data ?? []).map((m) => [m.name, m.values?.[0]?.value]));
-        return { reach: byName.get("reach"), plays: byName.get("plays") };
+      items.map(async (item): Promise<MediaWithMetrics> => {
+        const isVideo = item.media_type === "VIDEO";
+        const metrics = isVideo ? "reach,plays,shares,saved" : "reach,shares,saved";
+        let byName = new Map<string, number | undefined>();
+        try {
+          const insightsRes = await fetch(`${this.graphBase}/${item.id}/insights?metric=${metrics}&access_token=${accessToken}`);
+          if (insightsRes.ok) {
+            const insightsJson = (await insightsRes.json()) as { data?: Array<{ name: string; values?: Array<{ value: number }> }> };
+            byName = new Map((insightsJson.data ?? []).map((m) => [m.name, m.values?.[0]?.value]));
+          }
+        } catch {
+          // A single post's insights failing (too new, rate limited)
+          // shouldn't drop it from the list — it just has null metrics.
+        }
+        return {
+          id: item.id,
+          mediaType: item.media_type,
+          mediaProductType: item.media_product_type,
+          thumbnailUrl: item.thumbnail_url ?? item.media_url ?? null,
+          mediaUrl: item.media_url ?? null,
+          permalink: item.permalink,
+          timestamp: item.timestamp,
+          likes: item.like_count ?? 0,
+          comments: item.comments_count ?? 0,
+          reach: byName.get("reach") ?? null,
+          views: byName.get("plays") ?? null,
+          shares: byName.get("shares") ?? null,
+          saved: byName.get("saved") ?? null,
+        };
       })
     );
 
-    const reaches: number[] = [];
-    const views: number[] = [];
-    for (const result of results) {
-      if (result.status !== "fulfilled") continue;
-      if (typeof result.value.reach === "number") reaches.push(result.value.reach);
-      if (typeof result.value.plays === "number") views.push(result.value.plays);
+    return results.filter((r): r is PromiseFulfilledResult<MediaWithMetrics> => r.status === "fulfilled").map((r) => r.value);
+  }
+
+  /** Sums a single account-level metric's daily time series over the
+   * period — used for total views, net follower change, and total
+   * interactions. Returns null (not 0) on any failure, so the UI can
+   * show "—" rather than a real-looking zero for a metric that simply
+   * couldn't be fetched (wrong permission, metric renamed between API
+   * versions, etc.). */
+  private async fetchAccountMetricSeries(
+    accessToken: string,
+    metric: string,
+    sinceUnix: number,
+    untilUnix: number
+  ): Promise<Array<{ date: string; value: number }> | null> {
+    try {
+      const res = await fetch(
+        `${this.graphBase}/me/insights?` +
+          new URLSearchParams({
+            metric,
+            period: "day",
+            metric_type: "time_series",
+            since: String(sinceUnix),
+            until: String(untilUnix),
+            access_token: accessToken,
+          })
+      );
+      if (!res.ok) return null;
+      const json = (await res.json()) as {
+        data?: Array<{ values?: Array<{ value: number; end_time: string }> }>;
+      };
+      const values = json.data?.[0]?.values ?? [];
+      return values.map((v) => ({ date: v.end_time.slice(0, 10), value: v.value }));
+    } catch {
+      return null;
     }
+  }
+
+  async getInsightsSummary(accessToken: string, periodDays = 30): Promise<InsightsSummary> {
+    const untilUnix = Math.floor(Date.now() / 1000);
+    const sinceUnix = untilUnix - periodDays * 24 * 60 * 60;
+
+    const [media, viewsSeriesRaw, netFollowersSeriesRaw, interactionsSeriesRaw] = await Promise.all([
+      this.fetchRecentMediaWithMetrics(accessToken, 25).catch(() => [] as MediaWithMetrics[]),
+      this.fetchAccountMetricSeries(accessToken, "views", sinceUnix, untilUnix),
+      this.fetchAccountMetricSeries(accessToken, "follower_count", sinceUnix, untilUnix),
+      this.fetchAccountMetricSeries(accessToken, "total_interactions", sinceUnix, untilUnix),
+    ]);
+
+    const sum = (series: Array<{ value: number }> | null) => (series ? series.reduce((a, b) => a + b.value, 0) : null);
+
+    // Only feed posts and Reels — see fetchRecentMediaWithMetrics's doc
+    // comment on why Stories can't be included.
+    const reels = media.filter((m) => m.mediaProductType === "REELS");
+    const posts = media.filter((m) => m.mediaProductType !== "REELS");
+
+    const summarize = (type: "REELS" | "POSTS", items: MediaWithMetrics[]): ContentTypeInteractions => ({
+      type,
+      count: items.length,
+      likes: items.reduce((a, m) => a + m.likes, 0),
+      comments: items.reduce((a, m) => a + m.comments, 0),
+      shares: items.reduce((a, m) => a + (m.shares ?? 0), 0),
+      saved: items.reduce((a, m) => a + (m.saved ?? 0), 0),
+    });
+
+    const topContent: TopContentItem[] = [...media]
+      .sort((a, b) => (b.views ?? b.reach ?? 0) - (a.views ?? a.reach ?? 0))
+      .slice(0, 6)
+      .map((m) => ({
+        id: m.id,
+        mediaType: m.mediaType,
+        thumbnailUrl: m.thumbnailUrl,
+        permalink: m.permalink,
+        timestamp: m.timestamp,
+        views: m.views ?? m.reach,
+        likes: m.likes,
+        comments: m.comments,
+      }));
 
     return {
-      avgReach: reaches.length ? Math.round(reaches.reduce((a, b) => a + b, 0) / reaches.length) : undefined,
-      avgViews: views.length ? Math.round(views.reduce((a, b) => a + b, 0) / views.length) : undefined,
+      periodDays,
+      totalViews: sum(viewsSeriesRaw),
+      netFollowers: sum(netFollowersSeriesRaw),
+      totalInteractions: sum(interactionsSeriesRaw),
+      viewsSeries: viewsSeriesRaw ?? [],
+      contentCounts: { reels: reels.length, posts: posts.length },
+      topContent,
+      interactionsByType: [summarize("REELS", reels), summarize("POSTS", posts)],
     };
   }
 

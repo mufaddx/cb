@@ -1,8 +1,11 @@
 import { randomUUID } from "crypto";
 import type {
+  ContentTypeInteractions,
   ExchangeCodeResult,
+  InsightsSummary,
   InstagramProfile,
   InstagramProvider,
+  TopContentItem,
 } from "./InstagramProvider";
 
 const AVATAR_COLORS = ["#4f46e5", "#0891b2", "#7c3aed", "#c2410c", "#0f766e"];
@@ -81,5 +84,43 @@ export class MockInstagramProvider implements InstagramProvider {
       return { owned: true, caption: "Mock caption for development verification (no tag)" };
     }
     return { owned: true, caption: "Mock caption for development verification #ad" };
+  }
+
+  async getInsightsSummary(_accessToken: string, periodDays = 30): Promise<InsightsSummary> {
+    const mockThumb = (seed: string, color: string) => {
+      const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><rect width='120' height='120' fill='${color}'/><text x='60' y='66' font-family='Arial, sans-serif' font-size='16' fill='#fff' text-anchor='middle' opacity='0.8'>${seed}</text></svg>`;
+      return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+    };
+
+    const topContent: TopContentItem[] = [
+      { id: "mock_media_1", mediaType: "VIDEO", thumbnailUrl: mockThumb("Reel", "#4f46e5"), permalink: "https://instagram.com/p/mock1", timestamp: new Date().toISOString(), views: 4200, likes: 310, comments: 22 },
+      { id: "mock_media_2", mediaType: "VIDEO", thumbnailUrl: mockThumb("Reel", "#0891b2"), permalink: "https://instagram.com/p/mock2", timestamp: new Date().toISOString(), views: 2800, likes: 190, comments: 14 },
+      { id: "mock_media_3", mediaType: "IMAGE", thumbnailUrl: mockThumb("Post", "#7c3aed"), permalink: "https://instagram.com/p/mock3", timestamp: new Date().toISOString(), views: 1600, likes: 140, comments: 9 },
+    ];
+
+    const interactionsByType: ContentTypeInteractions[] = [
+      { type: "REELS", count: 8, likes: 1240, comments: 96, shares: 44, saved: 60 },
+      { type: "POSTS", count: 4, likes: 380, comments: 28, shares: 10, saved: 22 },
+    ];
+
+    // A flat-ish daily series with one visible spike, similar in shape
+    // to what Instagram's own Insights chart tends to show for an
+    // account with one post that outperformed the rest.
+    const viewsSeries = Array.from({ length: periodDays }, (_, i) => {
+      const date = new Date(Date.now() - (periodDays - 1 - i) * 86_400_000).toISOString().slice(0, 10);
+      const spike = i === Math.floor(periodDays * 0.7) ? 5400 : 0;
+      return { date, value: Math.max(0, Math.round(20 + Math.random() * 40 + spike)) };
+    });
+
+    return {
+      periodDays,
+      totalViews: viewsSeries.reduce((a, b) => a + b.value, 0),
+      netFollowers: 12,
+      totalInteractions: interactionsByType.reduce((a, t) => a + t.likes + t.comments + t.shares + t.saved, 0),
+      viewsSeries,
+      contentCounts: { reels: interactionsByType[0].count, posts: interactionsByType[1].count },
+      topContent,
+      interactionsByType,
+    };
   }
 }
