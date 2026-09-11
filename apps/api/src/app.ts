@@ -38,6 +38,7 @@ import messagesRoutes from "./modules/messages/messages.routes";
 import fraudRoutes from "./modules/fraud/fraud.routes";
 import agreementsRoutes from "./modules/agreements/agreements.routes";
 import adminRoutes from "./modules/admin/admin.routes";
+import adminPricingRoutes from "./modules/admin/pricing.routes";
 import categoriesRoutes from "./modules/categories/categories.routes";
 
 export function createApp() {
@@ -107,6 +108,7 @@ export function createApp() {
   app.use("/api/fraud", fraudRoutes);
   app.use("/api/agreements", agreementsRoutes);
   app.use("/api/admin", adminRoutes);
+  app.use("/api/admin", adminPricingRoutes);
   app.use("/api/categories", categoriesRoutes);
 
   app.use(notFoundHandler);

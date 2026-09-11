@@ -103,6 +103,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     Permission.REFUND_MANAGE_ALL,
     Permission.DOCUMENT_READ_ALL,
     Permission.AUDIT_READ_ALL,
+    Permission.PRICING_MANAGE,
   ],
 
   [Role.KYC_ADMIN]: [Permission.KYC_REVIEW, Permission.AUDIT_READ_ALL],

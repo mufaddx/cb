@@ -18,6 +18,8 @@ export class MockInstagramProvider implements InstagramProvider {
     const profile: InstagramProfile = {
       igUserId,
       username: `creator_${igUserId.slice(-6)}`,
+      fullName: "Mock Creator",
+      bio: "Lifestyle & tech content, brand collabs open — mock bio (dev fixture, not real Instagram data).",
       followers: 52_400,
       avgReach: 18_200,
       avgViews: 24_600,
@@ -26,12 +28,18 @@ export class MockInstagramProvider implements InstagramProvider {
   }
 
   async fetchProfile(_accessToken: string, igUserId: string): Promise<InstagramProfile> {
+    // A small random walk on each refresh so "Refresh" visibly does
+    // something in mock mode, instead of returning identical numbers
+    // every time.
+    const jitter = () => Math.floor((Math.random() - 0.3) * 1500);
     return {
       igUserId,
       username: `creator_${igUserId.slice(-6)}`,
-      followers: 52_400,
-      avgReach: 18_200,
-      avgViews: 24_600,
+      fullName: "Mock Creator",
+      bio: "Lifestyle & tech content, brand collabs open — mock bio (dev fixture, not real Instagram data).",
+      followers: Math.max(0, 52_400 + jitter()),
+      avgReach: Math.max(0, 18_200 + jitter()),
+      avgViews: Math.max(0, 24_600 + jitter()),
     };
   }
 

@@ -48,4 +48,13 @@ router.get(
   })
 );
 
+router.post(
+  "/refresh",
+  asyncHandler(async (req, res) => {
+    const creatorId = requireCreatorId(req);
+    const status = await instagramService.refreshInstagramMetrics(prisma, creatorId);
+    sendSuccess(res, status, "Instagram metrics refreshed.");
+  })
+);
+
 export default router;

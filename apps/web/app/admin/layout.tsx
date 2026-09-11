@@ -41,6 +41,7 @@ const NAV_SECTIONS: Array<{ title: string; items: Array<{ href: string; label: s
       { href: "/admin/payments", label: "Payments & Refunds" },
       { href: "/admin/disputes", label: "Disputes" },
       { href: "/admin/fraud", label: "Fraud & Risk" },
+      { href: "/admin/pricing", label: "Pricing & Fees" },
     ],
   },
 ];
@@ -132,8 +133,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             justifyContent: "space-between",
             height: 52,
             padding: "0 16px",
-            background: "var(--color-dark)",
-            color: "#fff",
+            background: "var(--color-white)",
+            color: "var(--color-text)",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -156,7 +157,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <button
             onClick={() => setDrawerOpen(true)}
             aria-label="Open menu"
-            style={{ background: "none", border: "none", color: "#fff", padding: 8, display: "flex", borderRadius: 8 }}
+            style={{ background: "none", border: "none", color: "var(--color-text)", padding: 8, display: "flex", borderRadius: 8 }}
           >
             <MenuIcon width={20} height={20} />
           </button>
@@ -180,8 +181,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             top: 0,
             bottom: 0,
             left: 0,
-            background: "var(--color-dark)",
-            color: "#fff",
+            background: "var(--color-white)",
+            color: "var(--color-text)",
             padding: "22px 14px",
             display: "flex",
             flexDirection: "column",
@@ -207,8 +208,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <SparkIcon width={16} height={16} stroke="#fff" />
             </span>
             <div style={{ lineHeight: 1.2 }}>
-              <div style={{ fontSize: 16, fontWeight: 750, letterSpacing: "-0.02em" }}>Vidlix</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontWeight: 600, letterSpacing: "0.02em" }}>ADMIN CONSOLE</div>
+              <div style={{ fontSize: 16, fontWeight: 750, letterSpacing: "-0.02em", color: "var(--color-text)" }}>Vidlix</div>
+              <div style={{ fontSize: 11, color: "var(--color-text-faint)", fontWeight: 600, letterSpacing: "0.02em" }}>ADMIN CONSOLE</div>
             </div>
           </div>
 
@@ -221,7 +222,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     fontWeight: 700,
                     letterSpacing: "0.06em",
                     textTransform: "uppercase",
-                    color: "rgba(255,255,255,0.38)",
+                    color: "var(--color-text-faint)",
                     padding: "0 12px 6px",
                   }}
                 >
@@ -239,8 +240,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                           borderRadius: 8,
                           fontSize: 13.5,
                           fontWeight: active ? 600 : 500,
-                          color: active ? "#fff" : "rgba(255,255,255,0.68)",
-                          background: active ? "rgba(255,255,255,0.10)" : "transparent",
+                          color: active ? "var(--color-primary)" : "var(--color-text-secondary)",
+                          background: active ? "var(--color-primary-soft)" : "transparent",
                           whiteSpace: "nowrap",
                           transition: "background-color var(--duration-fast) ease, color var(--duration-fast) ease",
                         }}
@@ -256,14 +257,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
           <div
             className="admin-sidebar-footer"
-            style={{ borderTop: "1px solid rgba(255,255,255,0.12)", paddingTop: 14, marginTop: 14, display: "flex", alignItems: "center", gap: 10 }}
+            style={{ borderTop: "1px solid var(--color-border)", paddingTop: 14, marginTop: 14, display: "flex", alignItems: "center", gap: 10 }}
           >
             <div
               style={{
                 width: 30,
                 height: 30,
                 borderRadius: "50%",
-                background: "rgba(255,255,255,0.12)",
+                background: "var(--color-bg-subtle)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -276,10 +277,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               {me?.email.charAt(0).toUpperCase()}
             </div>
             <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ fontSize: 12.5, fontWeight: 600, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--color-text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                 {me?.email}
               </div>
-              <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.55)" }}>{roleLabel}</div>
+              <div style={{ fontSize: 11.5, color: "var(--color-text-secondary)" }}>{roleLabel}</div>
             </div>
             <button
               onClick={() => {
@@ -289,7 +290,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               }}
               aria-label="Log out"
               title="Log out"
-              style={{ background: "none", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", padding: 6, display: "flex", borderRadius: 6 }}
+              style={{ background: "none", border: "none", color: "var(--color-text-secondary)", cursor: "pointer", padding: 6, display: "flex", borderRadius: 6 }}
             >
               <LogOutIcon width={17} height={17} />
             </button>

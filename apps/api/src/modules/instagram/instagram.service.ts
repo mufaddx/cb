@@ -1,7 +1,9 @@
-import { InstagramStatus, PrismaClient } from "@prisma/client";
-import { encryptSecret } from "../../lib/crypto";
+import { InstagramStatus, Prisma, PrismaClient } from "@prisma/client";
+import { decryptSecret, encryptSecret } from "../../lib/crypto";
 import { getInstagramProvider } from "../../services/instagram";
 import { NotFoundError } from "../../lib/errors";
+
+type DbClient = PrismaClient | Prisma.TransactionClient;
 
 /**
  * Connects a creator's Instagram account via the OAuth code-exchange
@@ -19,6 +21,9 @@ export async function connectInstagram(prisma: PrismaClient, creatorId: string, 
         creatorId,
         igUserId: result.profile.igUserId,
         username: result.profile.username,
+        profilePictureUrl: result.profile.profileImageUrl,
+        fullName: result.profile.fullName,
+        bio: result.profile.bio,
         accessTokenEncrypted: encryptSecret(result.accessToken),
         tokenExpiresAt: new Date(Date.now() + result.expiresInSeconds * 1000),
         status: InstagramStatus.CONNECTED,
@@ -28,6 +33,9 @@ export async function connectInstagram(prisma: PrismaClient, creatorId: string, 
       update: {
         igUserId: result.profile.igUserId,
         username: result.profile.username,
+        profilePictureUrl: result.profile.profileImageUrl,
+        fullName: result.profile.fullName,
+        bio: result.profile.bio,
         accessTokenEncrypted: encryptSecret(result.accessToken),
         tokenExpiresAt: new Date(Date.now() + result.expiresInSeconds * 1000),
         status: InstagramStatus.CONNECTED,
@@ -48,7 +56,7 @@ export async function connectInstagram(prisma: PrismaClient, creatorId: string, 
   });
 }
 
-export async function getInstagramStatus(prisma: PrismaClient, creatorId: string) {
+export async function getInstagramStatus(prisma: DbClient, creatorId: string) {
   const account = await prisma.instagramAccount.findUnique({
     where: { creatorId },
     include: { snapshots: { orderBy: { capturedAt: "desc" }, take: 1 } },
@@ -56,13 +64,61 @@ export async function getInstagramStatus(prisma: PrismaClient, creatorId: string
   if (!account) {
     return { status: "NOT_CONNECTED" as const };
   }
+  const metrics = account.snapshots[0] ?? null;
   return {
     status: account.status,
     username: account.username,
+    fullName: account.fullName,
+    bio: account.bio,
+    profilePictureUrl: account.profilePictureUrl,
     connectedAt: account.connectedAt,
     lastSyncedAt: account.lastSyncedAt,
-    latestMetrics: account.snapshots[0] ?? null,
+    latestMetrics: metrics,
+    // Derived, not stored — always consistent with whatever snapshot
+    // is actually latest, rather than a separately-stored figure that
+    // could drift out of sync with it.
+    engagementRatePct: metrics && metrics.followers > 0 && metrics.avgReach != null
+      ? Number(((metrics.avgReach / metrics.followers) * 100).toFixed(1))
+      : null,
   };
+}
+
+/**
+ * Manual "Refresh" — re-fetches the profile from the provider and
+ * appends a new metric snapshot, rather than mutating the last one
+ * (spec pattern: metrics are an append-only history, same reasoning
+ * as the wallet ledger). No periodic auto-sync exists yet (see
+ * jobs/scheduler.ts) — this is the only way metrics update today.
+ */
+export async function refreshInstagramMetrics(prisma: PrismaClient, creatorId: string) {
+  const account = await prisma.instagramAccount.findUnique({ where: { creatorId } });
+  if (!account) throw new NotFoundError("Instagram is not connected for this creator");
+
+  const provider = getInstagramProvider();
+  const accessToken = decryptSecret(account.accessTokenEncrypted);
+  const profile = await provider.fetchProfile(accessToken, account.igUserId);
+
+  return prisma.$transaction(async (tx) => {
+    await tx.instagramAccount.update({
+      where: { id: account.id },
+      data: {
+        username: profile.username,
+        profilePictureUrl: profile.profileImageUrl ?? account.profilePictureUrl,
+        fullName: profile.fullName ?? account.fullName,
+        bio: profile.bio ?? account.bio,
+        lastSyncedAt: new Date(),
+      },
+    });
+    await tx.instagramMetricSnapshot.create({
+      data: {
+        instagramAccountId: account.id,
+        followers: profile.followers,
+        avgReach: profile.avgReach,
+        avgViews: profile.avgViews,
+      },
+    });
+    return getInstagramStatus(tx, creatorId);
+  });
 }
 
 export async function requireLatestFollowerCount(prisma: PrismaClient, creatorId: string): Promise<number> {

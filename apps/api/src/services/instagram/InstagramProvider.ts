@@ -2,6 +2,8 @@ export interface InstagramProfile {
   igUserId: string;
   username: string;
   profileImageUrl?: string;
+  fullName?: string;
+  bio?: string;
   followers: number;
   avgReach?: number;
   avgViews?: number;

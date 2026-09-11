@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Button } from "./Button";
 import { apiFetch, ApiClientError } from "../lib/apiClient";
 
@@ -64,7 +65,12 @@ export function InstagramConnect() {
               {status.latestMetrics.followers.toLocaleString()} followers · {status.latestMetrics.avgReach.toLocaleString()} avg reach
             </p>
           )}
-          <span className="badge badge-success">Connected</span>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span className="badge badge-success">Connected</span>
+            <Link href="/instagram" style={{ fontSize: 13, fontWeight: 600, color: "var(--color-primary)" }}>
+              View details →
+            </Link>
+          </div>
         </>
       ) : (
         <>

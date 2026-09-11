@@ -238,6 +238,12 @@ model InstagramAccount {
   igUserId             String           @map("ig_user_id")
   username             String
   profileImageKey      String?          @map("profile_image_key")
+  // Unlike profileImageKey (an internal storage key, resolved via the
+  // storage provider's signed-URL mechanism), this is Instagram's own
+  // CDN URL — nothing of ours to sign, rendered directly.
+  profilePictureUrl    String?          @map("profile_picture_url")
+  fullName             String?          @map("full_name")
+  bio                  String?          @db.Text
   accessTokenEncrypted String           @db.Text @map("access_token_encrypted")
   tokenExpiresAt       DateTime?        @map("token_expires_at")
   status               InstagramStatus  @default(CONNECTED)

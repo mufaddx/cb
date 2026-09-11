@@ -8,6 +8,7 @@ import { BottomNav } from "./BottomNav";
 import {
   HandshakeIcon,
   HomeIcon,
+  InstagramIcon,
   LogOutIcon,
   MegaphoneIcon,
   MoreIcon,
@@ -31,6 +32,7 @@ const BRAND_NAV = [
 
 const CREATOR_NAV = [
   { href: "/dashboard", label: "Dashboard", icon: HomeIcon },
+  { href: "/instagram", label: "Instagram", icon: InstagramIcon },
   { href: "/offers", label: "Offers", icon: TargetIcon },
   { href: "/deals", label: "My Deals", icon: HandshakeIcon },
   { href: "/wallet", label: "Wallet", icon: WalletIcon },
@@ -105,8 +107,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           top: 0,
           bottom: 0,
           left: 0,
-          background: "var(--color-dark)",
-          color: "#fff",
+          background: "var(--color-white)",
+          color: "var(--color-text)",
           padding: "22px 14px",
           display: "flex",
           flexDirection: "column",
@@ -115,7 +117,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       >
         <Link
           href="/dashboard"
-          style={{ display: "flex", alignItems: "center", gap: 9, padding: "4px 10px 26px", color: "#fff" }}
+          style={{ display: "flex", alignItems: "center", gap: 9, padding: "4px 10px 26px", color: "var(--color-text)" }}
         >
           <span
             style={{
@@ -150,8 +152,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                   borderRadius: 9,
                   fontSize: 14,
                   fontWeight: active ? 600 : 500,
-                  color: active ? "#fff" : "rgba(255,255,255,0.68)",
-                  background: active ? "rgba(255,255,255,0.10)" : "transparent",
+                  color: active ? "var(--color-primary)" : "var(--color-text-secondary)",
+                  background: active ? "var(--color-primary-soft)" : "transparent",
                   whiteSpace: "nowrap",
                   transition: "background-color var(--duration-fast) ease, color var(--duration-fast) ease",
                 }}
@@ -164,14 +166,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         </nav>
 
         <div
-          style={{ borderTop: "1px solid rgba(255,255,255,0.12)", paddingTop: 14, marginTop: 14, display: "flex", alignItems: "center", gap: 10 }}
+          style={{ borderTop: "1px solid var(--color-border)", paddingTop: 14, marginTop: 14, display: "flex", alignItems: "center", gap: 10 }}
         >
           <div
             style={{
               width: 30,
               height: 30,
               borderRadius: "50%",
-              background: "rgba(255,255,255,0.12)",
+              background: "var(--color-bg-subtle)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -188,7 +190,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               style={{
                 fontSize: 13,
                 fontWeight: 600,
-                color: "#fff",
+                color: "var(--color-text)",
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -197,7 +199,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               {displayName || " "}
             </div>
             {accountType && (
-              <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.55)" }}>
+              <div style={{ fontSize: 11.5, color: "var(--color-text-secondary)" }}>
                 {accountType === "BRAND" ? "Brand account" : "Creator account"}
               </div>
             )}
@@ -209,7 +211,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             style={{
               background: "none",
               border: "none",
-              color: "rgba(255,255,255,0.6)",
+              color: "var(--color-text-secondary)",
               cursor: "pointer",
               padding: 6,
               display: "flex",
@@ -235,11 +237,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           justifyContent: "space-between",
           height: 52,
           padding: "0 16px",
-          background: "var(--color-dark)",
-          color: "#fff",
+          background: "var(--color-white)",
+          color: "var(--color-text)",
         }}
       >
-        <Link href="/dashboard" style={{ display: "flex", alignItems: "center", gap: 8, color: "#fff" }}>
+        <Link href="/dashboard" style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--color-text)" }}>
           <span
             style={{
               display: "inline-flex",
@@ -262,7 +264,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             onClick={() => setMenuOpen((v) => !v)}
             aria-label="More"
             aria-expanded={menuOpen}
-            style={{ background: "none", border: "none", color: "#fff", padding: 8, display: "flex", borderRadius: 8 }}
+            style={{ background: "none", border: "none", color: "var(--color-text)", padding: 8, display: "flex", borderRadius: 8 }}
           >
             <MoreIcon width={20} height={20} />
           </button>
