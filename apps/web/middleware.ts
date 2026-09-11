@@ -29,6 +29,7 @@ const APP_PATH_PREFIXES = [
   "/wallet",
   "/profile",
   "/instagram",
+  "/creators",
   "/admin",
   "/login",
   "/signup",

@@ -43,6 +43,31 @@ export async function releasePayout(
     campaignId: assignment.campaignId,
   });
 
+  // Platform commission on the creator side (admin-controlled, same
+  // TaxRule table the brand-side GST rule already lives in — just
+  // applicableParty: "CREATOR" instead of "BRAND"). Posted as a
+  // separate FEE debit rather than simply crediting a smaller
+  // CREATOR_EARNING, so a creator's statement shows the full earning
+  // and the deduction as two distinct, auditable lines instead of one
+  // unexplained lower number. No rule active today -> 0%, unchanged
+  // from before this existed.
+  const creatorFeeRules = await tx.taxRule.findMany({
+    where: { transactionType: "PLATFORM_FEE", applicableParty: "CREATOR", active: true },
+  });
+  const commissionRatePct = creatorFeeRules.reduce((sum, r) => sum + Number(r.rate), 0);
+  const commissionAmount = Math.round(amount * (commissionRatePct / 100) * 100) / 100;
+  if (commissionAmount > 0) {
+    await postLedgerEntryWithinTx(tx, {
+      walletId: creatorWallet.id,
+      type: WalletTransactionType.FEE,
+      amount: commissionAmount,
+      referenceType: "ASSIGNMENT",
+      referenceId: assignment.id,
+      campaignId: assignment.campaignId,
+      metadata: { commissionRatePct },
+    });
+  }
+
   assertTransition("CampaignAssignment", ASSIGNMENT_TRANSITIONS, AssignmentStatus.PAYABLE, AssignmentStatus.PAID);
   await tx.campaignAssignment.update({
     where: { id: assignment.id },

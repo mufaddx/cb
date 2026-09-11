@@ -6,6 +6,7 @@ import Link from "next/link";
 import { apiFetch, ApiClientError, clearTokens } from "../../lib/apiClient";
 import { ConfirmProvider } from "../../lib/useConfirm";
 import { LogOutIcon, MenuIcon, SparkIcon } from "../../components/icons";
+import { NotificationBell } from "../../components/NotificationBell";
 
 const ADMIN_ROLES = ["SUPER_ADMIN", "OPERATIONS_ADMIN", "FINANCE_ADMIN", "KYC_ADMIN", "CONTENT_REVIEWER", "SUPPORT_ADMIN"];
 
@@ -297,7 +298,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </aside>
         <main className="admin-content" style={{ flex: 1, background: "var(--color-bg)", minWidth: 0, marginLeft: 252 }}>
-          <div className="page-header">{pageTitle}</div>
+          <div className="page-header" style={{ justifyContent: "space-between" }}>
+            <span>{pageTitle}</span>
+            <NotificationBell />
+          </div>
           <div style={{ padding: "32px" }}>{children}</div>
         </main>
       </div>

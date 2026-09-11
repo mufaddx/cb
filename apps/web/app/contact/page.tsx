@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import { MarketingHeader } from "../../components/MarketingHeader";
 import { MarketingFooter } from "../../components/MarketingFooter";
 import { HandshakeIcon, MegaphoneIcon } from "../../components/icons";
+
+export const metadata: Metadata = {
+  title: "Contact",
+  description: "Get in touch with Vidlix — support for brands and creators.",
+  alternates: { canonical: "/contact" },
+};
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "";
 

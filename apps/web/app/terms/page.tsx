@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import { MarketingHeader } from "../../components/MarketingHeader";
 import { MarketingFooter } from "../../components/MarketingFooter";
+
+export const metadata: Metadata = {
+  title: "Terms of Service",
+  description: "The terms governing campaign agreements, payments, and disputes on Vidlix.",
+  alternates: { canonical: "/terms" },
+};
 
 const SECTIONS = [
   {

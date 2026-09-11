@@ -16,7 +16,19 @@ router.get(
       where: brandId ? { brandId } : { creatorId },
     });
     if (!wallet) throw new NotFoundError("Wallet not found");
-    sendSuccess(res, wallet);
+
+    // Surfaced only for creators — this is the same rate
+    // payouts.service.ts actually deducts, read live so it can never
+    // drift from what a payout will really apply.
+    let platformFeePct: number | null = null;
+    if (creatorId) {
+      const rules = await prisma.taxRule.findMany({
+        where: { transactionType: "PLATFORM_FEE", applicableParty: "CREATOR", active: true },
+      });
+      platformFeePct = rules.reduce((sum, r) => sum + Number(r.rate), 0);
+    }
+
+    sendSuccess(res, { ...wallet, platformFeePct });
   })
 );
 

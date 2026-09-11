@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import { MarketingHeader } from "../../components/MarketingHeader";
 import { MarketingFooter } from "../../components/MarketingFooter";
+
+export const metadata: Metadata = {
+  title: "Pricing",
+  description: "How campaign pricing works on Vidlix — creator payout, platform fee, and tax, computed from the live rate card before your campaign goes live.",
+  alternates: { canonical: "/pricing" },
+};
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "";
 

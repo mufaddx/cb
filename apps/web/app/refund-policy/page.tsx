@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import { MarketingHeader } from "../../components/MarketingHeader";
 import { MarketingFooter } from "../../components/MarketingFooter";
+
+export const metadata: Metadata = {
+  title: "Refund Policy",
+  description: "How refunds work on Vidlix.",
+  alternates: { canonical: "/refund-policy" },
+};
 
 export default function RefundPolicyPage() {
   return (

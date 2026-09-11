@@ -1,5 +1,13 @@
+import type { Metadata } from "next";
 import { MarketingHeader } from "../../components/MarketingHeader";
 import { MarketingFooter } from "../../components/MarketingFooter";
+
+export const metadata: Metadata = {
+  title: "For Brands",
+  description:
+    "Launch a Clipping or Creator Content campaign, target by follower count or reach, and let matching, verification, and payouts run themselves.",
+  alternates: { canonical: "/for-brands" },
+};
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "";
 

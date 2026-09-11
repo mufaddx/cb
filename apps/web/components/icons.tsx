@@ -66,6 +66,15 @@ export function PackageIcon(props: IconProps) {
   );
 }
 
+export function BellIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M6 10.5a6 6 0 0 1 12 0v4l1.5 3h-15l1.5-3Z" />
+      <path d="M10 20a2 2 0 0 0 4 0" />
+    </svg>
+  );
+}
+
 export function UserIcon(props: IconProps) {
   return (
     <svg {...base} {...props}>

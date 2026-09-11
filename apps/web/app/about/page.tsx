@@ -1,5 +1,13 @@
+import type { Metadata } from "next";
 import { MarketingHeader } from "../../components/MarketingHeader";
 import { MarketingFooter } from "../../components/MarketingFooter";
+
+export const metadata: Metadata = {
+  title: "About",
+  description:
+    "Vidlix connects brands with creators for clipping and creator content campaigns, with matching, verification, retention tracking, and payouts handled end to end.",
+  alternates: { canonical: "/about" },
+};
 
 export default function AboutPage() {
   return (

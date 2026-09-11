@@ -40,4 +40,20 @@ router.patch(
   })
 );
 
+/**
+ * Top creators by quality score / completion rate — a brand deciding
+ * who to work with, not the admin directory (admin.routes.ts's
+ * /creators is the full record, gated on USER_MANAGE_ALL). Deliberately
+ * a narrow field set: nothing a brand shouldn't see (KYC, phone, raw
+ * risk score) about a creator it hasn't worked with yet.
+ */
+router.get(
+  "/top",
+  asyncHandler(async (req, res) => {
+    if (!req.auth?.brandId) throw new UnauthorizedError("This action requires a brand profile");
+    const creators = await creatorsService.listTopCreators(prisma);
+    sendSuccess(res, creators);
+  })
+);
+
 export default router;

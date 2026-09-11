@@ -35,6 +35,45 @@ export async function getMyCreatorProfile(prisma: PrismaClient, userId: string) 
   return creator;
 }
 
+/** Top creators for a brand deciding who to work with — ranked by
+ * quality score then completion rate, same ordering matching.service.ts
+ * uses to pick who gets an offer first. AVAILABLE only (a paused/busy
+ * creator wouldn't be offered anything anyway). */
+export async function listTopCreators(prisma: PrismaClient, limit = 20) {
+  const creators = await prisma.creator.findMany({
+    where: { availability: "AVAILABLE" },
+    orderBy: [{ qualityScore: "desc" }, { completionRate: "desc" }],
+    take: limit,
+    select: {
+      id: true,
+      displayName: true,
+      bio: true,
+      location: true,
+      qualityScore: true,
+      completionRate: true,
+      categories: { select: { category: { select: { name: true } } } },
+      instagramAccount: {
+        select: {
+          username: true,
+          snapshots: { orderBy: { capturedAt: "desc" }, take: 1, select: { followers: true, avgReach: true } },
+        },
+      },
+    },
+  });
+  return creators.map((c) => ({
+    id: c.id,
+    displayName: c.displayName,
+    bio: c.bio,
+    location: c.location,
+    qualityScore: c.qualityScore,
+    completionRate: c.completionRate,
+    categories: c.categories.map((cc) => cc.category.name),
+    instagramUsername: c.instagramAccount?.username ?? null,
+    followers: c.instagramAccount?.snapshots[0]?.followers ?? null,
+    avgReach: c.instagramAccount?.snapshots[0]?.avgReach ?? null,
+  }));
+}
+
 /**
  * Self-service profile edit — until now categories (and everything
  * else here) could only ever be set once, at signup, and never

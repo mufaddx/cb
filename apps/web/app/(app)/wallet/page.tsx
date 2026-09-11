@@ -8,6 +8,7 @@ import { apiFetch, ApiClientError } from "@/lib/apiClient";
 interface Wallet {
   availableBalance: string;
   reservedBalance: string;
+  platformFeePct: number | null;
 }
 interface Withdrawal {
   id: string;
@@ -28,6 +29,21 @@ interface WalletTransaction {
   createdAt: string;
   referenceType: string | null;
 }
+
+const TX_LABEL: Record<string, string> = {
+  DEPOSIT: "Deposit",
+  RESERVE: "Reserved for campaign",
+  RELEASE: "Released",
+  SPEND: "Campaign spend",
+  CREATOR_EARNING: "Earning",
+  REFUND: "Refund",
+  WITHDRAWAL: "Withdrawal",
+  ADJUSTMENT: "Adjustment",
+  TAX: "Tax",
+  FEE: "Platform fee",
+  REVERSAL: "Reversal",
+};
+const DEBIT_TX_TYPES = new Set(["RESERVE", "SPEND", "WITHDRAWAL", "TAX", "FEE"]);
 
 export default function WalletPage() {
   const [accountType, setAccountType] = useState<"BRAND" | "CREATOR" | null>(null);
@@ -108,6 +124,11 @@ export default function WalletPage() {
           {wallet && Number(wallet.reservedBalance) > 0 && (
             <div className="helper-text">Reserved: ₹{wallet.reservedBalance}</div>
           )}
+          {accountType === "CREATOR" && !!wallet?.platformFeePct && (
+            <div className="helper-text" style={{ marginTop: 4 }}>
+              A {wallet.platformFeePct}% platform fee is deducted from each payout — shown as its own line below.
+            </div>
+          )}
         </div>
 
         {accountType === "CREATOR" && (
@@ -182,10 +203,12 @@ export default function WalletPage() {
             {transactions.map((t) => (
               <div key={t.id} className="card" style={{ display: "flex", justifyContent: "space-between", padding: "12px 16px" }}>
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: 14 }}>{t.type}</div>
+                  <div style={{ fontWeight: 600, fontSize: 14 }}>{TX_LABEL[t.type] ?? t.type}</div>
                   <div className="helper-text">{new Date(t.createdAt).toLocaleString()}</div>
                 </div>
-                <div style={{ fontWeight: 600 }}>₹{t.amount}</div>
+                <div style={{ fontWeight: 600, color: DEBIT_TX_TYPES.has(t.type) ? "var(--color-danger)" : "var(--color-success)" }}>
+                  {DEBIT_TX_TYPES.has(t.type) ? "−" : "+"}₹{t.amount}
+                </div>
               </div>
             ))}
           </div>

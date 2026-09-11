@@ -1,7 +1,13 @@
 import { MarketingHeader } from "../../components/MarketingHeader";
 import { MarketingFooter } from "../../components/MarketingFooter";
 
-export const metadata = { title: "Blog" };
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Blog",
+  description: "Playbooks, product updates, and what we're learning from campaigns running on Vidlix.",
+  alternates: { canonical: "/blog" },
+};
 
 export default function BlogPage() {
   return (

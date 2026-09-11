@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { apiFetch, clearTokens } from "../lib/apiClient";
 import { BottomNav } from "./BottomNav";
+import { NotificationBell } from "./NotificationBell";
 import {
   HandshakeIcon,
   HomeIcon,
@@ -27,6 +28,7 @@ import {
 const BRAND_NAV = [
   { href: "/dashboard", label: "Dashboard", icon: HomeIcon },
   { href: "/campaigns", label: "Campaigns", icon: MegaphoneIcon },
+  { href: "/creators", label: "Top Creators", icon: UserIcon },
   { href: "/wallet", label: "Wallet", icon: WalletIcon },
 ];
 
@@ -355,7 +357,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       <main className="app-content" style={{ flex: 1, minWidth: 0, marginLeft: "var(--sidebar-width)" }}>
-        {pageTitle && <div className="page-header">{pageTitle}</div>}
+        <div className="page-header" style={{ justifyContent: "space-between" }}>
+          <span>{pageTitle}</span>
+          {accountType && <NotificationBell />}
+        </div>
         {children}
       </main>
 

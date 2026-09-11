@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import { MarketingHeader } from "../../components/MarketingHeader";
 import { MarketingFooter } from "../../components/MarketingFooter";
+
+export const metadata: Metadata = {
+  title: "How It Works",
+  description: "From brief to payout — how a campaign runs on Vidlix for both brands and creators, step by step.",
+  alternates: { canonical: "/how-it-works" },
+};
 
 const brandSteps = ["Create a campaign (type, brief, targeting, budget)", "Admin reviews and approves it", "Pay — funds are reserved", "Eligible creators are matched and offered the campaign", "Review submitted content and verification", "Campaign completes; evidence is archived"];
 const creatorSteps = ["Complete your profile and connect Instagram", "Receive campaign offers matched to your audience", "Review terms and accept", "Create and submit your content (or ship details for Product Review)", "Get verified, pass retention where applicable", "Get paid to your wallet and withdraw via UPI"];

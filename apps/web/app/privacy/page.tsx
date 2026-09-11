@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import { MarketingHeader } from "../../components/MarketingHeader";
 import { MarketingFooter } from "../../components/MarketingFooter";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description: "How Vidlix collects, uses, and protects your data.",
+  alternates: { canonical: "/privacy" },
+};
 
 const SECTIONS = [
   {

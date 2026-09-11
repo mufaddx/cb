@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import { MarketingHeader } from "../../components/MarketingHeader";
 import { MarketingFooter } from "../../components/MarketingFooter";
+
+export const metadata: Metadata = {
+  title: "Disclaimer",
+  description: "Legal disclaimer for the Vidlix platform.",
+  alternates: { canonical: "/disclaimer" },
+};
 
 export default function DisclaimerPage() {
   return (

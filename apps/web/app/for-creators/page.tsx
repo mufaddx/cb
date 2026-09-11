@@ -1,5 +1,13 @@
+import type { Metadata } from "next";
 import { MarketingHeader } from "../../components/MarketingHeader";
 import { MarketingFooter } from "../../components/MarketingFooter";
+
+export const metadata: Metadata = {
+  title: "For Creators",
+  description:
+    "Connect Instagram, receive campaign offers matched to your audience, deliver content, and get paid to your wallet — withdraw via UPI once KYC is verified.",
+  alternates: { canonical: "/for-creators" },
+};
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "";
 

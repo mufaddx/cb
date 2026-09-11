@@ -7,12 +7,31 @@ import "../styles/globals.css";
 // instead of hardcoding a className on every page.
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 
+const SITE_URL = "https://vidlix.in";
+const DESCRIPTION =
+  "Turn your campaign into creator-powered reach. Clipping and creator content campaigns — matched, tracked, and paid out end to end.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Vidlix — Creator Campaign Marketplace",
     template: "%s — Vidlix",
   },
-  description: "Turn your campaign into creator-powered reach. Clipping, creator content, and product review campaigns — matched, tracked, and paid out end to end.",
+  description: DESCRIPTION,
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    siteName: "Vidlix",
+    url: SITE_URL,
+    title: "Vidlix — Creator Campaign Marketplace",
+    description: DESCRIPTION,
+  },
+  twitter: {
+    card: "summary",
+    title: "Vidlix — Creator Campaign Marketplace",
+    description: DESCRIPTION,
+  },
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
