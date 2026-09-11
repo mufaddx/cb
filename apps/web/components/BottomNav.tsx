@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 const BRAND_NAV = [
   { href: "/dashboard", label: "Home", icon: "🏠" },
   { href: "/campaigns", label: "Campaigns", icon: "📣" },
-  { href: "/shipments", label: "Shipments", icon: "📦" },
   { href: "/wallet", label: "Wallet", icon: "💰" },
 ];
 

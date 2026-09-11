@@ -50,37 +50,8 @@ function formatRange(min: number, max: number | null, metric: Metric): string {
   return max ? `${fmt(min)}–${fmt(max)} ${unit}` : `${fmt(min)}+ ${unit}`;
 }
 
-// Every field group below is one of these — a numbered card with a
-// title and a one-line explainer, instead of labels floating directly
-// on the page background with no sense of where one question ends and
-// the next begins.
-function Section({ step, title, hint, children }: { step: number; title: string; hint?: string; children: React.ReactNode }) {
-  return (
-    <div className="card" style={{ marginBottom: 16, padding: 24 }}>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: hint ? 4 : 16 }}>
-        <span
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: 22,
-            height: 22,
-            borderRadius: 7,
-            background: "var(--color-primary-soft)",
-            color: "var(--color-primary)",
-            fontSize: 12,
-            fontWeight: 700,
-            flexShrink: 0,
-          }}
-        >
-          {step}
-        </span>
-        <h3 style={{ fontSize: 15, margin: 0 }}>{title}</h3>
-      </div>
-      {hint && <p className="helper-text" style={{ margin: "0 0 16px", paddingLeft: 32 }}>{hint}</p>}
-      <div style={{ paddingLeft: 32 }}>{children}</div>
-    </div>
-  );
+function Divider() {
+  return <div style={{ height: 1, background: "var(--color-border)", margin: "24px 0" }} />;
 }
 
 export default function CreateCampaignPage() {
@@ -93,9 +64,13 @@ export default function CreateCampaignPage() {
   const [disclosureRequired, setDisclosureRequired] = useState(true);
   const [productId, setProductId] = useState("");
   const [products, setProducts] = useState<Product[] | null>(null);
+  const [addingProduct, setAddingProduct] = useState(false);
+  const [newProductName, setNewProductName] = useState("");
+  const [newProductDesc, setNewProductDesc] = useState("");
+  const [savingProduct, setSavingProduct] = useState(false);
   const [categoryId, setCategoryId] = useState("");
   const [categories, setCategories] = useState<Category[] | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<"draft" | "publish" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sourceAssetKey, setSourceAssetKey] = useState<string | null>(null);
   const [sourceAssetName, setSourceAssetName] = useState<string | null>(null);
@@ -154,6 +129,27 @@ export default function CreateCampaignPage() {
       .catch(() => setAvailableSlabs([]));
   }, [effectiveType, metric]);
 
+  async function saveNewProduct() {
+    if (!newProductName.trim()) return;
+    setSavingProduct(true);
+    setError(null);
+    try {
+      const product = await apiFetch<Product>("/api/products", {
+        method: "POST",
+        body: { name: newProductName.trim(), description: newProductDesc.trim() || undefined },
+      });
+      setProducts((prev) => [...(prev ?? []), product]);
+      setProductId(product.id);
+      setNewProductName("");
+      setNewProductDesc("");
+      setAddingProduct(false);
+    } catch (err) {
+      setError(err instanceof ApiClientError ? err.message : "Couldn't save that product.");
+    } finally {
+      setSavingProduct(false);
+    }
+  }
+
   function updateRange(i: number, field: keyof RangeRow, value: string) {
     setRanges((prev) =>
       prev.map((r, idx) => {
@@ -182,10 +178,17 @@ export default function CreateCampaignPage() {
     return availableSlabs.filter((s) => !usedByOtherRows.has(s.id));
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  const totalCreators = ranges.reduce((sum, r) => sum + (Number(r.quantity) || 0), 0);
+  const estimatedPayout = ranges.reduce((sum, r) => sum + (Number(r.payoutAmount) || 0) * (Number(r.quantity) || 0), 0);
+  const selectedCategoryName = categories?.find((c) => c.id === categoryId)?.name;
+
+  async function createCampaign(publish: boolean) {
     setError(null);
 
+    if (!title.trim() || description.trim().length < 10) {
+      setError("Add a title and at least a 10-character description.");
+      return;
+    }
     if (shipsProduct && !productId) {
       setError("Select which product creators will receive.");
       return;
@@ -199,7 +202,7 @@ export default function CreateCampaignPage() {
       return;
     }
 
-    setLoading(true);
+    setLoading(publish ? "publish" : "draft");
     try {
       const campaign = await apiFetch<{ id: string }>("/api/campaigns", {
         method: "POST",
@@ -224,24 +227,29 @@ export default function CreateCampaignPage() {
           }),
         },
       });
+      if (publish) {
+        await apiFetch(`/api/campaigns/${campaign.id}/submit`, { method: "POST" });
+      }
       router.push(`/campaigns/${campaign.id}`);
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : "Something went wrong.");
     } finally {
-      setLoading(false);
+      setLoading(null);
     }
   }
 
   return (
     <main style={{ padding: "32px" }}>
-      <p className="helper-text" style={{ marginBottom: 24, maxWidth: 640 }}>
-        A simplified single-page version of the full campaign wizard, though everything it submits is real.
-        Pricing is computed from the live rate card, and admin review, payment, and creator matching all follow
-        from here.
-      </p>
-
-      <form onSubmit={handleSubmit} style={{ maxWidth: 680 }}>
-        <Section step={1} title="Campaign type">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          createCampaign(true);
+        }}
+        style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 24, alignItems: "start" }}
+        className="campaign-create-grid"
+      >
+        <div className="card" style={{ padding: 28 }}>
+          <label className="label">Campaign type</label>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 }}>
             {(Object.keys(TYPE_INFO) as UiType[]).map((t) => (
               <button
@@ -272,12 +280,12 @@ export default function CreateCampaignPage() {
                 onChange={(e) => setShipsProduct(e.target.checked)}
                 style={{ marginTop: 3, flexShrink: 0 }}
               />
-              <span>Ship a product for this campaign — creators will receive it and review it as their content.</span>
+              <span>Ship a product — creators will receive it and review it as their content.</span>
             </label>
           )}
-        </Section>
 
-        <Section step={2} title="Campaign details">
+          <Divider />
+
           <label className="label">Title</label>
           <input className="input" required value={title} onChange={(e) => setTitle(e.target.value)} style={{ marginBottom: 16 }} />
 
@@ -288,12 +296,12 @@ export default function CreateCampaignPage() {
             minLength={10}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            style={{ marginBottom: type === "CLIPPING" || shipsProduct ? 16 : 0, minHeight: 90, resize: "vertical", fontFamily: "inherit" }}
+            style={{ minHeight: 90, resize: "vertical", fontFamily: "inherit" }}
           />
 
           {type === "CLIPPING" && (
             <>
-              <label className="label">Source video</label>
+              <label className="label" style={{ marginTop: 16 }}>Source video</label>
               <label
                 htmlFor="source-video"
                 style={{
@@ -326,9 +334,7 @@ export default function CreateCampaignPage() {
                     {uploadingAsset ? "Uploading…" : sourceAssetKey ? sourceAssetName ?? "Video uploaded" : "Choose a video to upload"}
                   </div>
                   <div className="helper-text" style={{ marginTop: 2 }}>
-                    {sourceAssetKey
-                      ? "Ready to save — click to replace it."
-                      : "The raw footage creators will re-cut and post. Required to save this campaign."}
+                    {sourceAssetKey ? "Ready — click to replace it." : "The raw footage creators will re-cut and post."}
                   </div>
                 </span>
                 <input
@@ -345,47 +351,66 @@ export default function CreateCampaignPage() {
 
           {shipsProduct && (
             <>
-              <label className="label">Product</label>
-              <select
-                className="input"
-                required
-                value={productId}
-                onChange={(e) => setProductId(e.target.value)}
-              >
-                <option value="">Select a product…</option>
-                {products?.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-              {products?.length === 0 && (
-                <p className="helper-text" style={{ marginTop: 8 }}>
-                  No products yet — add one on the Products page first.
-                </p>
+              <label className="label" style={{ marginTop: 16 }}>Product</label>
+              {!addingProduct ? (
+                <>
+                  <select className="input" required value={productId} onChange={(e) => setProductId(e.target.value)}>
+                    <option value="">Select a product…</option>
+                    {products?.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setAddingProduct(true)}
+                    style={{ background: "none", border: "none", color: "var(--color-primary)", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: "8px 0 0" }}
+                  >
+                    + Add a new product
+                  </button>
+                </>
+              ) : (
+                <div style={{ background: "var(--color-bg-subtle)", borderRadius: "var(--radius-control)", padding: 14 }}>
+                  <input
+                    className="input"
+                    placeholder="Product name"
+                    value={newProductName}
+                    onChange={(e) => setNewProductName(e.target.value)}
+                    style={{ marginBottom: 8, background: "var(--color-white)" }}
+                  />
+                  <input
+                    className="input"
+                    placeholder="Description (optional)"
+                    value={newProductDesc}
+                    onChange={(e) => setNewProductDesc(e.target.value)}
+                    style={{ marginBottom: 10, background: "var(--color-white)" }}
+                  />
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <Button type="button" loading={savingProduct} onClick={saveNewProduct}>Save product</Button>
+                    <Button type="button" variant="secondary" onClick={() => setAddingProduct(false)}>Cancel</Button>
+                  </div>
+                </div>
               )}
             </>
           )}
-        </Section>
 
-        <Section
-          step={3}
-          title="Who this reaches"
-          hint="Category narrows the pool first; the metric below then filters by audience size within it."
-        >
+          <Divider />
+
           <label className="label">Category</label>
           <select
             className="input"
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}
-            style={{ marginBottom: 20, maxWidth: 340 }}
+            style={{ marginBottom: 6, maxWidth: 340 }}
           >
             <option value="">No category — targeting only</option>
             {categories?.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
+          <p className="helper-text" style={{ margin: "0 0 20px" }}>Matches only creators who've added this category to their profile.</p>
 
           <label className="label">Target creators by</label>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10, marginBottom: 8 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 }}>
             {(["FOLLOWER_COUNT", "AVERAGE_REACH"] as Metric[]).map((m) => (
               <button
                 key={m}
@@ -403,19 +428,17 @@ export default function CreateCampaignPage() {
               </button>
             ))}
           </div>
-          <p className="helper-text" style={{ margin: 0 }}>
-            Only creators matching the metric you pick here are offered this campaign — the other one is ignored entirely.
-          </p>
-        </Section>
 
-        <Section step={4} title="Ranges &amp; payout" hint="Pick every audience-size band this campaign should offer to, and how many creators you need at each.">
+          <Divider />
+
+          <label className="label">Ranges &amp; payout</label>
           {availableSlabs === null ? (
             <p className="helper-text">Loading rate card…</p>
           ) : availableSlabs.length === 0 ? (
-            <p className="error-text">No active rate card for this combination yet — try the other metric, or contact support.</p>
+            <p className="error-text">No active rate card for this combination yet — try the other metric.</p>
           ) : (
             <>
-              <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 80px 32px", gap: 8, marginBottom: 6, padding: "0 2px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 80px 32px", gap: 8, margin: "4px 0 6px", padding: "0 2px" }}>
                 <span className="helper-text" style={{ fontSize: 11.5, textTransform: "uppercase", letterSpacing: "0.04em" }}>Range</span>
                 <span className="helper-text" style={{ fontSize: 11.5, textTransform: "uppercase", letterSpacing: "0.04em" }}>Payout ₹</span>
                 <span className="helper-text" style={{ fontSize: 11.5, textTransform: "uppercase", letterSpacing: "0.04em" }}>Qty</span>
@@ -482,19 +505,16 @@ export default function CreateCampaignPage() {
                   </div>
                 );
               })}
-              <p className="helper-text" style={{ margin: "8px 0 16px" }}>
-                Payout can be raised above the platform floor shown, never lowered below it.
-              </p>
               {ranges.length < availableSlabs.length && (
-                <Button type="button" variant="secondary" onClick={addRange}>
+                <Button type="button" variant="secondary" onClick={addRange} style={{ marginTop: 4 }}>
                   + Add Another Range
                 </Button>
               )}
             </>
           )}
-        </Section>
 
-        <Section step={5} title="Delivery settings">
+          <Divider />
+
           <label className="label">Retention (days)</label>
           <input
             className="input"
@@ -509,12 +529,48 @@ export default function CreateCampaignPage() {
             <input type="checkbox" checked={disclosureRequired} onChange={(e) => setDisclosureRequired(e.target.checked)} />
             Require a sponsored post disclosure
           </label>
-        </Section>
+        </div>
 
-        {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
+        <div className="campaign-create-summary" style={{ position: "sticky", top: 20 }}>
+          <div className="card" style={{ padding: 22 }}>
+            <h3 style={{ fontSize: 14.5, margin: "0 0 14px" }}>Summary</h3>
 
-        <Button type="submit" loading={loading}>Save Draft</Button>
+            <SummaryRow label="Type">{TYPE_INFO[type].title}{shipsProduct ? " + product" : ""}</SummaryRow>
+            <SummaryRow label="Category">{selectedCategoryName ?? "Any"}</SummaryRow>
+            <SummaryRow label="Targeting">{metric === "FOLLOWER_COUNT" ? "Followers" : "Reach"}</SummaryRow>
+            <SummaryRow label="Creators requested">{totalCreators || "—"}</SummaryRow>
+            <SummaryRow label="Est. payout">{estimatedPayout > 0 ? `₹${estimatedPayout.toLocaleString("en-IN")}` : "—"}</SummaryRow>
+
+            <p className="helper-text" style={{ margin: "10px 0 0" }}>Platform fee and GST are added at review.</p>
+
+            {error && <p className="error-text" style={{ margin: "14px 0 0" }}>{error}</p>}
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 18 }}>
+              <Button type="submit" loading={loading === "publish"} disabled={loading === "draft"}>
+                Publish Campaign
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                loading={loading === "draft"}
+                disabled={loading === "publish"}
+                onClick={() => createCampaign(false)}
+              >
+                Save Draft
+              </Button>
+            </div>
+          </div>
+        </div>
       </form>
     </main>
+  );
+}
+
+function SummaryRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", gap: 10, padding: "7px 0", fontSize: 13.5 }}>
+      <span className="helper-text" style={{ margin: 0 }}>{label}</span>
+      <span style={{ fontWeight: 600, textAlign: "right" }}>{children}</span>
+    </div>
   );
 }

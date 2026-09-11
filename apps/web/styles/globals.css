@@ -425,6 +425,17 @@ a {
     grid-column: 1 / -1;
   }
 
+  /* Create Campaign's two-column (form + sticky summary) layout only
+     makes sense once there's room for both side by side — stack them
+     on a phone, and drop the sticky positioning so the summary
+     doesn't float mid-scroll over the form. */
+  .campaign-create-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .campaign-create-summary {
+    position: static !important;
+  }
+
   /* Auth forms (login/signup/forgot/reset/verify): the centered card
      with outer page padding left a small floating box with wasted
      space on both sides on a phone. Full screen instead — the form

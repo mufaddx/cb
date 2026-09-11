@@ -11,18 +11,21 @@ import {
   LogOutIcon,
   MegaphoneIcon,
   MoreIcon,
-  PackageIcon,
   SparkIcon,
   TargetIcon,
   UserIcon,
   WalletIcon,
 } from "./icons";
 
+// Products/Shipments aren't primary nav — they're only relevant to
+// campaigns that ship a physical product, a minority case. A product
+// can be added inline from the campaign form's own "ship a product"
+// step, and shipment status shows on the campaign it belongs to
+// (campaigns/[id]) — no reason to promote either to a permanent slot
+// every brand sees regardless of whether they've ever used it.
 const BRAND_NAV = [
   { href: "/dashboard", label: "Dashboard", icon: HomeIcon },
   { href: "/campaigns", label: "Campaigns", icon: MegaphoneIcon },
-  { href: "/products", label: "Products", icon: PackageIcon },
-  { href: "/shipments", label: "Shipments", icon: PackageIcon },
   { href: "/wallet", label: "Wallet", icon: WalletIcon },
 ];
 
