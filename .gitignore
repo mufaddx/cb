@@ -11,6 +11,7 @@ coverage/
 .env.*.local
 
 storage/local/
+**/storage/local/
 *.log
 npm-debug.log*
 
