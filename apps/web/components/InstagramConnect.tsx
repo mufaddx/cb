@@ -12,7 +12,7 @@ interface InstagramMetrics {
 }
 
 interface InstagramStatus {
-  status: "NOT_CONNECTED" | "CONNECTED" | "EXPIRED" | "REVOKED";
+  status: "NOT_CONNECTED" | "CONNECTED" | "NEEDS_RECONNECTION" | "SYNC_FAILED";
   username?: string;
   connectedAt?: string;
   latestMetrics?: InstagramMetrics | null;

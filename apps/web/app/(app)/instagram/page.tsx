@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/Button";
 import { apiFetch, ApiClientError } from "@/lib/apiClient";
+import { useConfirm } from "@/lib/useConfirm";
 
 interface InstagramMetrics {
   followers: number;
@@ -12,7 +13,7 @@ interface InstagramMetrics {
 }
 
 interface InstagramStatus {
-  status: "NOT_CONNECTED" | "CONNECTED" | "EXPIRED" | "REVOKED";
+  status: "NOT_CONNECTED" | "CONNECTED" | "NEEDS_RECONNECTION" | "SYNC_FAILED";
   username?: string;
   fullName?: string | null;
   bio?: string | null;
@@ -33,9 +34,11 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 export default function InstagramDashboardPage() {
+  const confirm = useConfirm();
   const [status, setStatus] = useState<InstagramStatus | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   function load() {
@@ -67,6 +70,26 @@ export default function InstagramDashboardPage() {
       setError(err instanceof ApiClientError ? err.message : "Couldn't refresh right now.");
     } finally {
       setRefreshing(false);
+    }
+  }
+
+  async function handleDisconnect() {
+    const confirmed = await confirm({
+      title: "Disconnect Instagram?",
+      description: "Brands won't be able to see updated follower/reach data until you reconnect.",
+      danger: true,
+      confirmLabel: "Disconnect",
+    });
+    if (!confirmed) return;
+    setDisconnecting(true);
+    setError(null);
+    try {
+      const updated = await apiFetch<InstagramStatus>("/api/instagram/disconnect", { method: "POST" });
+      setStatus(updated);
+    } catch (err) {
+      setError(err instanceof ApiClientError ? err.message : "Couldn't disconnect right now.");
+    } finally {
+      setDisconnecting(false);
     }
   }
 
@@ -133,6 +156,7 @@ export default function InstagramDashboardPage() {
 
       <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         <Button variant="secondary" onClick={handleRefresh} loading={refreshing}>Refresh</Button>
+        <Button variant="danger" onClick={handleDisconnect} loading={disconnecting}>Disconnect</Button>
         <span className="helper-text">
           {status.lastSyncedAt ? `Last synced ${new Date(status.lastSyncedAt).toLocaleString()}` : "Not synced yet"}
         </span>

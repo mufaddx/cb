@@ -86,58 +86,60 @@ export default function ProfilePage() {
 
   return (
     <main style={{ padding: 32 }}>
-
       {!loaded || categories === null ? (
         <p className="helper-text">Loading…</p>
       ) : (
-        <form onSubmit={save} style={{ maxWidth: 640 }}>
-          <label className="label">Categories ({selected.size}/{MAX_CATEGORIES})</label>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8, margin: "8px 0 20px" }}>
-            {categories.map((c) => {
-              const checked = selected.has(c.id);
-              const disabled = !checked && selected.size >= MAX_CATEGORIES;
-              return (
-                <label
-                  key={c.id}
-                  className="card"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    cursor: disabled ? "not-allowed" : "pointer",
-                    padding: "10px 14px",
-                    opacity: disabled ? 0.5 : 1,
-                    background: checked ? "var(--color-primary-soft)" : "var(--color-bg-subtle)",
-                  }}
-                >
-                  <input type="checkbox" checked={checked} disabled={disabled} onChange={() => toggleCategory(c.id)} />
-                  <span style={{ fontSize: 13.5 }}>{c.name}</span>
-                </label>
-              );
-            })}
-          </div>
+        <div className="card" style={{ maxWidth: 640, padding: 28 }}>
+          <form onSubmit={save}>
+            <label className="label">Categories ({selected.size}/{MAX_CATEGORIES})</label>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8, margin: "8px 0 24px" }}>
+              {categories.map((c) => {
+                const checked = selected.has(c.id);
+                const disabled = !checked && selected.size >= MAX_CATEGORIES;
+                return (
+                  <label
+                    key={c.id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      cursor: disabled ? "not-allowed" : "pointer",
+                      padding: "10px 14px",
+                      borderRadius: "var(--radius-control)",
+                      opacity: disabled ? 0.5 : 1,
+                      background: checked ? "var(--color-primary-soft)" : "var(--color-bg-subtle)",
+                      transition: "background-color var(--duration-fast) ease",
+                    }}
+                  >
+                    <input type="checkbox" checked={checked} disabled={disabled} onChange={() => toggleCategory(c.id)} />
+                    <span style={{ fontSize: 13.5 }}>{c.name}</span>
+                  </label>
+                );
+              })}
+            </div>
 
-          <label className="label">Bio</label>
-          <textarea
-            className="input"
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            style={{ marginBottom: 16, minHeight: 80, resize: "vertical", fontFamily: "inherit" }}
-          />
+            <label className="label">Bio</label>
+            <textarea
+              className="input"
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              style={{ display: "block", marginBottom: 20, minHeight: 80, resize: "vertical", fontFamily: "inherit" }}
+            />
 
-          <label className="label">Location</label>
-          <input
-            className="input"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            style={{ marginBottom: 20, maxWidth: 300 }}
-          />
+            <label className="label">Location</label>
+            <input
+              className="input"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              style={{ display: "block", marginBottom: 24, maxWidth: 300 }}
+            />
 
-          {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
-          {success && <p style={{ color: "var(--color-success)", fontSize: 13, marginBottom: 16 }}>{success}</p>}
+            {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
+            {success && <p style={{ color: "var(--color-success)", fontSize: 13, marginBottom: 16 }}>{success}</p>}
 
-          <Button type="submit" loading={loading}>Save</Button>
-        </form>
+            <Button type="submit" loading={loading}>Save</Button>
+          </form>
+        </div>
       )}
     </main>
   );

@@ -545,6 +545,13 @@ a {
     position: static !important;
   }
 
+  /* Wallet's balance/withdraw (left) + history (right) columns only
+     make sense side by side once there's room for both — stack them
+     on a phone. */
+  .wallet-grid {
+    grid-template-columns: 1fr !important;
+  }
+
   /* Auth forms (login/signup/forgot/reset/verify): the centered card
      with outer page padding left a small floating box with wasted
      space on both sides on a phone. Full screen instead — the form

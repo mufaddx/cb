@@ -121,6 +121,26 @@ export async function refreshInstagramMetrics(prisma: PrismaClient, creatorId: s
   });
 }
 
+/**
+ * Disconnects a creator's Instagram account. The account row and its
+ * metric-snapshot history stay (a brand may have already unlocked/
+ * targeted this creator using that data, and matching/audit shouldn't
+ * lose it) — only `status` flips to NEEDS_RECONNECTION and the
+ * now-unusable access token is overwritten rather than left
+ * decryptable at rest. Reconnecting later goes through the normal
+ * connect flow, which upserts this same row back to CONNECTED.
+ */
+export async function disconnectInstagram(prisma: PrismaClient, creatorId: string) {
+  const account = await prisma.instagramAccount.findUnique({ where: { creatorId } });
+  if (!account) throw new NotFoundError("Instagram is not connected for this creator");
+
+  await prisma.instagramAccount.update({
+    where: { id: account.id },
+    data: { status: InstagramStatus.NEEDS_RECONNECTION, accessTokenEncrypted: encryptSecret("revoked") },
+  });
+  return getInstagramStatus(prisma, creatorId);
+}
+
 export async function requireLatestFollowerCount(prisma: PrismaClient, creatorId: string): Promise<number> {
   const account = await prisma.instagramAccount.findUnique({
     where: { creatorId },

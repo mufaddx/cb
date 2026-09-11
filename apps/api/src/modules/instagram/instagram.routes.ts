@@ -57,4 +57,13 @@ router.post(
   })
 );
 
+router.post(
+  "/disconnect",
+  asyncHandler(async (req, res) => {
+    const creatorId = requireCreatorId(req);
+    const status = await instagramService.disconnectInstagram(prisma, creatorId);
+    sendSuccess(res, status, "Instagram disconnected.");
+  })
+);
+
 export default router;
