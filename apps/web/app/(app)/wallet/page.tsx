@@ -299,7 +299,12 @@ export default function WalletPage() {
                 </select>
               </div>
               {!visibleTransactions || visibleTransactions.length === 0 ? (
-                <p className="helper-text">No transactions{txFilter ? " of this type" : ""} yet.</p>
+                <div style={{ padding: "48px 0", textAlign: "center", color: "var(--color-text-secondary)" }}>
+                  <div style={{ fontSize: 28, marginBottom: 8, opacity: 0.5 }}>₹</div>
+                  <div style={{ fontSize: 13.5 }}>
+                    {txFilter ? "No transactions of this type yet." : "Your transactions will show up here."}
+                  </div>
+                </div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                   {visibleTransactions.map((t) => (

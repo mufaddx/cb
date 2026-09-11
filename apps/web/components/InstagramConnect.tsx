@@ -7,8 +7,8 @@ import { apiFetch, ApiClientError } from "../lib/apiClient";
 
 interface InstagramMetrics {
   followers: number;
-  avgReach: number;
-  avgViews: number;
+  avgReach: number | null;
+  avgViews: number | null;
 }
 
 interface InstagramStatus {
@@ -62,7 +62,8 @@ export function InstagramConnect() {
           <p style={{ margin: "4px 0 8px", fontWeight: 600 }}>@{status.username}</p>
           {status.latestMetrics && (
             <p style={{ margin: "0 0 10px", color: "var(--color-text-secondary)", fontSize: 13 }}>
-              {status.latestMetrics.followers.toLocaleString()} followers · {status.latestMetrics.avgReach.toLocaleString()} avg reach
+              {status.latestMetrics.followers.toLocaleString()} followers
+              {status.latestMetrics.avgReach != null && ` · ${status.latestMetrics.avgReach.toLocaleString()} avg reach`}
             </p>
           )}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
