@@ -38,6 +38,11 @@ interface Product {
   name: string;
 }
 
+interface Category {
+  id: string;
+  name: string;
+}
+
 function formatRange(min: number, max: number | null, metric: Metric): string {
   const unit = metric === "AVERAGE_REACH" ? "reach" : "followers";
   const fmt = (n: number) => n.toLocaleString("en-IN");
@@ -54,6 +59,8 @@ export default function CreateCampaignPage() {
   const [disclosureRequired, setDisclosureRequired] = useState(true);
   const [productId, setProductId] = useState("");
   const [products, setProducts] = useState<Product[] | null>(null);
+  const [categoryId, setCategoryId] = useState("");
+  const [categories, setCategories] = useState<Category[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sourceAssetKey, setSourceAssetKey] = useState<string | null>(null);
@@ -87,6 +94,10 @@ export default function CreateCampaignPage() {
       apiFetch<Product[]>("/api/products").then(setProducts).catch(() => setProducts([]));
     }
   }, [shipsProduct]);
+
+  useEffect(() => {
+    apiFetch<Category[]>("/api/categories").then(setCategories).catch(() => setCategories([]));
+  }, []);
 
   // The rate card (and therefore which ranges are even choosable)
   // depends on both the campaign type and the targeting metric — a
@@ -161,6 +172,7 @@ export default function CreateCampaignPage() {
           title,
           description,
           targetingMetric: metric,
+          categoryId: categoryId || undefined,
           retentionDays: Number(retentionDays),
           disclosureRequired,
           productId: shipsProduct ? productId : undefined,
@@ -284,6 +296,22 @@ export default function CreateCampaignPage() {
               )}
             </>
           )}
+
+          <label className="label">Category</label>
+          <p className="helper-text" style={{ marginBottom: 8 }}>
+            Only creators who&apos;ve added this category on their profile are matched — leave unset to match on the targeting below alone.
+          </p>
+          <select
+            className="input"
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+            style={{ marginBottom: 20, maxWidth: 340 }}
+          >
+            <option value="">No category — targeting only</option>
+            {categories?.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
 
           <label className="label">Target creators by</label>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10, marginBottom: 8 }}>

@@ -14,6 +14,7 @@ import {
   PackageIcon,
   SparkIcon,
   TargetIcon,
+  UserIcon,
   WalletIcon,
 } from "./icons";
 
@@ -30,6 +31,7 @@ const CREATOR_NAV = [
   { href: "/offers", label: "Offers", icon: TargetIcon },
   { href: "/deals", label: "My Deals", icon: HandshakeIcon },
   { href: "/wallet", label: "Wallet", icon: WalletIcon },
+  { href: "/profile", label: "Profile", icon: UserIcon },
 ];
 
 interface Me {
@@ -302,6 +304,26 @@ export function AppShell({ children }: { children: ReactNode }) {
                   )}
                 </div>
               </div>
+              {accountType === "CREATOR" && (
+                <Link
+                  href="/profile"
+                  onClick={() => setMenuOpen(false)}
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 9,
+                    padding: "9px 6px",
+                    borderRadius: 8,
+                    fontSize: 13.5,
+                    fontWeight: 600,
+                    color: "var(--color-text)",
+                  }}
+                >
+                  <UserIcon width={16} height={16} />
+                  Profile
+                </Link>
+              )}
               <button
                 onClick={logout}
                 style={{

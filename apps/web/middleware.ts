@@ -27,6 +27,7 @@ const APP_PATH_PREFIXES = [
   "/products",
   "/shipments",
   "/wallet",
+  "/profile",
   "/admin",
   "/login",
   "/signup",
