@@ -10,11 +10,17 @@ interface PaymentItem {
   amount: string;
   status: string;
   provider: string;
+  purpose: string;
   createdAt: string;
   campaign: { title: string; code: string } | null;
   brand: { companyName: string };
   refunds: Array<{ amount: string; status: string }>;
 }
+
+const NON_CAMPAIGN_PURPOSE_LABEL: Record<string, string> = {
+  WALLET_TOPUP: "Wallet top-up",
+  CREATOR_UNLOCK_CREDITS: "Profile-unlock credits",
+};
 
 export default function PaymentsPage() {
   const confirm = useConfirm();
@@ -92,7 +98,7 @@ export default function PaymentsPage() {
                     {p.campaign ? (
                       <>{p.campaign.code}<div className="helper-text">{p.campaign.title}</div></>
                     ) : (
-                      <span className="badge">Wallet top-up</span>
+                      <span className="badge">{NON_CAMPAIGN_PURPOSE_LABEL[p.purpose] ?? p.purpose}</span>
                     )}
                   </td>
                   <td style={{ padding: "8px 12px" }}>{p.brand.companyName}</td>

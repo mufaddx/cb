@@ -44,11 +44,16 @@ export default function ProfilePage() {
       .catch(() => setNotACreator(true));
   }, []);
 
+  const MAX_CATEGORIES = 3;
+
   function toggleCategory(id: string) {
     setSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else if (next.size < MAX_CATEGORIES) {
+        next.add(id);
+      }
       return next;
     });
   }
@@ -83,32 +88,37 @@ export default function ProfilePage() {
     <main style={{ padding: 32 }}>
       <p className="helper-text" style={{ marginBottom: 24, maxWidth: 640 }}>
         Categories decide which campaigns reach you — a brand targeting &quot;Fitness &amp; Health&quot; only
-        matches creators who&apos;ve picked that category here. Pick every niche that actually fits your content.
+        matches creators who&apos;ve picked that category here. Pick up to {MAX_CATEGORIES} that fit your content best.
       </p>
 
       {!loaded || categories === null ? (
         <p className="helper-text">Loading…</p>
       ) : (
         <form onSubmit={save} style={{ maxWidth: 640 }}>
-          <label className="label">Categories</label>
+          <label className="label">Categories ({selected.size}/{MAX_CATEGORIES})</label>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8, margin: "8px 0 20px" }}>
-            {categories.map((c) => (
-              <label
-                key={c.id}
-                className="card"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  cursor: "pointer",
-                  padding: "10px 14px",
-                  background: selected.has(c.id) ? "var(--color-primary-soft)" : "var(--color-bg-subtle)",
-                }}
-              >
-                <input type="checkbox" checked={selected.has(c.id)} onChange={() => toggleCategory(c.id)} />
-                <span style={{ fontSize: 13.5 }}>{c.name}</span>
-              </label>
-            ))}
+            {categories.map((c) => {
+              const checked = selected.has(c.id);
+              const disabled = !checked && selected.size >= MAX_CATEGORIES;
+              return (
+                <label
+                  key={c.id}
+                  className="card"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    cursor: disabled ? "not-allowed" : "pointer",
+                    padding: "10px 14px",
+                    opacity: disabled ? 0.5 : 1,
+                    background: checked ? "var(--color-primary-soft)" : "var(--color-bg-subtle)",
+                  }}
+                >
+                  <input type="checkbox" checked={checked} disabled={disabled} onChange={() => toggleCategory(c.id)} />
+                  <span style={{ fontSize: 13.5 }}>{c.name}</span>
+                </label>
+              );
+            })}
           </div>
 
           <label className="label">Bio</label>

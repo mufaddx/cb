@@ -40,6 +40,7 @@ import agreementsRoutes from "./modules/agreements/agreements.routes";
 import adminRoutes from "./modules/admin/admin.routes";
 import adminPricingRoutes from "./modules/admin/pricing.routes";
 import categoriesRoutes from "./modules/categories/categories.routes";
+import conversationsRoutes from "./modules/conversations/conversations.routes";
 
 export function createApp() {
   const app = express();
@@ -110,6 +111,7 @@ export function createApp() {
   app.use("/api/admin", adminRoutes);
   app.use("/api/admin", adminPricingRoutes);
   app.use("/api/categories", categoriesRoutes);
+  app.use("/api/conversations", conversationsRoutes);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

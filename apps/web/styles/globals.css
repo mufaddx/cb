@@ -127,17 +127,18 @@ body {
 /* The page canvas — every route (marketing, auth, brand/creator/admin)
    renders inside this one <body>, so this single rule is the "every
    page inherits the paper automatically" mechanism the rest of the
-   system builds on. Grain is a background-image layer (paints behind
-   all real content by definition, no stacking-order tricks needed) on
-   top of a soft, slightly warmer-toward-one-corner base — the "soft
-   tonal imperfection" a flat single color doesn't have. */
+   system builds on. Just the grain over a flat tone — an earlier
+   version layered in two large radial-gradient "soft imperfection"
+   washes here, but their percentage-based sizing is relative to
+   whichever box they're painted on, and on a short box (the hero
+   section below, an auth card) that turned a subtle full-page wash
+   into a visibly hard-edged patch. Not worth that fragility for an
+   effect this understated anyway. */
 body,
 .paper-page {
   background-color: var(--paper-bg);
-  background-image: var(--paper-grain),
-    radial-gradient(120% 90% at 10% -10%, rgba(255, 253, 246, 0.65) 0%, rgba(255, 253, 246, 0) 55%),
-    radial-gradient(100% 80% at 100% 110%, rgba(35, 28, 15, 0.03) 0%, rgba(35, 28, 15, 0) 60%);
-  background-repeat: repeat, no-repeat, no-repeat;
+  background-image: var(--paper-grain);
+  background-repeat: repeat;
 }
 /* .app-content/.admin-content are opaque, full-viewport elements
    sitting beside a fixed sidebar — they'd otherwise hide body's own
@@ -147,10 +148,8 @@ body,
 .app-content,
 .admin-content {
   background-color: var(--paper-bg);
-  background-image: var(--paper-grain),
-    radial-gradient(120% 90% at 10% -10%, rgba(255, 253, 246, 0.65) 0%, rgba(255, 253, 246, 0) 55%),
-    radial-gradient(100% 80% at 100% 110%, rgba(35, 28, 15, 0.03) 0%, rgba(35, 28, 15, 0) 60%);
-  background-repeat: repeat, no-repeat, no-repeat;
+  background-image: var(--paper-grain);
+  background-repeat: repeat;
 }
 
 /* The paper canvas with the brand-colored hero wash layered on top —
@@ -162,10 +161,8 @@ body,
 .auth-shell,
 .hero-wash {
   background-color: var(--paper-bg);
-  background-image: var(--gradient-hero-bg), var(--paper-grain),
-    radial-gradient(120% 90% at 10% -10%, rgba(255, 253, 246, 0.65) 0%, rgba(255, 253, 246, 0) 55%),
-    radial-gradient(100% 80% at 100% 110%, rgba(35, 28, 15, 0.03) 0%, rgba(35, 28, 15, 0) 60%);
-  background-repeat: no-repeat, repeat, no-repeat, no-repeat;
+  background-image: var(--gradient-hero-bg), var(--paper-grain);
+  background-repeat: no-repeat, repeat;
 }
 
 h1,
@@ -219,7 +216,10 @@ a {
   align-items: center;
   height: 64px;
   padding: 0 32px;
-  background: rgba(244, 240, 230, 0.82);
+  /* Same tone as the sidebar (--paper-panel) it sits beside, not the
+     lighter page canvas — reads as one continuous chrome bar instead
+     of two panels that happen to be adjacent. */
+  background: rgba(238, 232, 218, 0.88);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   font-size: 16px;

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/Button";
 import { apiFetch, ApiClientError } from "@/lib/apiClient";
+import { completeCheckout, type CheckoutPayload } from "@/lib/payments";
 import { useConfirm } from "@/lib/useConfirm";
 
 interface Campaign {
@@ -99,15 +100,17 @@ export default function CampaignDetailPage() {
     setBusy(true);
     setError(null);
     try {
-      await apiFetch(`/api/payments/campaigns/${id}/pay`, { method: "POST" });
-      // In production this hands off to the payment provider's real
-      // checkout UI. In development (PAYMENT_PROVIDER=mock) there is no
-      // real checkout to redirect to, so we drive the same signed
-      // webhook path a real provider callback would hit.
-      await apiFetch("/api/payments/dev/simulate-webhook", { method: "POST", body: { campaignId: id, outcome: "captured" } }).catch(() => null);
+      const result = await apiFetch<{ payment: { id: string }; checkoutPayload: CheckoutPayload }>(
+        `/api/payments/campaigns/${id}/pay`,
+        { method: "POST" }
+      );
+      // Opens the real Razorpay checkout once PAYMENT_PROVIDER=razorpay
+      // is configured; while it's still =mock, drives the same signed
+      // webhook path a real provider callback would hit instead.
+      await completeCheckout(result.checkoutPayload, result.payment.id, { description: campaign?.title });
       load();
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Something went wrong.");
+      setError(err instanceof ApiClientError ? err.message : err instanceof Error ? err.message : "Something went wrong.");
     } finally {
       setBusy(false);
     }

@@ -38,7 +38,7 @@ export async function issueRefund(
     // reservedBalance, which a wallet top-up never has any of — it went
     // straight to availableBalance with no RESERVE step. Refunding a
     // top-up needs a different debit path; not built yet.
-    throw new ConflictError("Wallet top-ups can't be refunded from this screen yet — this only handles campaign payments.");
+    throw new ConflictError("Wallet top-ups and credit-pack purchases can't be refunded from this screen yet — this only handles campaign payments.");
   }
   // Captured as a local so it stays narrowed to `string` inside the
   // $transaction closure below — TS can't carry the guard above's

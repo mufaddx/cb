@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { CampaignStatus as PrismaCampaignStatus, PaymentStatus as PrismaPaymentStatus, PrismaClient, WalletTransactionType } from "@prisma/client";
+import { CampaignStatus as PrismaCampaignStatus, PaymentPurpose, PaymentStatus as PrismaPaymentStatus, PrismaClient, WalletTransactionType } from "@prisma/client";
 import {
   AuditAction,
   CAMPAIGN_TRANSITIONS,
@@ -60,6 +60,7 @@ export async function initiateCampaignPayment(prisma: PrismaClient, campaignId: 
       data: {
         campaignId,
         brandId,
+        purpose: PaymentPurpose.CAMPAIGN,
         provider: process.env.PAYMENT_PROVIDER ?? "mock",
         providerOrderId: intent.providerOrderId,
         amount,
@@ -87,8 +88,8 @@ export async function initiateCampaignPayment(prisma: PrismaClient, campaignId: 
  * Brand adds funds to its wallet directly, independent of any specific
  * campaign — the "Add Funds" action on the Wallet page. Creates a
  * Payment with no campaignId; `handleWebhookEvent` below recognises
- * that on capture and posts a plain DEPOSIT instead of the campaign
- * RESERVE + LIVE transition a campaign payment triggers.
+ * purpose=WALLET_TOPUP on capture and posts a plain DEPOSIT instead of
+ * the campaign RESERVE + LIVE transition a campaign payment triggers.
  */
 export async function initiateWalletTopup(prisma: PrismaClient, brandId: string, amount: number) {
   if (!Number.isFinite(amount) || amount <= 0) {
@@ -109,6 +110,7 @@ export async function initiateWalletTopup(prisma: PrismaClient, brandId: string,
       data: {
         campaignId: null,
         brandId,
+        purpose: PaymentPurpose.WALLET_TOPUP,
         provider: process.env.PAYMENT_PROVIDER ?? "mock",
         providerOrderId: intent.providerOrderId,
         amount,
@@ -124,6 +126,51 @@ export async function initiateWalletTopup(prisma: PrismaClient, brandId: string,
       entityType: "Payment",
       entityId: created.id,
       newValue: { amount, providerOrderId: intent.providerOrderId, purpose: "WALLET_TOPUP" },
+    });
+    return created;
+  });
+
+  return { payment, checkoutPayload: intent.checkoutPayload };
+}
+
+/** The one credit pack for now (spec: "₹599 for 50 profile unlocks") —
+ * a constant rather than a full admin-manageable multi-package system,
+ * kept simple until there's a real reason for more than one tier. */
+export const CREDIT_PACKAGE = { credits: 50, priceRupees: 599 };
+
+/** Brand buys a pack of credits to spend unlocking creator identities
+ * on the Top Creators page (see creators.service.ts::unlockCreatorProfile). */
+export async function initiateCreditsPurchase(prisma: PrismaClient, brandId: string) {
+  const idempotencyKey = `credits:${brandId}:${randomUUID()}`;
+  const provider = getPaymentProvider();
+  const intent = await provider.createPaymentIntent({
+    amount: CREDIT_PACKAGE.priceRupees,
+    currency: "INR",
+    receiptId: idempotencyKey,
+    notes: { brandId, purpose: "CREATOR_UNLOCK_CREDITS", credits: String(CREDIT_PACKAGE.credits) },
+  });
+
+  const payment = await prisma.$transaction(async (tx) => {
+    const created = await tx.payment.create({
+      data: {
+        campaignId: null,
+        brandId,
+        purpose: PaymentPurpose.CREATOR_UNLOCK_CREDITS,
+        provider: process.env.PAYMENT_PROVIDER ?? "mock",
+        providerOrderId: intent.providerOrderId,
+        amount: CREDIT_PACKAGE.priceRupees,
+        currency: "INR",
+        status: PrismaPaymentStatus.PENDING,
+        idempotencyKey,
+      },
+    });
+    await recordAudit(tx, {
+      actorId: brandId,
+      actorRole: "BRAND",
+      action: AuditAction.PAYMENT_INITIATED,
+      entityType: "Payment",
+      entityId: created.id,
+      newValue: { amount: CREDIT_PACKAGE.priceRupees, providerOrderId: intent.providerOrderId, purpose: "CREATOR_UNLOCK_CREDITS" },
     });
     return created;
   });
@@ -226,12 +273,22 @@ export async function handleWebhookEvent(
         newValue: { status: "PAID" },
       });
 
+      // A credit-pack purchase never touches the wallet at all — it
+      // tops up Brand.profileViewCredits directly.
+      if (payment.purpose === PaymentPurpose.CREATOR_UNLOCK_CREDITS) {
+        await tx.brand.update({
+          where: { id: payment.brandId },
+          data: { profileViewCredits: { increment: CREDIT_PACKAGE.credits } },
+        });
+        return { status: "credits_confirmed" };
+      }
+
       const wallet = await getOrCreateWalletForBrand(tx, payment.brandId);
 
-      // A wallet top-up (no campaignId) stops here — it's just money
-      // landing in the brand's available balance, with no campaign to
-      // reserve it against or move to LIVE.
-      if (!payment.campaignId) {
+      // A wallet top-up stops here — it's just money landing in the
+      // brand's available balance, with no campaign to reserve it
+      // against or move to LIVE.
+      if (payment.purpose === PaymentPurpose.WALLET_TOPUP) {
         await postLedgerEntryWithinTx(tx, {
           walletId: wallet.id,
           type: WalletTransactionType.DEPOSIT,
@@ -240,6 +297,15 @@ export async function handleWebhookEvent(
           referenceId: payment.id,
         });
         return { status: "wallet_topup_confirmed" };
+      }
+
+      // Only PaymentPurpose.CAMPAIGN reaches here, which always has a
+      // campaignId by construction — asserted (not just assumed) so
+      // TS narrows it to `string` for the rest of this branch instead
+      // of `string | null`, and so a data-integrity bug fails loudly
+      // instead of writing a ledger entry with an undefined campaign.
+      if (!payment.campaignId) {
+        throw new ConflictError(`Payment ${payment.id} has purpose CAMPAIGN but no campaignId`);
       }
 
       await postLedgerEntryWithinTx(tx, {

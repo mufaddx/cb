@@ -7,7 +7,7 @@ export const CreateCreatorSchema = z.object({
   bio: z.string().optional(),
   location: z.string().optional(),
   languages: z.array(z.string()).default([]),
-  categoryIds: z.array(z.string()).default([]),
+  categoryIds: z.array(z.string()).max(3, "Pick at most 3 categories").default([]),
   contentFormats: z.array(z.string()).default([]),
   campaignPreferences: z.array(z.string()).default([]), // CLIPPING | CREATOR_CONTENT | PRODUCT_REVIEW
 });
@@ -22,7 +22,7 @@ export const UpdateCreatorSchema = z.object({
   bio: z.string().max(1000).optional(),
   location: z.string().max(120).optional(),
   languages: z.array(z.string()).optional(),
-  categoryIds: z.array(z.string()).optional(),
+  categoryIds: z.array(z.string()).max(3, "Pick at most 3 categories").optional(),
   contentFormats: z.array(z.string()).optional(),
 });
 export type UpdateCreatorInput = z.infer<typeof UpdateCreatorSchema>;

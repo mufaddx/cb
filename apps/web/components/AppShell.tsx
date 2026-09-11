@@ -7,6 +7,7 @@ import { apiFetch, clearTokens } from "../lib/apiClient";
 import { BottomNav } from "./BottomNav";
 import { NotificationBell } from "./NotificationBell";
 import {
+  ChatIcon,
   HandshakeIcon,
   HomeIcon,
   InstagramIcon,
@@ -29,6 +30,7 @@ const BRAND_NAV = [
   { href: "/dashboard", label: "Dashboard", icon: HomeIcon },
   { href: "/campaigns", label: "Campaigns", icon: MegaphoneIcon },
   { href: "/creators", label: "Top Creators", icon: UserIcon },
+  { href: "/messages", label: "Messages", icon: ChatIcon },
   { href: "/wallet", label: "Wallet", icon: WalletIcon },
 ];
 
@@ -37,6 +39,7 @@ const CREATOR_NAV = [
   { href: "/instagram", label: "Instagram", icon: InstagramIcon },
   { href: "/offers", label: "Offers", icon: TargetIcon },
   { href: "/deals", label: "My Deals", icon: HandshakeIcon },
+  { href: "/messages", label: "Messages", icon: ChatIcon },
   { href: "/wallet", label: "Wallet", icon: WalletIcon },
   { href: "/profile", label: "Profile", icon: UserIcon },
 ];

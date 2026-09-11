@@ -24,6 +24,12 @@ export async function initiateWalletTopupHandler(req: Request, res: Response) {
   sendSuccess(res, result, "Top-up initiated.");
 }
 
+export async function initiateCreditsPurchaseHandler(req: Request, res: Response) {
+  if (!req.auth?.brandId) throw new ValidationError("Only a brand account can buy profile-view credits.");
+  const result = await paymentsService.initiateCreditsPurchase(prisma, req.auth.brandId);
+  sendSuccess(res, result, "Credit pack purchase initiated.");
+}
+
 /** Admin payment table (spec §48). Includes `brand` directly (not just
  * via `campaign.brand`) since a wallet top-up has no campaign. */
 export async function listPaymentsHandler(_req: Request, res: Response) {

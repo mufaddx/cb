@@ -45,14 +45,30 @@ router.patch(
  * who to work with, not the admin directory (admin.routes.ts's
  * /creators is the full record, gated on USER_MANAGE_ALL). Deliberately
  * a narrow field set: nothing a brand shouldn't see (KYC, phone, raw
- * risk score) about a creator it hasn't worked with yet.
+ * risk score) about a creator it hasn't worked with yet — and name/
+ * Instagram handle themselves stay masked until a credit unlocks them.
  */
 router.get(
   "/top",
   asyncHandler(async (req, res) => {
     if (!req.auth?.brandId) throw new UnauthorizedError("This action requires a brand profile");
-    const creators = await creatorsService.listTopCreators(prisma);
+    const { categoryId, metric, minValue, maxValue } = req.query as Record<string, string | undefined>;
+    const creators = await creatorsService.listTopCreators(prisma, req.auth.brandId, {
+      categoryId: categoryId || undefined,
+      metric: metric === "AVERAGE_REACH" ? "AVERAGE_REACH" : metric === "FOLLOWER_COUNT" ? "FOLLOWER_COUNT" : undefined,
+      minValue: minValue ? Number(minValue) : undefined,
+      maxValue: maxValue ? Number(maxValue) : undefined,
+    });
     sendSuccess(res, creators);
+  })
+);
+
+router.post(
+  "/:id/unlock",
+  asyncHandler(async (req, res) => {
+    if (!req.auth?.brandId) throw new UnauthorizedError("This action requires a brand profile");
+    const result = await creatorsService.unlockCreatorProfile(prisma, req.auth.brandId, req.params.id);
+    sendSuccess(res, result, result.alreadyUnlocked ? "Already unlocked." : "Profile unlocked.");
   })
 );
 

@@ -30,6 +30,7 @@ const APP_PATH_PREFIXES = [
   "/profile",
   "/instagram",
   "/creators",
+  "/messages",
   "/admin",
   "/login",
   "/signup",

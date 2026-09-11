@@ -1,7 +1,7 @@
 import { MarketingHeader } from "../components/MarketingHeader";
 import { MarketingFooter } from "../components/MarketingFooter";
 import { RevealOnScroll } from "../components/RevealOnScroll";
-import { HandshakeIcon, MegaphoneIcon } from "../components/icons";
+import { ChatIcon, HandshakeIcon, InstagramIcon, LockIcon, MegaphoneIcon, TargetIcon, WalletIcon } from "../components/icons";
 
 // Signup lives on the app domain (see middleware.ts) — a plain <a>,
 // not next/link, since this page is served from the marketing domain.
@@ -34,6 +34,39 @@ const stats = [
   { value: "2", label: "campaign formats" },
   { value: "100%", label: "tracked to payout" },
   { value: "0", label: "spreadsheets required" },
+];
+
+const benefits = [
+  {
+    icon: LockIcon,
+    title: "Escrow-style fund reservation",
+    description: "A brand's payment is confirmed only by the payment provider's own signed webhook, then reserved — never spent without that confirmation.",
+  },
+  {
+    icon: InstagramIcon,
+    title: "Real Instagram data",
+    description: "Follower count and average reach come from the creator's own connected Instagram account, not a number they typed in.",
+  },
+  {
+    icon: TargetIcon,
+    title: "Category-matched targeting",
+    description: "Target by follower count or reach and by content category — only creators who actually fit both are ever offered the campaign.",
+  },
+  {
+    icon: ChatIcon,
+    title: "Direct messaging",
+    description: "Message a creator before you commit to anything, and a running Deal Room thread once a campaign is underway.",
+  },
+  {
+    icon: HandshakeIcon,
+    title: "Retention enforced automatically",
+    description: "Campaigns that require a post to stay live for a set window have that checked on a schedule — no manual follow-up needed.",
+  },
+  {
+    icon: WalletIcon,
+    title: "Transparent pricing",
+    description: "Creator payout, platform fee, and tax are broken out separately before you pay — computed from the live rate card, never a guess.",
+  },
 ];
 
 export default function HomePage() {
@@ -204,6 +237,46 @@ export default function HomePage() {
                   </div>
                   <h3>{c.title}</h3>
                   <p style={{ color: "var(--color-text-secondary)", margin: 0, fontSize: 14.5, lineHeight: 1.65 }}>{c.description}</p>
+                </div>
+              </RevealOnScroll>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="container" style={{ padding: "56px 24px" }}>
+        <RevealOnScroll>
+          <div style={{ textAlign: "center", marginBottom: 44 }}>
+            <span className="eyebrow" style={{ marginBottom: 14 }}>Why Vidlix</span>
+            <h2 style={{ marginTop: 14 }}>Built so nothing depends on trust alone</h2>
+            <p style={{ color: "var(--color-text-secondary)", fontSize: 16, maxWidth: 560, margin: "0 auto" }}>
+              Every claim below is something the platform actually enforces, not a promise in the fine print.
+            </p>
+          </div>
+        </RevealOnScroll>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 20 }}>
+          {benefits.map((b, i) => {
+            const Icon = b.icon;
+            return (
+              <RevealOnScroll key={b.title} delayMs={i * 60}>
+                <div className="card" style={{ height: "100%" }}>
+                  <div
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: 36,
+                      height: 36,
+                      borderRadius: 10,
+                      background: "var(--color-primary-soft)",
+                      color: "var(--color-primary)",
+                      marginBottom: 14,
+                    }}
+                  >
+                    <Icon width={18} height={18} />
+                  </div>
+                  <h3 style={{ fontSize: 16 }}>{b.title}</h3>
+                  <p style={{ color: "var(--color-text-secondary)", margin: 0, fontSize: 14, lineHeight: 1.6 }}>{b.description}</p>
                 </div>
               </RevealOnScroll>
             );

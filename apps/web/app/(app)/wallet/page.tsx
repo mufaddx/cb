@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { Button } from "@/components/Button";
 import { apiFetch, ApiClientError } from "@/lib/apiClient";
+import { completeCheckout, type CheckoutPayload } from "@/lib/payments";
 
 interface Wallet {
   availableBalance: string;
@@ -45,6 +45,70 @@ const TX_LABEL: Record<string, string> = {
 };
 const DEBIT_TX_TYPES = new Set(["RESERVE", "SPEND", "WITHDRAWAL", "TAX", "FEE"]);
 
+/** A real modal instead of an inline form sitting in the page flow —
+ * enter an amount, hand off to whichever payment gateway is actually
+ * configured (completeCheckout picks Razorpay Checkout or the mock
+ * simulate-webhook path on its own), and the wallet page reloads once
+ * it resolves. */
+function AddFundsModal({ onClose, onFunded }: { onClose: () => void; onFunded: () => void }) {
+  const [amount, setAmount] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      const result = await apiFetch<{ payment: { id: string }; checkoutPayload: CheckoutPayload }>(
+        "/api/payments/wallet/topup",
+        { method: "POST", body: { amount: Number(amount) } }
+      );
+      await completeCheckout(result.checkoutPayload, result.payment.id, { description: "Wallet top-up" });
+      onFunded();
+    } catch (err) {
+      setError(err instanceof ApiClientError ? err.message : err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      style={{ position: "fixed", inset: 0, background: "rgba(35, 28, 15, 0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="paper-modal" style={{ maxWidth: 400, width: "100%", padding: 24 }}>
+        <h3 style={{ margin: "0 0 4px" }}>Add Funds</h3>
+        <p className="helper-text" style={{ marginBottom: 16 }}>Top up your available balance to spend on any campaign.</p>
+        <form onSubmit={submit}>
+          <label className="label">Amount (₹)</label>
+          <input
+            className="input"
+            type="number"
+            min={100}
+            step="1"
+            required
+            autoFocus
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            style={{ marginBottom: 16 }}
+          />
+          {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
+          <div style={{ display: "flex", gap: 10 }}>
+            <Button type="submit" loading={loading} style={{ flex: 1 }}>Continue to Pay</Button>
+            <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function WalletPage() {
   const [accountType, setAccountType] = useState<"BRAND" | "CREATOR" | null>(null);
   const [wallet, setWallet] = useState<Wallet | null>(null);
@@ -55,10 +119,8 @@ export default function WalletPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [topupAmount, setTopupAmount] = useState("");
-  const [topupLoading, setTopupLoading] = useState(false);
-  const [topupError, setTopupError] = useState<string | null>(null);
-  const [topupSuccess, setTopupSuccess] = useState<string | null>(null);
+  const [showAddFunds, setShowAddFunds] = useState(false);
+  const [fundedMessage, setFundedMessage] = useState<string | null>(null);
 
   function load() {
     apiFetch<Me>("/api/auth/me").then((me) => setAccountType(me.brand ? "BRAND" : "CREATOR"));
@@ -87,32 +149,15 @@ export default function WalletPage() {
     }
   }
 
-  async function addFunds(e: React.FormEvent) {
-    e.preventDefault();
-    setTopupError(null);
-    setTopupSuccess(null);
-    setTopupLoading(true);
-    try {
-      const result = await apiFetch<{ payment: { id: string } }>("/api/payments/wallet/topup", {
-        method: "POST",
-        body: { amount: Number(topupAmount) },
-      });
-      // PAYMENT_PROVIDER=mock in this environment — there's no real
-      // checkout to hand off to, so this drives the same signed
-      // webhook a real gateway would send, the identical pattern
-      // campaigns/[id]'s "Pay Now" already uses for campaign payments.
-      await apiFetch("/api/payments/dev/simulate-webhook", {
-        method: "POST",
-        body: { paymentId: result.payment.id, outcome: "captured" },
-      }).catch(() => null);
-      setTopupSuccess(`₹${topupAmount} added to your wallet.`);
-      setTopupAmount("");
-      load();
-    } catch (err) {
-      setTopupError(err instanceof ApiClientError ? err.message : "Something went wrong.");
-    } finally {
-      setTopupLoading(false);
-    }
+  function handleFunded() {
+    setShowAddFunds(false);
+    setFundedMessage("Payment received — your balance is updating.");
+    // The webhook that actually credits the wallet lands a moment
+    // after the checkout modal resolves (Razorpay confirms the
+    // charge, then calls our webhook) — a short delay before
+    // reloading gives it time to land instead of showing a stale
+    // balance for a beat.
+    setTimeout(load, 1200);
   }
 
   return (
@@ -129,6 +174,12 @@ export default function WalletPage() {
               A {wallet.platformFeePct}% platform fee is deducted from each payout — shown as its own line below.
             </div>
           )}
+          {accountType === "BRAND" && (
+            <Button onClick={() => setShowAddFunds(true)} style={{ marginTop: 16 }}>
+              Add Funds
+            </Button>
+          )}
+          {fundedMessage && <p style={{ color: "var(--color-success)", fontSize: 13, marginTop: 12 }}>{fundedMessage}</p>}
         </div>
 
         {accountType === "CREATOR" && (
@@ -145,32 +196,6 @@ export default function WalletPage() {
                 Withdraw
               </Button>
             </form>
-          </div>
-        )}
-
-        {accountType === "BRAND" && (
-          <div className="card" style={{ marginBottom: 24 }}>
-            <h3>Add Funds</h3>
-            <p className="helper-text" style={{ marginBottom: 16 }}>
-              Top up your available balance directly, or pay for a specific{" "}
-              <Link href="/campaigns/create" style={{ color: "var(--color-primary)" }}>campaign</Link> when you create one.
-            </p>
-            <form onSubmit={addFunds} style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <input
-                className="input"
-                type="number"
-                min={100}
-                step="1"
-                placeholder="Amount (₹)"
-                required
-                value={topupAmount}
-                onChange={(e) => setTopupAmount(e.target.value)}
-                style={{ maxWidth: 200 }}
-              />
-              <Button type="submit" loading={topupLoading}>Add Funds</Button>
-            </form>
-            {topupError && <p className="error-text" style={{ marginTop: 12, marginBottom: 0 }}>{topupError}</p>}
-            {topupSuccess && <p style={{ color: "var(--color-success)", fontSize: 13, marginTop: 12, marginBottom: 0 }}>{topupSuccess}</p>}
           </div>
         )}
 
@@ -214,6 +239,8 @@ export default function WalletPage() {
           </div>
         )}
       </main>
+
+      {showAddFunds && <AddFundsModal onClose={() => setShowAddFunds(false)} onFunded={handleFunded} />}
     </>
   );
 }

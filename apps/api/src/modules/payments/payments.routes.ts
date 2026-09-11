@@ -32,6 +32,12 @@ paymentsRouter.post(
   requirePermission(Permission.WALLET_READ_OWN),
   asyncHandler(controller.initiateWalletTopupHandler)
 );
+paymentsRouter.post(
+  "/credits/purchase",
+  requireAuth,
+  requirePermission(Permission.WALLET_READ_OWN),
+  asyncHandler(controller.initiateCreditsPurchaseHandler)
+);
 paymentsRouter.post("/dev/simulate-webhook", asyncHandler(controller.devSimulateWebhookHandler));
 paymentsRouter.get(
   "/admin",

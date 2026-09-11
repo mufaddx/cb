@@ -129,6 +129,11 @@ model Brand {
   logoKey           String?  @map("logo_key")
   onboardingStep    Int      @default(0) @map("onboarding_step")
   onboardingComplete Boolean @default(false) @map("onboarding_complete")
+  // Spent one per creator identity revealed on the Top Creators page
+  // (see ProfileUnlock) — a creator's name/Instagram handle stay
+  // masked to a brand until it spends a credit on that specific
+  // creator, a one-time cost after which that creator stays revealed.
+  profileViewCredits Int     @default(0) @map("profile_view_credits")
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
 
@@ -136,6 +141,8 @@ model Brand {
   campaigns Campaign[]
   products  Product[]
   wallet    Wallet?
+  profileUnlocks ProfileUnlock[]
+  conversations  Conversation[]
   categories BrandCategory[]
   payments  Payment[]
 
@@ -180,8 +187,60 @@ model Creator {
   kycRecords       KycRecord[]
   shippingAddresses ShippingAddress[]
   withdrawals      Withdrawal[]
+  profileUnlocks   ProfileUnlock[]
+  conversations    Conversation[]
 
   @@map("creators")
+}
+
+// A brand spending a credit to reveal one creator's real identity
+// (name, Instagram handle) on the Top Creators page — one row per
+// (brand, creator) pair, ever; once it exists that creator stays
+// revealed to that brand with no further charge.
+model ProfileUnlock {
+  id         String   @id @default(cuid())
+  brandId    String   @map("brand_id")
+  creatorId  String   @map("creator_id")
+  unlockedAt DateTime @default(now()) @map("unlocked_at")
+
+  brand   Brand   @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  creator Creator @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@unique([brandId, creatorId])
+  @@map("profile_unlocks")
+}
+
+// A direct conversation between one brand and one creator — separate
+// from Message (the per-campaign "Deal Room" thread that only exists
+// once an offer/assignment does) since this is meant to start BEFORE
+// any deal exists, e.g. from the Top Creators page. One row per
+// (brand, creator) pair; DirectMessage rows are its timeline.
+model Conversation {
+  id        String   @id @default(cuid())
+  brandId   String   @map("brand_id")
+  creatorId String   @map("creator_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  brand    Brand           @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  creator  Creator         @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  messages DirectMessage[]
+
+  @@unique([brandId, creatorId])
+  @@map("conversations")
+}
+
+model DirectMessage {
+  id             String    @id @default(cuid())
+  conversationId String    @map("conversation_id")
+  senderType     SenderType @map("sender_type")
+  body           String    @db.Text
+  createdAt      DateTime  @default(now()) @map("created_at")
+  readAt         DateTime? @map("read_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@map("direct_messages")
 }
 
 model Category {
@@ -780,14 +839,21 @@ enum PaymentStatus {
   RECONCILIATION_REQUIRED
 }
 
+enum PaymentPurpose {
+  CAMPAIGN
+  WALLET_TOPUP
+  CREATOR_UNLOCK_CREDITS
+}
+
 model Payment {
   id              String        @id @default(cuid())
-  // Null for a wallet top-up (spec: brands can add funds directly,
-  // not only by paying for a specific campaign) — every other kind of
-  // payment still has one. Branch on this, not a separate enum, so
-  // there's exactly one Payment shape and one webhook path for both.
+  // Null for a wallet top-up or a credit-pack purchase — every other
+  // kind of payment still has one. `purpose` is what the webhook
+  // handler actually branches on (explicit, rather than inferring
+  // intent from which fields happen to be null).
   campaignId      String?       @map("campaign_id")
   brandId         String        @map("brand_id")
+  purpose         PaymentPurpose @default(CAMPAIGN)
   provider        String        // razorpay | mock
   providerOrderId String?       @map("provider_order_id")
   providerPaymentId String?     @map("provider_payment_id")
