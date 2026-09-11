@@ -145,6 +145,48 @@ export async function rejectWithdrawal(prisma: PrismaClient, withdrawalId: strin
   });
 }
 
+/**
+ * Creator cancels their own withdrawal request — same terminal state
+ * and ledger reversal as an admin rejection (rejectWithdrawal below),
+ * just actor-initiated and only while nothing has actually started
+ * moving (REQUESTED/UNDER_REVIEW). Once APPROVED an admin is already
+ * acting on it, so cancellation stops being offered from here.
+ * Distinguished from an admin rejection by `reviewedBy` staying null.
+ */
+export async function cancelWithdrawal(prisma: PrismaClient, creatorId: string, withdrawalId: string) {
+  const withdrawal = await loadWithdrawal(prisma, withdrawalId);
+  if (withdrawal.creatorId !== creatorId) throw new UnauthorizedError();
+  if (withdrawal.status !== PrismaWithdrawalStatus.REQUESTED && withdrawal.status !== PrismaWithdrawalStatus.UNDER_REVIEW) {
+    throw new ConflictError(`This withdrawal can no longer be cancelled (current status: ${withdrawal.status})`);
+  }
+
+  return prisma.$transaction(async (tx) => {
+    assertTransition("Withdrawal", WITHDRAWAL_TRANSITIONS, withdrawal.status as WithdrawalStatus, WithdrawalStatus.REJECTED);
+    const updated = await tx.withdrawal.update({
+      where: { id: withdrawalId },
+      data: { status: PrismaWithdrawalStatus.REJECTED, reviewedAt: new Date(), rejectionReason: "Cancelled by creator" },
+    });
+
+    await postLedgerEntryWithinTx(tx, {
+      walletId: withdrawal.walletId,
+      type: WalletTransactionType.REVERSAL,
+      amount: Number(withdrawal.amount),
+      referenceType: "WITHDRAWAL",
+      referenceId: withdrawalId,
+    });
+
+    await recordAudit(tx, {
+      actorId: creatorId,
+      actorRole: "CREATOR",
+      action: AuditAction.WITHDRAWAL_REJECTED,
+      entityType: "Withdrawal",
+      entityId: withdrawalId,
+      metadata: { reason: "Cancelled by creator" },
+    });
+    return updated;
+  });
+}
+
 export async function markWithdrawalPaid(
   prisma: PrismaClient,
   withdrawalId: string,

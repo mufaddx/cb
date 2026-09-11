@@ -33,6 +33,16 @@ router.get(
   })
 );
 
+router.post(
+  "/:id/cancel",
+  requirePermission(Permission.WITHDRAWAL_REQUEST_OWN),
+  asyncHandler(async (req, res) => {
+    if (!req.auth?.creatorId) throw new UnauthorizedError("This action requires a creator profile");
+    const withdrawal = await withdrawalsService.cancelWithdrawal(prisma, req.auth.creatorId, req.params.id);
+    sendSuccess(res, withdrawal, "Withdrawal cancelled.");
+  })
+);
+
 router.get(
   "/queue",
   requirePermission(Permission.WITHDRAWAL_MANAGE_ALL),

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/Button";
 import { apiFetch, ApiClientError } from "@/lib/apiClient";
 import { completeCheckout, type CheckoutPayload } from "@/lib/payments";
+import { useConfirm } from "@/lib/useConfirm";
 
 interface Wallet {
   availableBalance: string;
@@ -16,6 +17,8 @@ interface Withdrawal {
   upiId: string;
   status: string;
   requestedAt: string;
+  reviewedBy: string | null;
+  rejectionReason: string | null;
 }
 interface Me {
   brand: unknown;
@@ -44,6 +47,34 @@ const TX_LABEL: Record<string, string> = {
   REVERSAL: "Reversal",
 };
 const DEBIT_TX_TYPES = new Set(["RESERVE", "SPEND", "WITHDRAWAL", "TAX", "FEE"]);
+
+// The full TX_LABEL map covers every type either wallet can ever post —
+// but a brand never sees a CREATOR_EARNING/FEE row and a creator never
+// sees a RESERVE/SPEND/DEPOSIT one, so offering all of them in the
+// filter dropdown is just noise scoped to the wrong account. REVERSAL
+// (a rejected/cancelled withdrawal's refund) is left out of both — it
+// still shows correctly labeled under "All types," it just isn't
+// common enough on either side to earn its own filter option.
+const CREATOR_TX_FILTER_TYPES = ["CREATOR_EARNING", "WITHDRAWAL", "FEE"];
+const BRAND_TX_FILTER_TYPES = ["DEPOSIT", "RESERVE", "RELEASE", "SPEND", "REFUND", "ADJUSTMENT"];
+
+const WITHDRAWAL_STATUS_LABEL: Record<string, string> = {
+  REQUESTED: "Requested",
+  UNDER_REVIEW: "Under review",
+  APPROVED: "Approved",
+  PAID: "Paid",
+  FAILED: "Failed",
+  REJECTED: "Rejected",
+};
+const CANCELLABLE_WITHDRAWAL_STATUSES = new Set(["REQUESTED", "UNDER_REVIEW"]);
+
+function withdrawalStatusLabel(w: Withdrawal): string {
+  // A creator's own cancellation reuses the REJECTED status (same
+  // ledger reversal, same terminal state) — reviewedBy staying null is
+  // what tells them apart from an admin's rejection.
+  if (w.status === "REJECTED" && !w.reviewedBy) return "Cancelled";
+  return WITHDRAWAL_STATUS_LABEL[w.status] ?? w.status;
+}
 
 /** A real modal instead of an inline form sitting in the page flow —
  * enter an amount, hand off to whichever payment gateway is actually
@@ -110,6 +141,7 @@ function AddFundsModal({ onClose, onFunded }: { onClose: () => void; onFunded: (
 }
 
 export default function WalletPage() {
+  const confirm = useConfirm();
   const [accountType, setAccountType] = useState<"BRAND" | "CREATOR" | null>(null);
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [withdrawals, setWithdrawals] = useState<Withdrawal[] | null>(null);
@@ -118,11 +150,13 @@ export default function WalletPage() {
   const [amount, setAmount] = useState("");
   const [upiId, setUpiId] = useState("");
   const [loading, setLoading] = useState(false);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [showAddFunds, setShowAddFunds] = useState(false);
   const [fundedMessage, setFundedMessage] = useState<string | null>(null);
 
+  const txFilterTypes = accountType === "BRAND" ? BRAND_TX_FILTER_TYPES : CREATOR_TX_FILTER_TYPES;
   const visibleTransactions = transactions?.filter((t) => !txFilter || t.type === txFilter) ?? null;
 
   function load() {
@@ -149,6 +183,26 @@ export default function WalletPage() {
       setError(err instanceof ApiClientError ? err.message : "Something went wrong.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function cancelWithdrawal(id: string) {
+    const confirmed = await confirm({
+      title: "Cancel this withdrawal?",
+      description: "The reserved amount goes straight back to your available balance.",
+      danger: true,
+      confirmLabel: "Cancel Withdrawal",
+    });
+    if (!confirmed) return;
+    setCancellingId(id);
+    setError(null);
+    try {
+      await apiFetch(`/api/withdrawals/${id}/cancel`, { method: "POST" });
+      load();
+    } catch (err) {
+      setError(err instanceof ApiClientError ? err.message : "Something went wrong.");
+    } finally {
+      setCancellingId(null);
     }
   }
 
@@ -215,12 +269,19 @@ export default function WalletPage() {
                 <h3 style={{ marginTop: 0 }}>Withdrawal History</h3>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {withdrawals.map((w) => (
-                    <div key={w.id} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid var(--color-border)" }}>
+                    <div key={w.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid var(--color-border)" }}>
                       <div>
                         <div style={{ fontWeight: 600 }}>₹{w.amount}</div>
                         <div className="helper-text">{w.upiId}</div>
                       </div>
-                      <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{w.status}</div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{withdrawalStatusLabel(w)}</span>
+                        {CANCELLABLE_WITHDRAWAL_STATUSES.has(w.status) && (
+                          <Button variant="secondary" loading={cancellingId === w.id} onClick={() => cancelWithdrawal(w.id)}>
+                            Cancel
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -232,8 +293,8 @@ export default function WalletPage() {
                 <h3 style={{ margin: 0 }}>Transactions</h3>
                 <select className="input" value={txFilter} onChange={(e) => setTxFilter(e.target.value)} style={{ width: "auto", minWidth: 160 }}>
                   <option value="">All types</option>
-                  {Object.entries(TX_LABEL).map(([value, label]) => (
-                    <option key={value} value={value}>{label}</option>
+                  {txFilterTypes.map((value) => (
+                    <option key={value} value={value}>{TX_LABEL[value]}</option>
                   ))}
                 </select>
               </div>
