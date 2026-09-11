@@ -261,7 +261,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 className="mobile-only"
                 onClick={() => setDrawerOpen(true)}
                 aria-label="Open menu"
-                style={{ background: "none", border: "none", color: "var(--color-text)", padding: 6, display: "flex", borderRadius: 8, marginLeft: -6 }}
+                style={{ background: "none", border: "none", color: "var(--color-text)", padding: 6, alignItems: "center", borderRadius: 8, marginLeft: -6 }}
               >
                 <MenuIcon width={20} height={20} />
               </button>

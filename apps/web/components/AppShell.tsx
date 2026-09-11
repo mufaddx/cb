@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useRef, useState, type DependencyList, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type DependencyList, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { apiFetch, clearTokens } from "../lib/apiClient";
@@ -265,7 +265,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               className="mobile-only"
               onClick={() => setDrawerOpen(true)}
               aria-label="Open menu"
-              style={{ background: "none", border: "none", color: "var(--color-text)", padding: 6, display: "flex", borderRadius: 8, marginLeft: -6 }}
+              style={{ background: "none", border: "none", color: "var(--color-text)", padding: 6, alignItems: "center", borderRadius: 8, marginLeft: -6 }}
             >
               <MenuIcon width={20} height={20} />
             </button>

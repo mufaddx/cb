@@ -1,9 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type SVGProps } from "react";
 import Link from "next/link";
 import { apiFetch, ApiClientError } from "@/lib/apiClient";
 import { InstagramConnect } from "@/components/InstagramConnect";
+import {
+  CheckCircleIcon,
+  HandshakeIcon,
+  MegaphoneIcon,
+  TargetIcon,
+  WalletIcon,
+} from "@/components/icons";
 
 interface Me {
   id: string;
@@ -37,11 +44,63 @@ interface WalletTx {
 const LIVE_STATUSES = new Set(["LIVE", "MATCHING", "IN_PROGRESS"]);
 const SPENT_STATUSES = new Set(["PAID", "LIVE", "MATCHING", "IN_PROGRESS", "COMPLETED"]);
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, icon: Icon }: { label: string; value: string; icon: (props: SVGProps<SVGSVGElement>) => JSX.Element }) {
   return (
-    <div className="card" style={{ padding: "16px 18px", flex: "1 1 150px" }}>
-      <div className="helper-text" style={{ marginBottom: 4 }}>{label}</div>
-      <div style={{ fontSize: 21, fontWeight: 700 }}>{value}</div>
+    <div className="card" style={{ padding: "16px 18px", flex: "1 1 150px", display: "flex", gap: 12, alignItems: "flex-start" }}>
+      <span
+        aria-hidden="true"
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: 34,
+          height: 34,
+          borderRadius: 9,
+          background: "var(--gradient-brand)",
+          flexShrink: 0,
+        }}
+      >
+        <Icon width={17} height={17} stroke="#fff" />
+      </span>
+      <div style={{ minWidth: 0 }}>
+        <div className="helper-text" style={{ marginBottom: 2 }}>{label}</div>
+        <div style={{ fontSize: 21, fontWeight: 700 }}>{value}</div>
+      </div>
+    </div>
+  );
+}
+
+function ShortcutCard({ icon: Icon, title, description, href, linkLabel }: {
+  icon: (props: SVGProps<SVGSVGElement>) => JSX.Element;
+  title: string;
+  description: string;
+  href: string;
+  linkLabel: string;
+}) {
+  return (
+    <div className="card" style={{ maxWidth: 360, flex: "1 1 280px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+        <span
+          aria-hidden="true"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 30,
+            height: 30,
+            borderRadius: 8,
+            background: "var(--color-primary-soft)",
+            flexShrink: 0,
+          }}
+        >
+          <Icon width={16} height={16} stroke="var(--color-primary)" />
+        </span>
+        <h3 style={{ margin: 0 }}>{title}</h3>
+      </div>
+      <p className="helper-text" style={{ marginBottom: 12 }}>{description}</p>
+      <Link href={href} style={{ color: "var(--color-primary)", fontWeight: 600 }}>
+        {linkLabel} →
+      </Link>
     </div>
   );
 }
@@ -103,23 +162,31 @@ export default function DashboardPage() {
 
         {accountType === "BRAND" ? (
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", margin: "20px 0" }}>
-            <Stat label="Total campaigns" value={campaigns ? String(campaigns.length) : "—"} />
-            <Stat label="Active now" value={campaigns ? String(campaigns.filter((c) => LIVE_STATUSES.has(c.status)).length) : "—"} />
-            <Stat label="Completed" value={campaigns ? String(campaigns.filter((c) => c.status === "COMPLETED").length) : "—"} />
-            <Stat label="Total spend" value={totalSpend != null ? `₹${totalSpend.toLocaleString("en-IN")}` : "—"} />
+            <Stat icon={MegaphoneIcon} label="Total campaigns" value={campaigns ? String(campaigns.length) : "—"} />
+            <Stat icon={TargetIcon} label="Active now" value={campaigns ? String(campaigns.filter((c) => LIVE_STATUSES.has(c.status)).length) : "—"} />
+            <Stat icon={CheckCircleIcon} label="Completed" value={campaigns ? String(campaigns.filter((c) => c.status === "COMPLETED").length) : "—"} />
+            <Stat icon={WalletIcon} label="Total spend" value={totalSpend != null ? `₹${totalSpend.toLocaleString("en-IN")}` : "—"} />
           </div>
         ) : (
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", margin: "20px 0" }}>
-            <Stat label="Active deals" value={assignments ? String(assignments.filter((a) => a.status !== "PAID").length) : "—"} />
-            <Stat label="Completed" value={String(paidAssignments.length)} />
-            <Stat label="Completion rate" value={completionRate != null ? `${completionRate}%` : "—"} />
-            <Stat label="Lifetime earnings" value={lifetimeEarnings != null ? `₹${lifetimeEarnings.toLocaleString("en-IN")}` : "—"} />
+            <Stat icon={HandshakeIcon} label="Active deals" value={assignments ? String(assignments.filter((a) => a.status !== "PAID").length) : "—"} />
+            <Stat icon={CheckCircleIcon} label="Completed" value={String(paidAssignments.length)} />
+            <Stat icon={TargetIcon} label="Completion rate" value={completionRate != null ? `${completionRate}%` : "—"} />
+            <Stat icon={WalletIcon} label="Lifetime earnings" value={lifetimeEarnings != null ? `₹${lifetimeEarnings.toLocaleString("en-IN")}` : "—"} />
           </div>
         )}
 
         <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
           <div className="card" style={{ maxWidth: 360, flex: "1 1 280px" }}>
-            <h3>Wallet</h3>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+              <span
+                aria-hidden="true"
+                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, borderRadius: 8, background: "var(--color-primary-soft)", flexShrink: 0 }}
+              >
+                <WalletIcon width={16} height={16} stroke="var(--color-primary)" />
+              </span>
+              <h3 style={{ margin: 0 }}>Wallet</h3>
+            </div>
             {wallet ? (
               <>
                 <p style={{ margin: "4px 0" }}>Available: ₹{wallet.availableBalance}</p>
@@ -130,23 +197,11 @@ export default function DashboardPage() {
             )}
           </div>
           {accountType === "BRAND" ? (
-            <div className="card" style={{ maxWidth: 360, flex: "1 1 280px" }}>
-              <h3>Campaigns</h3>
-              <p className="helper-text" style={{ marginBottom: 12 }}>Launch and manage your campaigns.</p>
-              <Link href="/campaigns" style={{ color: "var(--color-primary)", fontWeight: 600 }}>
-                View campaigns →
-              </Link>
-            </div>
+            <ShortcutCard icon={MegaphoneIcon} title="Campaigns" description="Launch and manage your campaigns." href="/campaigns" linkLabel="View campaigns" />
           ) : (
             <>
               <InstagramConnect />
-              <div className="card" style={{ maxWidth: 360, flex: "1 1 280px" }}>
-                <h3>Offers</h3>
-                <p className="helper-text" style={{ marginBottom: 12 }}>See campaign offers waiting for you.</p>
-                <Link href="/offers" style={{ color: "var(--color-primary)", fontWeight: 600 }}>
-                  View offers →
-                </Link>
-              </div>
+              <ShortcutCard icon={TargetIcon} title="Offers" description="See campaign offers waiting for you." href="/offers" linkLabel="View offers" />
             </>
           )}
         </div>
