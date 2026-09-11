@@ -75,6 +75,37 @@ export function UserIcon(props: IconProps) {
   );
 }
 
+export function UploadCloudIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M7.5 17.5a4.5 4.5 0 0 1-1-8.9 5.5 5.5 0 0 1 10.7-1.9A4.25 4.25 0 0 1 17 17.5" />
+      <path d="M12 12v7" />
+      <path d="M9 15l3-3 3 3" />
+    </svg>
+  );
+}
+
+export function CheckCircleIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M8.5 12.3 11 14.8l4.5-5.6" />
+    </svg>
+  );
+}
+
+export function TrashIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4.5 7h15" />
+      <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+      <path d="M6.5 7l.7 12a1 1 0 0 0 1 .95h7.6a1 1 0 0 0 1-.95L17.5 7" />
+      <path d="M10 11v6" />
+      <path d="M14 11v6" />
+    </svg>
+  );
+}
+
 export function WalletIcon(props: IconProps) {
   return (
     <svg {...base} {...props}>

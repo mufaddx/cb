@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/Button";
 import { apiFetch, ApiClientError, uploadFile } from "@/lib/apiClient";
+import { CheckCircleIcon, TrashIcon, UploadCloudIcon } from "@/components/icons";
 
 // Only two campaign types are ever pickable — Product Review isn't a
 // third button, it's a checkbox inside Creator Content ("ship a
@@ -49,6 +50,39 @@ function formatRange(min: number, max: number | null, metric: Metric): string {
   return max ? `${fmt(min)}–${fmt(max)} ${unit}` : `${fmt(min)}+ ${unit}`;
 }
 
+// Every field group below is one of these — a numbered card with a
+// title and a one-line explainer, instead of labels floating directly
+// on the page background with no sense of where one question ends and
+// the next begins.
+function Section({ step, title, hint, children }: { step: number; title: string; hint?: string; children: React.ReactNode }) {
+  return (
+    <div className="card" style={{ marginBottom: 16, padding: 24 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: hint ? 4 : 16 }}>
+        <span
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 22,
+            height: 22,
+            borderRadius: 7,
+            background: "var(--color-primary-soft)",
+            color: "var(--color-primary)",
+            fontSize: 12,
+            fontWeight: 700,
+            flexShrink: 0,
+          }}
+        >
+          {step}
+        </span>
+        <h3 style={{ fontSize: 15, margin: 0 }}>{title}</h3>
+      </div>
+      {hint && <p className="helper-text" style={{ margin: "0 0 16px", paddingLeft: 32 }}>{hint}</p>}
+      <div style={{ paddingLeft: 32 }}>{children}</div>
+    </div>
+  );
+}
+
 export default function CreateCampaignPage() {
   const router = useRouter();
   const [type, setType] = useState<UiType>("CLIPPING");
@@ -64,6 +98,7 @@ export default function CreateCampaignPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sourceAssetKey, setSourceAssetKey] = useState<string | null>(null);
+  const [sourceAssetName, setSourceAssetName] = useState<string | null>(null);
   const [uploadingAsset, setUploadingAsset] = useState(false);
 
   const [metric, setMetric] = useState<Metric>("FOLLOWER_COUNT");
@@ -82,6 +117,7 @@ export default function CreateCampaignPage() {
     try {
       const { key } = await uploadFile(file, "campaign-asset");
       setSourceAssetKey(key);
+      setSourceAssetName(file.name);
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : "Video upload failed.");
     } finally {
@@ -197,17 +233,16 @@ export default function CreateCampaignPage() {
   }
 
   return (
-    <>
-      <main style={{ padding: "32px" }}>
-        <p className="helper-text" style={{ marginBottom: 24, maxWidth: 640 }}>
-          A simplified single-page version of the full campaign wizard, though everything it submits is real.
-          Pricing is computed from the live rate card, and admin review, payment, and creator matching all follow
-          from here.
-        </p>
+    <main style={{ padding: "32px" }}>
+      <p className="helper-text" style={{ marginBottom: 24, maxWidth: 640 }}>
+        A simplified single-page version of the full campaign wizard, though everything it submits is real.
+        Pricing is computed from the live rate card, and admin review, payment, and creator matching all follow
+        from here.
+      </p>
 
-        <form onSubmit={handleSubmit} style={{ maxWidth: 640 }}>
-          <label className="label">Campaign Type</label>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10, marginBottom: shipsProduct || type === "CREATOR_CONTENT" ? 12 : 20 }}>
+      <form onSubmit={handleSubmit} style={{ maxWidth: 680 }}>
+        <Section step={1} title="Campaign type">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 }}>
             {(Object.keys(TYPE_INFO) as UiType[]).map((t) => (
               <button
                 key={t}
@@ -230,19 +265,19 @@ export default function CreateCampaignPage() {
           </div>
 
           {type === "CREATOR_CONTENT" && (
-            <label style={{ display: "flex", gap: 8, alignItems: "flex-start", marginBottom: 20, fontSize: 14 }}>
+            <label style={{ display: "flex", gap: 10, alignItems: "flex-start", marginTop: 14, fontSize: 13.5 }}>
               <input
                 type="checkbox"
                 checked={shipsProduct}
                 onChange={(e) => setShipsProduct(e.target.checked)}
-                style={{ marginTop: 3 }}
+                style={{ marginTop: 3, flexShrink: 0 }}
               />
-              <span>
-                Ship a product for this campaign — creators will receive it and review it as their content.
-              </span>
+              <span>Ship a product for this campaign — creators will receive it and review it as their content.</span>
             </label>
           )}
+        </Section>
 
+        <Section step={2} title="Campaign details">
           <label className="label">Title</label>
           <input className="input" required value={title} onChange={(e) => setTitle(e.target.value)} style={{ marginBottom: 16 }} />
 
@@ -253,24 +288,58 @@ export default function CreateCampaignPage() {
             minLength={10}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            style={{ marginBottom: 16, minHeight: 90, resize: "vertical", fontFamily: "inherit" }}
+            style={{ marginBottom: type === "CLIPPING" || shipsProduct ? 16 : 0, minHeight: 90, resize: "vertical", fontFamily: "inherit" }}
           />
 
           {type === "CLIPPING" && (
             <>
               <label className="label">Source video</label>
-              <p className="helper-text" style={{ marginBottom: 8 }}>
-                The raw footage creators will re-cut and post. Required before you can save this campaign.
-              </p>
-              <input
-                type="file"
-                accept="video/*"
-                onChange={(e) => pickSourceAsset(e.target.files?.[0])}
-                style={{ marginBottom: 4, fontSize: 13 }}
-              />
-              {uploadingAsset && <p className="helper-text">Uploading…</p>}
-              {sourceAssetKey && !uploadingAsset && <p className="helper-text">Uploaded — ready to save.</p>}
-              <div style={{ marginBottom: 16 }} />
+              <label
+                htmlFor="source-video"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 14,
+                  padding: "14px 16px",
+                  borderRadius: "var(--radius-control)",
+                  cursor: uploadingAsset ? "default" : "pointer",
+                  background: sourceAssetKey ? "var(--color-success-soft)" : "var(--color-bg-subtle)",
+                }}
+              >
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 36,
+                    height: 36,
+                    borderRadius: 9,
+                    flexShrink: 0,
+                    background: sourceAssetKey ? "var(--color-success)" : "var(--color-primary-soft)",
+                    color: sourceAssetKey ? "#fff" : "var(--color-primary)",
+                  }}
+                >
+                  {sourceAssetKey ? <CheckCircleIcon width={18} height={18} /> : <UploadCloudIcon width={18} height={18} />}
+                </span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13.5, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {uploadingAsset ? "Uploading…" : sourceAssetKey ? sourceAssetName ?? "Video uploaded" : "Choose a video to upload"}
+                  </div>
+                  <div className="helper-text" style={{ marginTop: 2 }}>
+                    {sourceAssetKey
+                      ? "Ready to save — click to replace it."
+                      : "The raw footage creators will re-cut and post. Required to save this campaign."}
+                  </div>
+                </span>
+                <input
+                  id="source-video"
+                  type="file"
+                  accept="video/*"
+                  disabled={uploadingAsset}
+                  onChange={(e) => pickSourceAsset(e.target.files?.[0])}
+                  style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none" }}
+                />
+              </label>
             </>
           )}
 
@@ -282,7 +351,6 @@ export default function CreateCampaignPage() {
                 required
                 value={productId}
                 onChange={(e) => setProductId(e.target.value)}
-                style={{ marginBottom: 16 }}
               >
                 <option value="">Select a product…</option>
                 {products?.map((p) => (
@@ -290,17 +358,20 @@ export default function CreateCampaignPage() {
                 ))}
               </select>
               {products?.length === 0 && (
-                <p className="helper-text" style={{ marginTop: -12, marginBottom: 16 }}>
+                <p className="helper-text" style={{ marginTop: 8 }}>
                   No products yet — add one on the Products page first.
                 </p>
               )}
             </>
           )}
+        </Section>
 
+        <Section
+          step={3}
+          title="Who this reaches"
+          hint="Category narrows the pool first; the metric below then filters by audience size within it."
+        >
           <label className="label">Category</label>
-          <p className="helper-text" style={{ marginBottom: 8 }}>
-            Only creators who&apos;ve added this category on their profile are matched — leave unset to match on the targeting below alone.
-          </p>
           <select
             className="input"
             value={categoryId}
@@ -332,23 +403,41 @@ export default function CreateCampaignPage() {
               </button>
             ))}
           </div>
-          <p className="helper-text" style={{ marginBottom: 12 }}>
+          <p className="helper-text" style={{ margin: 0 }}>
             Only creators matching the metric you pick here are offered this campaign — the other one is ignored entirely.
           </p>
+        </Section>
 
+        <Section step={4} title="Ranges &amp; payout" hint="Pick every audience-size band this campaign should offer to, and how many creators you need at each.">
           {availableSlabs === null ? (
-            <p className="helper-text" style={{ marginBottom: 20 }}>Loading rate card…</p>
+            <p className="helper-text">Loading rate card…</p>
           ) : availableSlabs.length === 0 ? (
-            <p className="error-text" style={{ marginBottom: 20 }}>
-              No active rate card for this combination yet — try the other metric, or contact support.
-            </p>
+            <p className="error-text">No active rate card for this combination yet — try the other metric, or contact support.</p>
           ) : (
             <>
+              <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 80px 32px", gap: 8, marginBottom: 6, padding: "0 2px" }}>
+                <span className="helper-text" style={{ fontSize: 11.5, textTransform: "uppercase", letterSpacing: "0.04em" }}>Range</span>
+                <span className="helper-text" style={{ fontSize: 11.5, textTransform: "uppercase", letterSpacing: "0.04em" }}>Payout ₹</span>
+                <span className="helper-text" style={{ fontSize: 11.5, textTransform: "uppercase", letterSpacing: "0.04em" }}>Qty</span>
+                <span />
+              </div>
               {ranges.map((r, i) => {
                 const slab = availableSlabs.find((s) => s.id === r.slabId);
                 return (
-                  <div key={i} style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 80px auto", gap: 8, marginBottom: 8, alignItems: "center" }}>
-                    <select className="input" value={r.slabId} onChange={(e) => updateRange(i, "slabId", e.target.value)}>
+                  <div
+                    key={i}
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1.4fr 1fr 80px 32px",
+                      gap: 8,
+                      marginBottom: 8,
+                      alignItems: "center",
+                      background: "var(--color-bg-subtle)",
+                      borderRadius: "var(--radius-control)",
+                      padding: "6px",
+                    }}
+                  >
+                    <select className="input" value={r.slabId} onChange={(e) => updateRange(i, "slabId", e.target.value)} style={{ background: "var(--color-white)" }}>
                       {optionsForRow(r.slabId).map((s) => (
                         <option key={s.id} value={s.id}>{formatRange(s.minValue, s.maxValue, metric)}</option>
                       ))}
@@ -356,29 +445,56 @@ export default function CreateCampaignPage() {
                     <input
                       className="input"
                       type="number"
-                      placeholder="Payout ₹"
                       min={slab ? Number(slab.payoutAmount) : 0}
                       value={r.payoutAmount}
                       onChange={(e) => updateRange(i, "payoutAmount", e.target.value)}
+                      style={{ background: "var(--color-white)" }}
                     />
-                    <input className="input" type="number" min={1} placeholder="Qty" value={r.quantity} onChange={(e) => updateRange(i, "quantity", e.target.value)} />
-                    {ranges.length > 1 && (
-                      <Button type="button" variant="secondary" onClick={() => removeRange(i)}>×</Button>
-                    )}
+                    <input
+                      className="input"
+                      type="number"
+                      min={1}
+                      value={r.quantity}
+                      onChange={(e) => updateRange(i, "quantity", e.target.value)}
+                      style={{ background: "var(--color-white)" }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeRange(i)}
+                      disabled={ranges.length === 1}
+                      aria-label="Remove range"
+                      title="Remove range"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: 32,
+                        height: 32,
+                        border: "none",
+                        borderRadius: 8,
+                        background: "transparent",
+                        color: ranges.length === 1 ? "var(--color-text-faint)" : "var(--color-danger)",
+                        cursor: ranges.length === 1 ? "not-allowed" : "pointer",
+                      }}
+                    >
+                      <TrashIcon width={15} height={15} />
+                    </button>
                   </div>
                 );
               })}
-              <p className="helper-text" style={{ marginTop: -2, marginBottom: 16 }}>
+              <p className="helper-text" style={{ margin: "8px 0 16px" }}>
                 Payout can be raised above the platform floor shown, never lowered below it.
               </p>
               {ranges.length < availableSlabs.length && (
-                <Button type="button" variant="secondary" onClick={addRange} style={{ marginBottom: 20 }}>
+                <Button type="button" variant="secondary" onClick={addRange}>
                   + Add Another Range
                 </Button>
               )}
             </>
           )}
+        </Section>
 
+        <Section step={5} title="Delivery settings">
           <label className="label">Retention (days)</label>
           <input
             className="input"
@@ -389,16 +505,16 @@ export default function CreateCampaignPage() {
             style={{ marginBottom: 16, maxWidth: 160 }}
           />
 
-          <label style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 24, fontSize: 14 }}>
+          <label style={{ display: "flex", gap: 10, alignItems: "center", fontSize: 13.5 }}>
             <input type="checkbox" checked={disclosureRequired} onChange={(e) => setDisclosureRequired(e.target.checked)} />
             Require a sponsored post disclosure
           </label>
+        </Section>
 
-          {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
+        {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
 
-          <Button type="submit" loading={loading}>Save Draft</Button>
-        </form>
-      </main>
-    </>
+        <Button type="submit" loading={loading}>Save Draft</Button>
+      </form>
+    </main>
   );
 }
