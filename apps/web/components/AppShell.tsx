@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type DependencyList, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { apiFetch, clearTokens } from "../lib/apiClient";
@@ -51,6 +51,26 @@ interface Me {
   creator: { displayName: string } | null;
 }
 
+// Lets an individual (app) page put something of its own (a badge, a
+// button) into the shared page-header bar next to the notification
+// bell — e.g. Top Creators' "N credits left / Buy credits" — instead
+// of that page maintaining a second, header-shaped bar inside its own
+// body. `deps` works exactly like useEffect's: pass every value the
+// header content depends on so it updates when they change.
+const PageHeaderExtraContext = createContext<(node: ReactNode) => void>(() => {});
+
+export function usePageHeaderExtra(node: ReactNode, deps: DependencyList) {
+  const setExtra = useContext(PageHeaderExtraContext);
+  useEffect(() => {
+    setExtra(node);
+    return () => setExtra(null);
+    // `node` is deliberately excluded — callers pass their own `deps`
+    // (mirroring useEffect) so this only re-runs when something the
+    // header content actually depends on changes, not on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
+}
+
 /**
  * Persistent app shell for brand/creator pages (spec §66/67).
  *
@@ -67,6 +87,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [me, setMe] = useState<Me | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [headerExtra, setHeaderExtra] = useState<ReactNode>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -102,6 +123,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
+    <PageHeaderExtraContext.Provider value={setHeaderExtra}>
     <div className="app-shell" style={{ display: "flex", minHeight: "100vh" }}>
       <aside
         className="app-sidebar desktop-only paper-panel"
@@ -360,12 +382,16 @@ export function AppShell({ children }: { children: ReactNode }) {
       <main className="app-content" style={{ flex: 1, minWidth: 0, marginLeft: "var(--sidebar-width)" }}>
         <div className="page-header" style={{ justifyContent: "space-between" }}>
           <span>{pageTitle}</span>
-          {accountType && <NotificationBell />}
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {headerExtra}
+            {accountType && <NotificationBell />}
+          </div>
         </div>
         {children}
       </main>
 
       {accountType && <BottomNav accountType={accountType} />}
     </div>
+    </PageHeaderExtraContext.Provider>
   );
 }

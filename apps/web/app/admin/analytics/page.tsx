@@ -41,10 +41,6 @@ export default function AdminAnalyticsPage() {
 
   return (
     <div>
-      <p className="helper-text" style={{ marginBottom: 20 }}>
-        Every figure below is a live aggregate query, not a cached or estimated metric.
-      </p>
-
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 16, marginBottom: 20 }}>
         <StatCard label="GMV (paid)" value={`₹${data.gmv.toLocaleString()}`} />
         <StatCard label="Est. net revenue" value={`₹${data.netRevenueEstimate.toLocaleString()}`} />

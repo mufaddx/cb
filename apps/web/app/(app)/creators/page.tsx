@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/Button";
+import { usePageHeaderExtra } from "@/components/AppShell";
 import { ChatIcon, LockIcon } from "@/components/icons";
 import { apiFetch, ApiClientError } from "@/lib/apiClient";
 import { completeCheckout, type CheckoutPayload } from "@/lib/payments";
@@ -31,11 +32,21 @@ interface Me {
   brand: { profileViewCredits: number } | null;
 }
 
+interface FollowerRange {
+  minValue: number;
+  maxValue: number | null;
+}
+
 const METRICS = [
   { value: "", label: "Any" },
   { value: "FOLLOWER_COUNT", label: "Followers" },
   { value: "AVERAGE_REACH", label: "Reach" },
 ];
+
+function formatRange(r: FollowerRange): string {
+  const min = r.minValue.toLocaleString("en-IN");
+  return r.maxValue == null ? `${min}+` : `${min} – ${r.maxValue.toLocaleString("en-IN")}`;
+}
 
 function BuyCreditsModal({ onClose, onBought }: { onClose: () => void; onBought: () => void }) {
   const [loading, setLoading] = useState(false);
@@ -94,11 +105,46 @@ export default function TopCreatorsPage() {
   const [metric, setMetric] = useState("");
   const [minValue, setMinValue] = useState("");
   const [maxValue, setMaxValue] = useState("");
+  const [ranges, setRanges] = useState<FollowerRange[]>([]);
+  const [rangeIdx, setRangeIdx] = useState("");
+
+  function refreshCredits() {
+    apiFetch<Me>("/api/auth/me").then((me) => setCredits(me.brand?.profileViewCredits ?? 0)).catch(() => null);
+  }
 
   useEffect(() => {
     apiFetch<Category[]>("/api/categories").then(setCategories).catch(() => setCategories([]));
-    apiFetch<Me>("/api/auth/me").then((me) => setCredits(me.brand?.profileViewCredits ?? 0)).catch(() => null);
+    refreshCredits();
   }, []);
+
+  // Range options come from the same admin-managed rate card (see
+  // /admin/pricing) that drives Create Campaign's targeting picker —
+  // one place controls both instead of a brand typing arbitrary numbers.
+  useEffect(() => {
+    setRangeIdx("");
+    setMinValue("");
+    setMaxValue("");
+    if (!metric) {
+      setRanges([]);
+      return;
+    }
+    apiFetch<FollowerRange[]>(`/api/creators/follower-ranges?metric=${metric}`)
+      .then(setRanges)
+      .catch(() => setRanges([]));
+  }, [metric]);
+
+  function onRangeChange(idxStr: string) {
+    setRangeIdx(idxStr);
+    if (idxStr === "") {
+      setMinValue("");
+      setMaxValue("");
+      return;
+    }
+    const r = ranges[Number(idxStr)];
+    if (!r) return;
+    setMinValue(String(r.minValue));
+    setMaxValue(r.maxValue != null ? String(r.maxValue) : "");
+  }
 
   function load() {
     const params = new URLSearchParams();
@@ -112,13 +158,14 @@ export default function TopCreatorsPage() {
   }
   useEffect(load, [categoryId, metric, minValue, maxValue]);
 
-  async function unlock(id: string) {
+  async function unlock(id: string): Promise<boolean> {
     setUnlockingId(id);
     setError(null);
     try {
       await apiFetch(`/api/creators/${id}/unlock`, { method: "POST" });
       load();
-      apiFetch<Me>("/api/auth/me").then((me) => setCredits(me.brand?.profileViewCredits ?? 0)).catch(() => null);
+      refreshCredits();
+      return true;
     } catch (err) {
       const message = err instanceof ApiClientError ? err.message : "Something went wrong.";
       if (message.toLowerCase().includes("no profile-view credits")) {
@@ -126,6 +173,7 @@ export default function TopCreatorsPage() {
       } else {
         setError(message);
       }
+      return false;
     } finally {
       setUnlockingId(null);
     }
@@ -143,21 +191,31 @@ export default function TopCreatorsPage() {
     }
   }
 
+  // A brand can't message a creator whose identity it hasn't paid to
+  // reveal yet — clicking the chat icon on a locked row spends a
+  // credit to unlock first (or opens Buy Credits if there isn't one),
+  // then opens the conversation in the same click.
+  async function handleMessageClick(c: TopCreator) {
+    if (c.unlocked) {
+      startChat(c.id);
+      return;
+    }
+    const unlocked = await unlock(c.id);
+    if (unlocked) startChat(c.id);
+  }
+
+  usePageHeaderExtra(
+    <>
+      <span className="badge">{credits ?? "—"} credits left</span>
+      <Button variant="secondary" onClick={() => setShowBuy(true)}>Buy credits</Button>
+    </>,
+    [credits]
+  );
+
   if (error) return <main style={{ padding: 32 }}><p className="error-text">{error}</p></main>;
 
   return (
     <main style={{ padding: "32px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
-        <p className="helper-text" style={{ margin: 0, maxWidth: 560 }}>
-          Ranked by quality score and completion rate. Names and Instagram handles stay hidden until you spend a
-          credit to unlock a specific creator — permanently, for your account.
-        </p>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span className="badge">{credits ?? "—"} credits left</span>
-          <Button variant="secondary" onClick={() => setShowBuy(true)}>Buy credits</Button>
-        </div>
-      </div>
-
       <div className="card" style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end", marginBottom: 20, padding: 16 }}>
         <div>
           <label className="label">Category</label>
@@ -177,16 +235,15 @@ export default function TopCreatorsPage() {
           </select>
         </div>
         {metric && (
-          <>
-            <div>
-              <label className="label">Min</label>
-              <input className="input" type="number" min={0} value={minValue} onChange={(e) => setMinValue(e.target.value)} style={{ width: 110 }} />
-            </div>
-            <div>
-              <label className="label">Max</label>
-              <input className="input" type="number" min={0} value={maxValue} onChange={(e) => setMaxValue(e.target.value)} style={{ width: 110 }} />
-            </div>
-          </>
+          <div>
+            <label className="label">Range</label>
+            <select className="input" value={rangeIdx} onChange={(e) => onRangeChange(e.target.value)} style={{ minWidth: 170 }}>
+              <option value="">Any</option>
+              {ranges.map((r, i) => (
+                <option key={i} value={i}>{formatRange(r)}</option>
+              ))}
+            </select>
+          </div>
         )}
       </div>
 
@@ -247,11 +304,11 @@ export default function TopCreatorsPage() {
                         </Button>
                       )}
                       <button
-                        onClick={() => startChat(c.id)}
-                        disabled={startingChatId === c.id}
-                        aria-label="Chat"
-                        title="Chat"
-                        style={{ background: "var(--color-bg-subtle)", border: "none", borderRadius: 8, width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "var(--color-primary)" }}
+                        onClick={() => handleMessageClick(c)}
+                        disabled={startingChatId === c.id || unlockingId === c.id}
+                        aria-label={c.unlocked ? "Chat" : "Unlock to chat"}
+                        title={c.unlocked ? "Chat" : "Unlock to chat"}
+                        style={{ background: "var(--color-bg-subtle)", border: "none", borderRadius: 8, width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: c.unlocked ? "var(--color-primary)" : "var(--color-text-secondary)" }}
                       >
                         <ChatIcon width={16} height={16} />
                       </button>
@@ -269,9 +326,7 @@ export default function TopCreatorsPage() {
           onClose={() => setShowBuy(false)}
           onBought={() => {
             setShowBuy(false);
-            setTimeout(() => {
-              apiFetch<Me>("/api/auth/me").then((me) => setCredits(me.brand?.profileViewCredits ?? 0)).catch(() => null);
-            }, 1200);
+            setTimeout(refreshCredits, 1200);
           }}
         />
       )}

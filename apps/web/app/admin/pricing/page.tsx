@@ -212,11 +212,6 @@ export default function AdminPricingPage() {
 
   return (
     <div>
-      <p className="helper-text" style={{ marginBottom: 20 }}>
-        What creators earn, what the platform keeps, and GST — every number here drives a real campaign's pricing.
-        A rate change here never touches a campaign that's already been priced; it only applies going forward.
-      </p>
-
       {!slabs ? (
         <p className="helper-text">Loading…</p>
       ) : (

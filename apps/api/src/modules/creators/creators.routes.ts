@@ -63,6 +63,19 @@ router.get(
   })
 );
 
+// Fixed path, registered before "/:id/unlock" for the same reason as
+// "/top" and "/me" above (a fixed segment doesn't actually collide
+// with ":id/unlock", but the convention is kept anyway).
+router.get(
+  "/follower-ranges",
+  asyncHandler(async (req, res) => {
+    if (!req.auth?.brandId) throw new UnauthorizedError("This action requires a brand profile");
+    const metric = req.query.metric === "AVERAGE_REACH" ? "AVERAGE_REACH" : "FOLLOWER_COUNT";
+    const ranges = await creatorsService.getFollowerRanges(prisma, metric);
+    sendSuccess(res, ranges);
+  })
+);
+
 router.post(
   "/:id/unlock",
   asyncHandler(async (req, res) => {

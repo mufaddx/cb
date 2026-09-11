@@ -72,7 +72,6 @@ export default function PaymentsPage() {
 
   return (
     <div>
-      <p className="helper-text" style={{ marginBottom: 20 }}>{payments.length} most recent</p>
       {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
 
       <div style={{ overflowX: "auto" }}>

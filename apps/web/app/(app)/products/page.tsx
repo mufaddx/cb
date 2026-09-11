@@ -67,8 +67,6 @@ export default function ProductsPage() {
   return (
     <>
       <main style={{ padding: "32px" }}>
-        <p className="helper-text" style={{ marginBottom: 20 }}>Ship these to creators for a Creator Content campaign that includes a product review.</p>
-
         <div className="card" style={{ marginBottom: 24 }}>
           <h3>Add a product</h3>
           <form onSubmit={createProduct}>

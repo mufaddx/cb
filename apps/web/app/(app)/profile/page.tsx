@@ -86,10 +86,6 @@ export default function ProfilePage() {
 
   return (
     <main style={{ padding: 32 }}>
-      <p className="helper-text" style={{ marginBottom: 24, maxWidth: 640 }}>
-        Categories decide which campaigns reach you — a brand targeting &quot;Fitness &amp; Health&quot; only
-        matches creators who&apos;ve picked that category here. Pick up to {MAX_CATEGORIES} that fit your content best.
-      </p>
 
       {!loaded || categories === null ? (
         <p className="helper-text">Loading…</p>

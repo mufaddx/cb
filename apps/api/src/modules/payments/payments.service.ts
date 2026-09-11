@@ -14,6 +14,16 @@ import { getOrCreateWalletForBrand, postLedgerEntryWithinTx } from "../wallet/wa
 import { getPaymentProvider } from "../../services/payment";
 import { logger } from "../../lib/logger";
 
+// Razorpay rejects order creation with a 400 if `receipt` is over 56
+// characters — our own idempotencyKey strings (brand cuid + purpose
+// prefix + uuid) regularly run to 70-80+ chars, so it can never be
+// reused as the receipt directly. A short random id is all Razorpay
+// needs here; it's just a merchant-reference string on their side, not
+// used for anything on ours.
+function shortReceiptId(): string {
+  return randomUUID().replace(/-/g, "").slice(0, 32);
+}
+
 /**
  * Brand initiates payment for an APPROVED-then-PAYMENT_PENDING
  * campaign (spec §31/§82). This only ever creates a payment intent —
@@ -51,7 +61,10 @@ export async function initiateCampaignPayment(prisma: PrismaClient, campaignId: 
   const intent = await provider.createPaymentIntent({
     amount,
     currency: "INR",
-    receiptId: idempotencyKey,
+    // Razorpay's `receipt` field caps at 56 characters — a short id of
+    // our own, NOT the (much longer) idempotencyKey used for our own
+    // dedup below. It's just a merchant-reference string on their end.
+    receiptId: shortReceiptId(),
     notes: { campaignId, brandId },
   });
 
@@ -101,7 +114,7 @@ export async function initiateWalletTopup(prisma: PrismaClient, brandId: string,
   const intent = await provider.createPaymentIntent({
     amount,
     currency: "INR",
-    receiptId: idempotencyKey,
+    receiptId: shortReceiptId(),
     notes: { brandId, purpose: "WALLET_TOPUP" },
   });
 
@@ -146,7 +159,7 @@ export async function initiateCreditsPurchase(prisma: PrismaClient, brandId: str
   const intent = await provider.createPaymentIntent({
     amount: CREDIT_PACKAGE.priceRupees,
     currency: "INR",
-    receiptId: idempotencyKey,
+    receiptId: shortReceiptId(),
     notes: { brandId, purpose: "CREATOR_UNLOCK_CREDITS", credits: String(CREDIT_PACKAGE.credits) },
   });
 

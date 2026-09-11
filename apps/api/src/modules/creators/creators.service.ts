@@ -1,4 +1,4 @@
-import { PrismaClient, WalletOwnerType } from "@prisma/client";
+import { PrismaClient, TargetingMetric, WalletOwnerType } from "@prisma/client";
 import { ConflictError, NotFoundError } from "../../lib/errors";
 import type { CreateCreatorInput, UpdateCreatorInput } from "./creators.validation";
 
@@ -33,6 +33,30 @@ export async function getMyCreatorProfile(prisma: PrismaClient, userId: string) 
   const creator = await prisma.creator.findUnique({ where: { userId }, include: WITH_CATEGORIES });
   if (!creator) throw new NotFoundError("Creator profile not found");
   return creator;
+}
+
+/** Distinct follower/reach bands a brand can pick from on the Top
+ * Creators filter — sourced from the same admin-managed PricingSlab
+ * rate card that drives Create Campaign's targeting picker (see
+ * campaigns.controller.ts::getPricingSlabsHandler), so an admin
+ * controls both from one place instead of two. Deduped across every
+ * campaign type, since this filter isn't scoped to one — a range an
+ * admin sets for any campaign type shows up here once. */
+export async function getFollowerRanges(prisma: PrismaClient, metric: TargetingMetric) {
+  const slabs = await prisma.pricingSlab.findMany({
+    where: { metric, active: true },
+    orderBy: { minValue: "asc" },
+    select: { minValue: true, maxValue: true },
+  });
+  const seen = new Set<string>();
+  const ranges: Array<{ minValue: number; maxValue: number | null }> = [];
+  for (const s of slabs) {
+    const key = `${s.minValue}-${s.maxValue}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    ranges.push(s);
+  }
+  return ranges;
 }
 
 export interface TopCreatorsFilter {

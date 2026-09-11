@@ -29,7 +29,6 @@ export default function AdminCreatorsPage() {
 
   return (
     <div>
-      <p className="helper-text" style={{ marginBottom: 20 }}>{creators?.length ?? "…"} shown</p>
       {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
 
       <input

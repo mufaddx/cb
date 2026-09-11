@@ -59,9 +59,6 @@ export default function FraudQueuePage() {
 
   return (
     <div>
-      <p className="helper-text" style={{ marginBottom: 20 }}>
-        {queue.length} open flag(s) — raising a flag never restricts anything by itself; only an explicit review does.
-      </p>
       {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
 
       {queue.length === 0 ? (
