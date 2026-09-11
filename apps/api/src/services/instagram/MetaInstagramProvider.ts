@@ -96,7 +96,7 @@ export class MetaInstagramProvider implements InstagramProvider {
   // the documented, reliable way to address the token's own account.
   async fetchProfile(accessToken: string, igUserId: string): Promise<InstagramProfile> {
     const res = await fetch(
-      `${this.graphBase}/me?fields=id,username,profile_picture_url,followers_count&access_token=${accessToken}`
+      `${this.graphBase}/me?fields=id,username,name,biography,profile_picture_url,followers_count&access_token=${accessToken}`
     );
     if (!res.ok) {
       throw new Error(`Instagram profile fetch failed (${res.status}): ${await res.text()}`);
@@ -104,18 +104,67 @@ export class MetaInstagramProvider implements InstagramProvider {
     const data = (await res.json()) as {
       id: string;
       username: string;
+      name?: string;
+      biography?: string;
       profile_picture_url?: string;
       followers_count: number;
     };
 
-    // Average reach/views require the Insights API against recent
-    // media and are computed by the metric-sync background job
-    // (jobs/syncInstagramMetrics), not on every profile fetch.
+    // Best-effort: reach/views come from the account's recent posts'
+    // insights, a handful of extra calls beyond the basic profile
+    // fetch above. Never let a failure here (rate limit, a post too
+    // new for insights to have settled, missing permission) fail the
+    // whole connect/refresh — the profile itself is already good.
+    const engagement: { avgReach?: number; avgViews?: number } = await this.fetchAverageEngagement(accessToken).catch(() => ({}));
+
     return {
       igUserId: data.id || igUserId,
       username: data.username,
       profileImageUrl: data.profile_picture_url,
+      fullName: data.name,
+      bio: data.biography,
       followers: data.followers_count,
+      avgReach: engagement.avgReach,
+      avgViews: engagement.avgViews,
+    };
+  }
+
+  /** Averages `reach` (all recent posts) and `plays`/video views (video
+   * posts only) across the last dozen posts — Instagram has no single
+   * "average reach" field, only per-post insights, so this is our own
+   * aggregate rather than something the API hands back directly. One
+   * bad post's insights failing doesn't drop the others from the
+   * average — Promise.allSettled, not allSettled-less Promise.all. */
+  private async fetchAverageEngagement(accessToken: string): Promise<{ avgReach?: number; avgViews?: number }> {
+    const mediaRes = await fetch(`${this.graphBase}/me/media?fields=id,media_type&limit=12&access_token=${accessToken}`);
+    if (!mediaRes.ok) return {};
+    const mediaJson = (await mediaRes.json()) as { data?: Array<{ id: string; media_type: string }> };
+    const items = mediaJson.data ?? [];
+    if (items.length === 0) return {};
+
+    const results = await Promise.allSettled(
+      items.map(async (item) => {
+        const wantsViews = item.media_type === "VIDEO";
+        const metrics = wantsViews ? "reach,plays" : "reach";
+        const insightsRes = await fetch(`${this.graphBase}/${item.id}/insights?metric=${metrics}&access_token=${accessToken}`);
+        if (!insightsRes.ok) throw new Error(`insights fetch failed for ${item.id}`);
+        const insightsJson = (await insightsRes.json()) as { data?: Array<{ name: string; values?: Array<{ value: number }> }> };
+        const byName = new Map((insightsJson.data ?? []).map((m) => [m.name, m.values?.[0]?.value]));
+        return { reach: byName.get("reach"), plays: byName.get("plays") };
+      })
+    );
+
+    const reaches: number[] = [];
+    const views: number[] = [];
+    for (const result of results) {
+      if (result.status !== "fulfilled") continue;
+      if (typeof result.value.reach === "number") reaches.push(result.value.reach);
+      if (typeof result.value.plays === "number") views.push(result.value.plays);
+    }
+
+    return {
+      avgReach: reaches.length ? Math.round(reaches.reduce((a, b) => a + b, 0) / reaches.length) : undefined,
+      avgViews: views.length ? Math.round(views.reduce((a, b) => a + b, 0) / views.length) : undefined,
     };
   }
 
