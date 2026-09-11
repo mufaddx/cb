@@ -6,60 +6,83 @@ import type {
 import { env } from "../../config/env";
 
 /**
- * Official Meta Graph API adapter (spec §15/§60). Uses the
- * Instagram-Graph-API-via-Facebook-Login flow: OAuth code exchange,
- * long-lived token exchange, then Graph API calls for profile/insights.
+ * "Instagram API with Instagram Login" adapter (Meta's newer, creator-
+ * facing integration — added 2024). A creator logs in directly with
+ * their Instagram credentials at instagram.com; no Facebook account or
+ * linked Facebook Page is required.
  *
- * This talks to the real Meta endpoints and requires META_APP_ID /
- * META_APP_SECRET / META_REDIRECT_URI — the env loader refuses to
- * select this provider without them.
+ * This is deliberately NOT "Facebook Login for Business" (the older
+ * product, which authenticates via facebook.com and requires a
+ * Facebook Page with an Instagram Business Account linked to it) —
+ * that flow was tried first and rejected here specifically because it
+ * shows a Facebook login screen, which is wrong for a platform whose
+ * users are Instagram creators, not Facebook Page admins.
+ *
+ * META_APP_ID/META_APP_SECRET here are the Instagram App ID/Secret
+ * shown on the Meta app's "Instagram" product -> "API setup with
+ * Instagram login" page — NOT the Facebook App ID/Secret from
+ * Settings -> Basic. The two look identical in format and are easy to
+ * mix up; they are not interchangeable.
  */
 export class MetaInstagramProvider implements InstagramProvider {
-  private graphBase = "https://graph.facebook.com/v19.0";
+  private authBase = "https://www.instagram.com";
+  private tokenBase = "https://api.instagram.com";
+  private graphBase = "https://graph.instagram.com/v21.0";
 
   getAuthorizationUrl(state: string): string {
     const params = new URLSearchParams({
       client_id: env.META_APP_ID!,
       redirect_uri: env.META_REDIRECT_URI!,
-      state,
-      scope: "instagram_basic,instagram_manage_insights,pages_show_list",
       response_type: "code",
+      scope: "instagram_business_basic,instagram_business_manage_insights",
+      state,
     });
-    return `https://www.facebook.com/v19.0/dialog/oauth?${params.toString()}`;
+    return `${this.authBase}/oauth/authorize?${params.toString()}`;
   }
 
   async exchangeCodeForToken(code: string): Promise<ExchangeCodeResult> {
-    const tokenRes = await fetch(
-      `${this.graphBase}/oauth/access_token?` +
+    // Step 1: short-lived token (form-encoded POST body — this is the
+    // one Instagram Login endpoint that does NOT accept query params).
+    const form = new URLSearchParams({
+      client_id: env.META_APP_ID!,
+      client_secret: env.META_APP_SECRET!,
+      grant_type: "authorization_code",
+      redirect_uri: env.META_REDIRECT_URI!,
+      code,
+    });
+    const shortTokenRes = await fetch(`${this.tokenBase}/oauth/access_token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: form,
+    });
+    if (!shortTokenRes.ok) {
+      throw new Error(`Instagram token exchange failed (${shortTokenRes.status}): ${await shortTokenRes.text()}`);
+    }
+    const { access_token: shortLivedToken, user_id } = (await shortTokenRes.json()) as {
+      access_token: string;
+      user_id: string;
+    };
+
+    // Step 2: exchange for a long-lived token (60 days) — the
+    // short-lived one from step 1 only lasts about an hour.
+    const longTokenRes = await fetch(
+      `${this.graphBase}/access_token?` +
         new URLSearchParams({
-          client_id: env.META_APP_ID!,
+          grant_type: "ig_exchange_token",
           client_secret: env.META_APP_SECRET!,
-          redirect_uri: env.META_REDIRECT_URI!,
-          code,
+          access_token: shortLivedToken,
         })
     );
-    if (!tokenRes.ok) {
-      throw new Error(`Meta token exchange failed (${tokenRes.status}): ${await tokenRes.text()}`);
+    if (!longTokenRes.ok) {
+      throw new Error(`Instagram long-lived token exchange failed (${longTokenRes.status}): ${await longTokenRes.text()}`);
     }
-    const { access_token, expires_in } = (await tokenRes.json()) as {
+    const { access_token: accessToken, expires_in: expiresInSeconds } = (await longTokenRes.json()) as {
       access_token: string;
       expires_in: number;
     };
 
-    // Resolve the connected Instagram Business Account behind the user's page.
-    const pagesRes = await fetch(
-      `${this.graphBase}/me/accounts?fields=instagram_business_account&access_token=${access_token}`
-    );
-    const pagesJson = (await pagesRes.json()) as {
-      data: Array<{ instagram_business_account?: { id: string } }>;
-    };
-    const igUserId = pagesJson.data?.[0]?.instagram_business_account?.id;
-    if (!igUserId) {
-      throw new Error("No Instagram Business Account is linked to this Facebook Page.");
-    }
-
-    const profile = await this.fetchProfile(access_token, igUserId);
-    return { accessToken: access_token, expiresInSeconds: expires_in, profile };
+    const profile = await this.fetchProfile(accessToken, user_id);
+    return { accessToken, expiresInSeconds, profile };
   }
 
   async fetchProfile(accessToken: string, igUserId: string): Promise<InstagramProfile> {
@@ -67,7 +90,7 @@ export class MetaInstagramProvider implements InstagramProvider {
       `${this.graphBase}/${igUserId}?fields=username,profile_picture_url,followers_count&access_token=${accessToken}`
     );
     if (!res.ok) {
-      throw new Error(`Meta profile fetch failed (${res.status}): ${await res.text()}`);
+      throw new Error(`Instagram profile fetch failed (${res.status}): ${await res.text()}`);
     }
     const data = (await res.json()) as {
       username: string;
@@ -98,7 +121,7 @@ export class MetaInstagramProvider implements InstagramProvider {
       `${this.graphBase}/${igUserId}/media?fields=permalink,caption&limit=50&access_token=${accessToken}`
     );
     if (!res.ok) {
-      throw new Error(`Meta media list fetch failed (${res.status}): ${await res.text()}`);
+      throw new Error(`Instagram media list fetch failed (${res.status}): ${await res.text()}`);
     }
     const data = (await res.json()) as { data: Array<{ permalink: string; caption?: string }> };
     const match = data.data.find((m) => normalizeUrl(m.permalink) === normalizeUrl(postUrl));
