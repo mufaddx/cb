@@ -194,7 +194,15 @@ export class MetaInstagramProvider implements InstagramProvider {
       }>;
     };
     const items = mediaJson.data ?? [];
-    if (items.length === 0) return [];
+    // Temporary diagnostic: /me/media returning 200 with an empty list
+    // for an account that visibly has real posts/reels in Instagram's
+    // own app is the actual mystery right now — log the raw response
+    // on the empty case (not just the !ok case above) to see exactly
+    // what Instagram sent back.
+    if (items.length === 0) {
+      logger.warn({ rawResponse: mediaJson }, "Instagram /me/media returned 200 with zero items");
+      return [];
+    }
 
     const results = await Promise.allSettled(
       items.map(async (item): Promise<MediaWithMetrics> => {
@@ -267,6 +275,9 @@ export class MetaInstagramProvider implements InstagramProvider {
         data?: Array<{ values?: Array<{ value: number; end_time: string }> }>;
       };
       const values = json.data?.[0]?.values ?? [];
+      if (values.length === 0) {
+        logger.warn({ metric, rawResponse: json }, "Instagram account-level insights returned 200 with zero values");
+      }
       return values.map((v) => ({ date: v.end_time.slice(0, 10), value: v.value }));
     } catch (err) {
       logger.warn({ metric, err }, "Instagram account-level insights fetch threw");
