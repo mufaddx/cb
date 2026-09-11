@@ -85,14 +85,24 @@ export class MetaInstagramProvider implements InstagramProvider {
     return { accessToken, expiresInSeconds, profile };
   }
 
+  // `igUserId` is accepted (and returned) for interface compatibility
+  // with the other provider and with refresh/verify call sites that
+  // store it — but every actual call here goes through the "me" alias,
+  // not a direct `/{igUserId}` node lookup. Instagram Login access
+  // tokens are single-account-scoped, and Graph API rejects fetching
+  // that account's own numeric id as a standalone node right after
+  // auth ("Unsupported get request ... does not exist, cannot be
+  // loaded due to missing permissions" / error_subcode 33) — "me" is
+  // the documented, reliable way to address the token's own account.
   async fetchProfile(accessToken: string, igUserId: string): Promise<InstagramProfile> {
     const res = await fetch(
-      `${this.graphBase}/${igUserId}?fields=username,profile_picture_url,followers_count&access_token=${accessToken}`
+      `${this.graphBase}/me?fields=id,username,profile_picture_url,followers_count&access_token=${accessToken}`
     );
     if (!res.ok) {
       throw new Error(`Instagram profile fetch failed (${res.status}): ${await res.text()}`);
     }
     const data = (await res.json()) as {
+      id: string;
       username: string;
       profile_picture_url?: string;
       followers_count: number;
@@ -102,7 +112,7 @@ export class MetaInstagramProvider implements InstagramProvider {
     // media and are computed by the metric-sync background job
     // (jobs/syncInstagramMetrics), not on every profile fetch.
     return {
-      igUserId,
+      igUserId: data.id || igUserId,
       username: data.username,
       profileImageUrl: data.profile_picture_url,
       followers: data.followers_count,
@@ -111,14 +121,15 @@ export class MetaInstagramProvider implements InstagramProvider {
 
   async verifyPostOwnership(
     accessToken: string,
-    igUserId: string,
+    _igUserId: string,
     postUrl: string
   ): Promise<{ owned: boolean; caption?: string }> {
     // Resolve the media by matching permalink against the account's
     // recent media via the Graph API, since Graph has no
-    // permalink -> media-id lookup endpoint.
+    // permalink -> media-id lookup endpoint. Same "me" reasoning as
+    // fetchProfile above — the token is already scoped to one account.
     const res = await fetch(
-      `${this.graphBase}/${igUserId}/media?fields=permalink,caption&limit=50&access_token=${accessToken}`
+      `${this.graphBase}/me/media?fields=permalink,caption&limit=50&access_token=${accessToken}`
     );
     if (!res.ok) {
       throw new Error(`Instagram media list fetch failed (${res.status}): ${await res.text()}`);
