@@ -42,10 +42,10 @@ export default function HomePage() {
       <MarketingHeader />
 
       <section
+        className="hero-wash"
         style={{
           position: "relative",
           overflow: "hidden",
-          background: "var(--gradient-hero-bg), var(--color-bg)",
         }}
       >
         <div

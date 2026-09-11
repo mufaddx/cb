@@ -1,18 +1,44 @@
 /* Vidlix design system tokens (spec §05). Centralized here — every
    component reads colors/spacing/motion from these variables rather
-   than hardcoding values, so the look can move in one place. */
+   than hardcoding values, so the look can move in one place.
+
+   PAPER DESIGN SYSTEM: every surface in the product (marketing site,
+   auth forms, brand/creator/admin dashboards — everything) is one of
+   four layers of the same warm, off-white paper, distinguished only by
+   tone and an optional grain, never by a hard border or a heavy
+   shadow:
+     --paper-bg       page canvas       (body, the ground everything sits on)
+     --paper-panel    sidebars          (a little deeper than the canvas —
+                                          "slightly stronger visual separation")
+     --paper-surface  cards / inputs    (the cleanest paper — content sits here)
+     --paper-elevated modals / dropdowns (whitest paper + the one place a
+                                          soft shadow is actually used)
+   `--color-*` names are kept as the aliases every existing component
+   already reads (recoloring them here reskins the whole app without
+   touching those files); `--paper-*` names exist for anything reaching
+   for the paper concept directly (grain, the new .paper-* utilities). */
 
 :root {
-  --color-bg: #f6f7fb;
-  --color-bg-subtle: #eef0f7;
-  --color-dark: #0b0f1a;
-  --color-dark-elevated: #12172a;
-  --color-white: #ffffff;
+  --paper-bg: #f4f0e6;
+  --paper-panel: #eee8da;
+  --paper-surface: #fbf9f3;
+  --paper-elevated: #fdfcf8;
+  --paper-ink: #23201a;
+  --paper-ink-secondary: #6e6759;
+  --paper-ink-faint: #9c9484;
+  --paper-line: #e2dbc9;
+  --paper-line-strong: #d2c9b2;
+
+  --color-bg: var(--paper-bg);
+  --color-bg-subtle: var(--paper-panel);
+  --color-dark: #1c1a15;
+  --color-dark-elevated: #262319;
+  --color-white: var(--paper-surface);
 
   --color-primary: #4f46e5;
   --color-primary-hover: #4338ca;
   --color-primary-active: #3730a3;
-  --color-primary-soft: #eef0fe;
+  --color-primary-soft: #ecebfb;
   --color-accent: #06b6d4;
 
   --color-success: #16a34a;
@@ -23,25 +49,38 @@
   --color-danger-hover: #b91c1c;
   --color-danger-soft: #fef2f2;
 
-  --color-text: #111827;
-  --color-text-secondary: #6b7280;
-  --color-text-faint: #9ca3af;
-  --color-border: #e5e7eb;
-  --color-border-strong: #d1d5db;
+  --color-text: var(--paper-ink);
+  --color-text-secondary: var(--paper-ink-secondary);
+  --color-text-faint: var(--paper-ink-faint);
+  --color-border: var(--paper-line);
+  --color-border-strong: var(--paper-line-strong);
 
   --gradient-brand: linear-gradient(135deg, #4f46e5 0%, #6366f1 45%, #06b6d4 100%);
-  --gradient-hero-bg: radial-gradient(60% 55% at 15% 0%, rgba(79, 70, 229, 0.14) 0%, rgba(79, 70, 229, 0) 60%),
-    radial-gradient(50% 45% at 100% 10%, rgba(6, 182, 212, 0.12) 0%, rgba(6, 182, 212, 0) 60%);
+  --gradient-hero-bg: radial-gradient(60% 55% at 15% 0%, rgba(79, 70, 229, 0.12) 0%, rgba(79, 70, 229, 0) 60%),
+    radial-gradient(50% 45% at 100% 10%, rgba(6, 182, 212, 0.10) 0%, rgba(6, 182, 212, 0) 60%);
+
+  /* Fine fractal-noise grain, rendered as SVG rather than a raster
+     image — infinitely sharp at any zoom/DPI, a few hundred bytes
+     instead of a downloaded photo, and easy to retune (baseFrequency
+     = fiber fineness, the trailing feColorMatrix value = how visible
+     the grain is). Two strengths sharing one shape: barely-there for
+     small chrome (panels/modals), a touch more present across the
+     large page canvas where it reads as ambient texture, not noise
+     sitting on top of content. */
+  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --paper-grain-soft: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.025 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 
   --radius-card: 16px;
   --radius-control: 10px;
   --radius-pill: 999px;
 
-  --shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.04);
-  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
-  --shadow-md: 0 4px 10px rgba(16, 24, 40, 0.06), 0 2px 4px rgba(16, 24, 40, 0.04);
-  --shadow-lg: 0 12px 32px rgba(16, 24, 40, 0.10), 0 4px 10px rgba(16, 24, 40, 0.05);
+  --shadow-xs: 0 1px 2px rgba(35, 28, 15, 0.05);
+  --shadow-card: 0 1px 2px rgba(35, 28, 15, 0.04), 0 1px 3px rgba(35, 28, 15, 0.05);
+  --shadow-md: 0 4px 10px rgba(35, 28, 15, 0.07), 0 2px 4px rgba(35, 28, 15, 0.04);
+  --shadow-lg: 0 12px 32px rgba(35, 28, 15, 0.11), 0 4px 10px rgba(35, 28, 15, 0.05);
   --shadow-glow: 0 8px 24px rgba(79, 70, 229, 0.25);
+  /* The one deliberate shadow in the whole system — .paper-modal only. */
+  --shadow-paper: 0 20px 48px rgba(35, 28, 15, 0.16), 0 4px 14px rgba(35, 28, 15, 0.08);
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --duration-fast: 0.15s;
@@ -77,13 +116,56 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-sans);
   font-size: var(--body-size);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/* The page canvas — every route (marketing, auth, brand/creator/admin)
+   renders inside this one <body>, so this single rule is the "every
+   page inherits the paper automatically" mechanism the rest of the
+   system builds on. Grain is a background-image layer (paints behind
+   all real content by definition, no stacking-order tricks needed) on
+   top of a soft, slightly warmer-toward-one-corner base — the "soft
+   tonal imperfection" a flat single color doesn't have. */
+body,
+.paper-page {
+  background-color: var(--paper-bg);
+  background-image: var(--paper-grain),
+    radial-gradient(120% 90% at 10% -10%, rgba(255, 253, 246, 0.65) 0%, rgba(255, 253, 246, 0) 55%),
+    radial-gradient(100% 80% at 100% 110%, rgba(35, 28, 15, 0.03) 0%, rgba(35, 28, 15, 0) 60%);
+  background-repeat: repeat, no-repeat, no-repeat;
+}
+/* .app-content/.admin-content are opaque, full-viewport elements
+   sitting beside a fixed sidebar — they'd otherwise hide body's own
+   canvas entirely rather than sharing it, so they get the identical
+   treatment directly instead of relying on transparency to let it
+   show through. */
+.app-content,
+.admin-content {
+  background-color: var(--paper-bg);
+  background-image: var(--paper-grain),
+    radial-gradient(120% 90% at 10% -10%, rgba(255, 253, 246, 0.65) 0%, rgba(255, 253, 246, 0) 55%),
+    radial-gradient(100% 80% at 100% 110%, rgba(35, 28, 15, 0.03) 0%, rgba(35, 28, 15, 0) 60%);
+  background-repeat: repeat, no-repeat, no-repeat;
+}
+
+/* The paper canvas with the brand-colored hero wash layered on top —
+   auth pages (login/signup/forgot/reset/verify) and the landing
+   page's hero both use this, instead of each sitting on a flat,
+   ungrained color the way an inline `background` shorthand would
+   otherwise force (shorthand resets every other background-*
+   sub-property, silently stripping the grain layer beneath it). */
+.auth-shell,
+.hero-wash {
+  background-color: var(--paper-bg);
+  background-image: var(--gradient-hero-bg), var(--paper-grain),
+    radial-gradient(120% 90% at 10% -10%, rgba(255, 253, 246, 0.65) 0%, rgba(255, 253, 246, 0) 55%),
+    radial-gradient(100% 80% at 100% 110%, rgba(35, 28, 15, 0.03) 0%, rgba(35, 28, 15, 0) 60%);
+  background-repeat: no-repeat, repeat, no-repeat, no-repeat;
 }
 
 h1,
@@ -137,7 +219,7 @@ a {
   align-items: center;
   height: 64px;
   padding: 0 32px;
-  background: rgba(246, 247, 251, 0.85);
+  background: rgba(244, 240, 230, 0.82);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   font-size: 16px;
@@ -151,14 +233,20 @@ a {
   padding: 0 24px;
 }
 
-/* Luxury flat style (per explicit user direction): no border, no
-   drop shadow anywhere — separation from the page background comes
-   only from the white-on-off-white color contrast (--color-bg vs
-   --color-white) and generous radius/spacing, not a hairline or a
-   shadow. Applies everywhere this class is used — auth forms, and
-   every brand/creator/admin dashboard card, since they all share it. */
-.card {
-  background: var(--color-white);
+/* ---- Paper design system utilities ----
+   Four layers of the same paper (see the :root comment above), plus
+   .card as the one already used in every existing page/component —
+   rather than rename ~70 files to a new class, .card *is* the paper
+   card: same rule, so every current usage picks up the system for
+   free. .paper-surface is that identical rule under its systemic
+   name, for anything reaching for the concept directly instead of
+   "a card". No border, no drop shadow on either — separation from
+   whatever sits behind them comes purely from the paper-surface vs.
+   paper-bg/paper-panel tone contrast, the same "luxury flat" rule
+   this system already followed, just recolored warm. */
+.card,
+.paper-surface {
+  background: var(--paper-surface);
   border: none;
   border-radius: var(--radius-card);
   padding: 24px;
@@ -168,6 +256,27 @@ a {
 .card-interactive:hover {
   background: var(--color-bg-subtle);
   transform: translateY(-2px);
+}
+
+/* Sidebars / the mobile top bar — a little deeper than the page
+   canvas ("slightly stronger visual separation"), with the same
+   grain so it still reads as the same sheet of paper, just a panel
+   resting on top of it. */
+.paper-panel {
+  background-color: var(--paper-panel);
+  background-image: var(--paper-grain-soft);
+  background-repeat: repeat;
+}
+
+/* Modals / dropdowns — the whitest paper, and the one surface in the
+   whole system allowed a real shadow (it's floating above a backdrop,
+   not sitting flush against the canvas like everything else). */
+.paper-modal {
+  background-color: var(--paper-elevated);
+  background-image: var(--paper-grain-soft);
+  background-repeat: repeat;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-paper);
 }
 
 .eyebrow {

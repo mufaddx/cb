@@ -19,7 +19,6 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         alignItems: "center",
         justifyContent: "center",
         padding: "24px",
-        background: "var(--gradient-hero-bg), var(--color-bg)",
       }}
     >
       <div className="card auth-card" style={{ position: "relative", width: "100%", maxWidth: 440, padding: "40px 36px" }}>

@@ -23,8 +23,7 @@ export function MarketingHeader() {
         position: "sticky",
         top: 0,
         zIndex: 50,
-        borderBottom: "1px solid var(--color-border)",
-        background: "rgba(246, 247, 251, 0.82)",
+        background: "rgba(244, 240, 230, 0.82)",
         backdropFilter: "blur(10px)",
         WebkitBackdropFilter: "blur(10px)",
       }}

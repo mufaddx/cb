@@ -96,7 +96,7 @@ export function NotificationBell() {
 
       {open && (
         <div
-          className="card"
+          className="paper-modal"
           style={{
             position: "absolute",
             top: "calc(100% + 8px)",

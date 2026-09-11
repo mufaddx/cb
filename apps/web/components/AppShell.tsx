@@ -101,7 +101,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="app-shell" style={{ display: "flex", minHeight: "100vh" }}>
       <aside
-        className="app-sidebar desktop-only"
+        className="app-sidebar desktop-only paper-panel"
         style={{
           width: "var(--sidebar-width)",
           flexShrink: 0,
@@ -109,7 +109,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           top: 0,
           bottom: 0,
           left: 0,
-          background: "var(--color-white)",
           color: "var(--color-text)",
           padding: "22px 14px",
           display: "flex",
@@ -228,7 +227,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Mobile top bar — logo + a "more" menu for account/log-out,
           since BottomNav below only has room for the 4 nav links. */}
       <header
-        className="mobile-only"
+        className="mobile-only paper-panel"
         style={{
           position: "fixed",
           top: 0,
@@ -239,7 +238,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           justifyContent: "space-between",
           height: 52,
           padding: "0 16px",
-          background: "var(--color-white)",
           color: "var(--color-text)",
         }}
       >
@@ -272,7 +270,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </button>
           {menuOpen && (
             <div
-              className="card"
+              className="paper-modal"
               style={{
                 position: "absolute",
                 top: "calc(100% + 8px)",

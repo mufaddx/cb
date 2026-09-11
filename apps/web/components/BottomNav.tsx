@@ -28,14 +28,12 @@ export function BottomNav({ accountType }: { accountType: "BRAND" | "CREATOR" })
 
   return (
     <nav
-      className="mobile-only"
+      className="mobile-only paper-panel"
       style={{
         position: "fixed",
         bottom: 0,
         left: 0,
         right: 0,
-        background: "var(--color-white)",
-        borderTop: "1px solid var(--color-border)",
         justifyContent: "space-around",
         padding: "8px 0",
         zIndex: 100,

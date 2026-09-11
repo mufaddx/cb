@@ -123,7 +123,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <ConfirmProvider>
       <div className="admin-shell" style={{ display: "flex", minHeight: "100vh" }}>
         <header
-          className="mobile-only"
+          className="mobile-only paper-panel"
           style={{
             position: "fixed",
             top: 0,
@@ -134,7 +134,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             justifyContent: "space-between",
             height: 52,
             padding: "0 16px",
-            background: "var(--color-white)",
             color: "var(--color-text)",
           }}
         >
@@ -174,7 +173,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         )}
 
         <aside
-          className={`admin-sidebar${drawerOpen ? " is-open" : ""}`}
+          className={`admin-sidebar paper-panel${drawerOpen ? " is-open" : ""}`}
           style={{
             width: 252,
             flexShrink: 0,
@@ -182,7 +181,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             top: 0,
             bottom: 0,
             left: 0,
-            background: "var(--color-white)",
             color: "var(--color-text)",
             padding: "22px 14px",
             display: "flex",
@@ -297,7 +295,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </button>
           </div>
         </aside>
-        <main className="admin-content" style={{ flex: 1, background: "var(--color-bg)", minWidth: 0, marginLeft: 252 }}>
+        <main className="admin-content" style={{ flex: 1, minWidth: 0, marginLeft: 252 }}>
           <div className="page-header" style={{ justifyContent: "space-between" }}>
             <span>{pageTitle}</span>
             <NotificationBell />

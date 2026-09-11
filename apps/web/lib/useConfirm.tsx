@@ -77,7 +77,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(17, 24, 39, 0.45)",
+            background: "rgba(35, 28, 15, 0.45)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -88,7 +88,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
             if (e.target === e.currentTarget) close(null);
           }}
         >
-          <div className="card" style={{ maxWidth: 440, width: "100%" }}>
+          <div className="paper-modal" style={{ maxWidth: 440, width: "100%", padding: 24 }}>
             <h3 style={{ margin: "0 0 8px" }}>{request.title}</h3>
             {request.description && (
               <p style={{ margin: "0 0 8px", color: "var(--color-text-secondary)", fontSize: 14 }}>{request.description}</p>
