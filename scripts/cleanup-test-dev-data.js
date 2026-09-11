@@ -40,6 +40,7 @@ const DRY_RUN = process.env.DRY_RUN === "1";
 const PARENT_ID_FIELDS = [
   "userId", "brandId", "creatorId", "campaignId", "walletId", "paymentId",
   "assignmentId", "agreementId", "offerId", "instagramAccountId", "conversationId",
+  "submissionId",
 ];
 
 async function main() {
@@ -93,6 +94,17 @@ async function main() {
   }).catch(() => []);
   const conversationIds = conversations.map((c) => c.id);
 
+  // ContentRevision doesn't key off assignmentId directly — it hangs
+  // off ContentSubmission via `submissionId`, which is why the first
+  // cleanup attempt got stuck: ContentSubmission (and everything above
+  // it — CampaignAssignment, CampaignOffer, Campaign) could never be
+  // deleted while an orphaned ContentRevision still referenced it.
+  const contentSubmissions = await prisma.contentSubmission.findMany({
+    where: { assignmentId: { in: assignmentIds } },
+    select: { id: true },
+  }).catch(() => []);
+  const submissionIds = contentSubmissions.map((c) => c.id);
+
   const idsByField = {
     userId: userIds,
     brandId: brandIds,
@@ -105,6 +117,7 @@ async function main() {
     offerId: offerIds,
     instagramAccountId: instagramAccountIds,
     conversationId: conversationIds,
+    submissionId: submissionIds,
   };
 
   console.log("Scope:", {
@@ -119,6 +132,7 @@ async function main() {
     offers: offerIds.length,
     instagramAccounts: instagramAccountIds.length,
     conversations: conversationIds.length,
+    contentSubmissions: submissionIds.length,
   });
 
   if (DRY_RUN) {
@@ -133,7 +147,8 @@ async function main() {
   // Campaign while CampaignAssignment rows still point to it) fails
   // with a P2003 FK error on an earlier pass and is retried on a
   // later one once those children are gone.
-  for (let pass = 0; pass < 6; pass++) {
+  const MAX_PASSES = 25;
+  for (let pass = 0; pass < MAX_PASSES; pass++) {
     let anyDeleted = false;
     for (const model of models) {
       const modelName = model.name; // e.g. "WalletTransaction"
@@ -156,7 +171,7 @@ async function main() {
       } catch (err) {
         // Expected on early passes for tables with live children —
         // logged only on the final pass if it's still failing then.
-        if (pass === 5) console.error(`FAILED to clean ${modelName}:`, err.message);
+        if (pass === MAX_PASSES - 1) console.error(`FAILED to clean ${modelName}:`, err.message);
       }
     }
     if (!anyDeleted && pass > 0) break;
