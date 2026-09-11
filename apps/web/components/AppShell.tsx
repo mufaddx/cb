@@ -13,7 +13,7 @@ import {
   InstagramIcon,
   LogOutIcon,
   MegaphoneIcon,
-  MoreIcon,
+  MenuIcon,
   SparkIcon,
   TargetIcon,
   UserIcon,
@@ -86,9 +86,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [me, setMe] = useState<Me | null>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [headerExtra, setHeaderExtra] = useState<ReactNode>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     apiFetch<Me>("/api/auth/me")
@@ -96,14 +95,11 @@ export function AppShell({ children }: { children: ReactNode }) {
       .catch(() => null);
   }, []);
 
+  // Auto-close the mobile drawer whenever a nav link changes the route
+  // — same pattern as the admin layout's drawer.
   useEffect(() => {
-    if (!menuOpen) return;
-    function onClickAway(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
-    }
-    document.addEventListener("mousedown", onClickAway);
-    return () => document.removeEventListener("mousedown", onClickAway);
-  }, [menuOpen]);
+    setDrawerOpen(false);
+  }, [pathname]);
 
   const accountType = me?.brand ? "BRAND" : me?.creator ? "CREATOR" : null;
   const nav = accountType === "BRAND" ? BRAND_NAV : accountType === "CREATOR" ? CREATOR_NAV : [];
@@ -126,7 +122,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <PageHeaderExtraContext.Provider value={setHeaderExtra}>
     <div className="app-shell" style={{ display: "flex", minHeight: "100vh" }}>
       <aside
-        className="app-sidebar desktop-only paper-panel"
+        className={`app-sidebar paper-panel${drawerOpen ? " is-open" : ""}`}
         style={{
           width: "var(--sidebar-width)",
           flexShrink: 0,
@@ -249,139 +245,32 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      {/* Mobile top bar — logo + a "more" menu for account/log-out,
-          since BottomNav below only has room for the 4 nav links. */}
-      <header
-        className="mobile-only paper-panel"
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 90,
-          alignItems: "center",
-          justifyContent: "space-between",
-          height: 52,
-          padding: "0 16px",
-          color: "var(--color-text)",
-        }}
-      >
-        <Link href="/dashboard" style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--color-text)" }}>
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 24,
-              height: 24,
-              borderRadius: 7,
-              background: "var(--gradient-brand)",
-              flexShrink: 0,
-            }}
-          >
-            <SparkIcon width={13} height={13} stroke="#fff" />
-          </span>
-          <span style={{ fontSize: 15.5, fontWeight: 750 }}>Vidlix</span>
-        </Link>
-
-        <div ref={menuRef} style={{ position: "relative" }}>
-          <button
-            onClick={() => setMenuOpen((v) => !v)}
-            aria-label="More"
-            aria-expanded={menuOpen}
-            style={{ background: "none", border: "none", color: "var(--color-text)", padding: 8, display: "flex", borderRadius: 8 }}
-          >
-            <MoreIcon width={20} height={20} />
-          </button>
-          {menuOpen && (
-            <div
-              className="paper-modal"
-              style={{
-                position: "absolute",
-                top: "calc(100% + 8px)",
-                right: 0,
-                width: 220,
-                padding: 14,
-                zIndex: 100,
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-                <div
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: "50%",
-                    background: "var(--color-bg-subtle)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 13,
-                    fontWeight: 700,
-                    flexShrink: 0,
-                  }}
-                  aria-hidden="true"
-                >
-                  {initial}
-                </div>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 13.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {displayName || " "}
-                  </div>
-                  {accountType && (
-                    <div style={{ fontSize: 11.5, color: "var(--color-text-secondary)" }}>
-                      {accountType === "BRAND" ? "Brand account" : "Creator account"}
-                    </div>
-                  )}
-                </div>
-              </div>
-              {accountType === "CREATOR" && (
-                <Link
-                  href="/profile"
-                  onClick={() => setMenuOpen(false)}
-                  style={{
-                    width: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 9,
-                    padding: "9px 6px",
-                    borderRadius: 8,
-                    fontSize: 13.5,
-                    fontWeight: 600,
-                    color: "var(--color-text)",
-                  }}
-                >
-                  <UserIcon width={16} height={16} />
-                  Profile
-                </Link>
-              )}
-              <button
-                onClick={logout}
-                style={{
-                  width: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 9,
-                  background: "none",
-                  border: "none",
-                  padding: "9px 6px",
-                  borderRadius: 8,
-                  fontSize: 13.5,
-                  fontWeight: 600,
-                  color: "var(--color-danger)",
-                  cursor: "pointer",
-                }}
-              >
-                <LogOutIcon width={16} height={16} />
-                Log out
-              </button>
-            </div>
-          )}
-        </div>
-      </header>
+      {/* Mobile: the sidebar above becomes an off-canvas drawer (same
+          mechanic as the admin layout's) instead of a separate mobile
+          header duplicating it — a backdrop click, or picking a nav
+          link, closes it. */}
+      {drawerOpen && (
+        <div
+          className="mobile-only"
+          onClick={() => setDrawerOpen(false)}
+          aria-hidden="true"
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 190 }}
+        />
+      )}
 
       <main className="app-content" style={{ flex: 1, minWidth: 0, marginLeft: "var(--sidebar-width)" }}>
         <div className="page-header" style={{ justifyContent: "space-between" }}>
-          <span>{pageTitle}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <button
+              className="mobile-only"
+              onClick={() => setDrawerOpen(true)}
+              aria-label="Open menu"
+              style={{ background: "none", border: "none", color: "var(--color-text)", padding: 6, display: "flex", borderRadius: 8, marginLeft: -6 }}
+            >
+              <MenuIcon width={20} height={20} />
+            </button>
+            <span>{pageTitle}</span>
+          </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             {headerExtra}
             {accountType && <NotificationBell />}

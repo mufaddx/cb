@@ -122,47 +122,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <ConfirmProvider>
       <div className="admin-shell" style={{ display: "flex", minHeight: "100vh" }}>
-        <header
-          className="mobile-only paper-panel"
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            zIndex: 90,
-            alignItems: "center",
-            justifyContent: "space-between",
-            height: 52,
-            padding: "0 16px",
-            color: "var(--color-text)",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: 24,
-                height: 24,
-                borderRadius: 7,
-                background: "var(--gradient-brand)",
-                flexShrink: 0,
-              }}
-            >
-              <SparkIcon width={13} height={13} stroke="#fff" />
-            </span>
-            <span style={{ fontSize: 15.5, fontWeight: 750 }}>Vidlix Admin</span>
-          </div>
-          <button
-            onClick={() => setDrawerOpen(true)}
-            aria-label="Open menu"
-            style={{ background: "none", border: "none", color: "var(--color-text)", padding: 8, display: "flex", borderRadius: 8 }}
-          >
-            <MenuIcon width={20} height={20} />
-          </button>
-        </header>
-
         {drawerOpen && (
           <div
             className="mobile-only"
@@ -297,7 +256,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </aside>
         <main className="admin-content" style={{ flex: 1, minWidth: 0, marginLeft: 252 }}>
           <div className="page-header" style={{ justifyContent: "space-between" }}>
-            <span>{pageTitle}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <button
+                className="mobile-only"
+                onClick={() => setDrawerOpen(true)}
+                aria-label="Open menu"
+                style={{ background: "none", border: "none", color: "var(--color-text)", padding: 6, display: "flex", borderRadius: 8, marginLeft: -6 }}
+              >
+                <MenuIcon width={20} height={20} />
+              </button>
+              <span>{pageTitle}</span>
+            </div>
             <NotificationBell />
           </div>
           <div style={{ padding: "32px" }}>{children}</div>

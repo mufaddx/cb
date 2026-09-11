@@ -479,20 +479,29 @@ a {
     white-space: nowrap;
   }
 
-  /* App shell (brand/creator): the desktop sidebar (.desktop-only) is
-     fully hidden rather than squeezed into a horizontal strip — that
-     duplicated BottomNav's links in a cramped, easily-cut-off row.
-     Mobile gets its own fixed top bar (AppShell's mobile-only header)
-     instead, and relies on BottomNav for primary navigation. */
+  /* App shell (brand/creator): the sidebar becomes an off-canvas
+     drawer on mobile (opened via the hamburger button that lives
+     inside .page-header itself — see AppShell.tsx) instead of being
+     squeezed into a horizontal strip or hidden behind a second,
+     separate mobile header bar. BottomNav still covers the 4 primary
+     links; the drawer is how the rest (Instagram, Messages, Profile,
+     Top Creators — whichever this account's nav has) stay reachable. */
+  .app-shell {
+    flex-direction: column;
+  }
+  .app-sidebar {
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform var(--duration-base) var(--ease-out);
+  }
+  .app-sidebar.is-open {
+    transform: translateX(0);
+  }
   .app-content {
     margin-left: 0 !important;
-    padding-top: 52px;
   }
 
-  /* Admin console: the sidebar becomes an off-canvas drawer (slides
-     in from the left over a backdrop) instead of either a shrunken
-     vertical bar or a horizontal strip — it has too many nav items
-     (13, across 4 sections) to fit any bottom nav or a single row. */
+  /* Admin console: same off-canvas drawer mechanic. */
   .admin-shell {
     flex-direction: column;
   }
@@ -506,7 +515,6 @@ a {
   }
   .admin-content {
     margin-left: 0 !important;
-    padding-top: 52px;
   }
 
   /* Hero CTA buttons (Create a Campaign / Join as a Creator): at

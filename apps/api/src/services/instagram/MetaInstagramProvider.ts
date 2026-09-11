@@ -7,6 +7,7 @@ import type {
   TopContentItem,
 } from "./InstagramProvider";
 import { env } from "../../config/env";
+import { logger } from "../../lib/logger";
 
 interface MediaWithMetrics {
   id: string;
@@ -134,7 +135,10 @@ export class MetaInstagramProvider implements InstagramProvider {
     // fetch above. Never let a failure here (rate limit, a post too
     // new for insights to have settled, missing permission) fail the
     // whole connect/refresh — the profile itself is already good.
-    const media = await this.fetchRecentMediaWithMetrics(accessToken, 12).catch(() => [] as MediaWithMetrics[]);
+    const media = await this.fetchRecentMediaWithMetrics(accessToken, 12).catch((err) => {
+      logger.warn({ err }, "Instagram fetchRecentMediaWithMetrics threw during fetchProfile");
+      return [] as MediaWithMetrics[];
+    });
     const reaches = media.map((m) => m.reach).filter((v): v is number => v != null);
     const views = media.map((m) => m.views).filter((v): v is number => v != null);
 
@@ -167,7 +171,15 @@ export class MetaInstagramProvider implements InstagramProvider {
     const mediaRes = await fetch(
       `${this.graphBase}/me/media?fields=id,media_type,media_product_type,thumbnail_url,media_url,permalink,timestamp,like_count,comments_count&limit=${limit}&access_token=${accessToken}`
     );
-    if (!mediaRes.ok) return [];
+    if (!mediaRes.ok) {
+      // This is exactly the call whose silent failure looks like "the
+      // account has no posts" from the UI's side — log the real Graph
+      // API error body so a real cause (bad scope, wrong API version,
+      // rate limit) is visible in Render logs instead of just showing
+      // as zeros with no trace anywhere.
+      logger.warn({ status: mediaRes.status, body: await mediaRes.text().catch(() => "") }, "Instagram /me/media fetch failed");
+      return [];
+    }
     const mediaJson = (await mediaRes.json()) as {
       data?: Array<{
         id: string;
@@ -194,10 +206,13 @@ export class MetaInstagramProvider implements InstagramProvider {
           if (insightsRes.ok) {
             const insightsJson = (await insightsRes.json()) as { data?: Array<{ name: string; values?: Array<{ value: number }> }> };
             byName = new Map((insightsJson.data ?? []).map((m) => [m.name, m.values?.[0]?.value]));
+          } else {
+            logger.warn({ mediaId: item.id, status: insightsRes.status, body: await insightsRes.text().catch(() => "") }, "Instagram per-post insights fetch failed");
           }
-        } catch {
+        } catch (err) {
           // A single post's insights failing (too new, rate limited)
           // shouldn't drop it from the list — it just has null metrics.
+          logger.warn({ mediaId: item.id, err }, "Instagram per-post insights fetch threw");
         }
         return {
           id: item.id,
@@ -244,13 +259,17 @@ export class MetaInstagramProvider implements InstagramProvider {
             access_token: accessToken,
           })
       );
-      if (!res.ok) return null;
+      if (!res.ok) {
+        logger.warn({ metric, status: res.status, body: await res.text().catch(() => "") }, "Instagram account-level insights fetch failed");
+        return null;
+      }
       const json = (await res.json()) as {
         data?: Array<{ values?: Array<{ value: number; end_time: string }> }>;
       };
       const values = json.data?.[0]?.values ?? [];
       return values.map((v) => ({ date: v.end_time.slice(0, 10), value: v.value }));
-    } catch {
+    } catch (err) {
+      logger.warn({ metric, err }, "Instagram account-level insights fetch threw");
       return null;
     }
   }
@@ -260,7 +279,10 @@ export class MetaInstagramProvider implements InstagramProvider {
     const sinceUnix = untilUnix - periodDays * 24 * 60 * 60;
 
     const [media, viewsSeriesRaw, netFollowersSeriesRaw, interactionsSeriesRaw] = await Promise.all([
-      this.fetchRecentMediaWithMetrics(accessToken, 25).catch(() => [] as MediaWithMetrics[]),
+      this.fetchRecentMediaWithMetrics(accessToken, 25).catch((err) => {
+        logger.warn({ err }, "Instagram fetchRecentMediaWithMetrics threw during getInsightsSummary");
+        return [] as MediaWithMetrics[];
+      }),
       this.fetchAccountMetricSeries(accessToken, "views", sinceUnix, untilUnix),
       this.fetchAccountMetricSeries(accessToken, "follower_count", sinceUnix, untilUnix),
       this.fetchAccountMetricSeries(accessToken, "total_interactions", sinceUnix, untilUnix),
