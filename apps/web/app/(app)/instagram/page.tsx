@@ -125,8 +125,8 @@ function InstagramDashboard() {
     // just worded to match "you were connected, now you're not."
     const wasConnectedBefore = status.status !== "NOT_CONNECTED";
     return (
-      <main style={{ padding: 32 }}>
-        <div className="card" style={{ maxWidth: 480, padding: 28, textAlign: "center" }}>
+      <main style={{ padding: 32, display: "flex", justifyContent: "center" }}>
+        <div className="card" style={{ maxWidth: 480, width: "100%", padding: 28, textAlign: "center", marginTop: "10vh" }}>
           <h3 style={{ marginBottom: 8 }}>{wasConnectedBefore ? "Reconnect Instagram" : "Connect Instagram"}</h3>
           <p className="helper-text" style={{ marginBottom: 20 }}>
             {wasConnectedBefore
