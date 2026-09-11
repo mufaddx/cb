@@ -32,7 +32,11 @@ function Callback() {
     }
 
     apiFetch("/api/instagram/connect", { method: "POST", body: { code } })
-      .then(() => router.replace("/dashboard"))
+      // Land back on the Instagram page itself (not the dashboard) so
+      // the "connected successfully" moment shows up where the
+      // connection actually lives, right next to the profile it just
+      // pulled in.
+      .then(() => router.replace("/instagram?connected=1"))
       .catch((err) => setError(err instanceof ApiClientError ? err.message : "Could not connect Instagram."));
     // Runs once on mount with whatever code/state the redirect arrived with.
     // eslint-disable-next-line react-hooks/exhaustive-deps
