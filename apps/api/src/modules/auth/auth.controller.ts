@@ -3,12 +3,14 @@ import { prisma } from "@antigravity/db";
 import { sendSuccess } from "../../lib/apiResponse";
 import * as authService from "./auth.service";
 import {
+  ChangePasswordSchema,
   ForgotPasswordSchema,
   LoginSchema,
   RefreshSchema,
   ResendOtpSchema,
   ResetPasswordSchema,
   SignupSchema,
+  UpdateMeSchema,
   VerifyOtpSchema,
 } from "./auth.validation";
 
@@ -57,6 +59,18 @@ export async function resetPasswordHandler(req: Request, res: Response) {
 export async function logoutHandler(req: Request, res: Response) {
   await authService.logout(prisma, req.auth!.sub);
   sendSuccess(res, null, "Logged out.");
+}
+
+export async function changePasswordHandler(req: Request, res: Response) {
+  const input = ChangePasswordSchema.parse(req.body);
+  await authService.changePassword(prisma, req.auth!.sub, input.currentPassword, input.newPassword);
+  sendSuccess(res, null, "Password updated.");
+}
+
+export async function updateMeHandler(req: Request, res: Response) {
+  const input = UpdateMeSchema.parse(req.body);
+  await authService.updateMe(prisma, req.auth!.sub, input.name);
+  await meHandler(req, res);
 }
 
 export async function meHandler(req: Request, res: Response) {

@@ -334,3 +334,42 @@ async function issueTokensFor(prisma: PrismaClient, userId: string) {
     },
   };
 }
+
+/**
+ * Self-service password change (Settings page) — distinct from
+ * resetPassword above: this requires knowing the CURRENT password
+ * (proves it's really the account owner at the keyboard right now)
+ * rather than an emailed OTP, and — unlike a reset, which assumes the
+ * account may have been compromised — deliberately does NOT bump
+ * tokenVersion, so the session making this change isn't immediately
+ * logged out by its own action.
+ */
+export async function changePassword(
+  prisma: PrismaClient,
+  userId: string,
+  currentPassword: string,
+  newPassword: string
+) {
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+  const valid = await bcrypt.compare(currentPassword, user.passwordHash);
+  if (!valid) throw new ValidationError("Current password is incorrect");
+
+  const passwordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+  await prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+  await recordAudit(prisma, {
+    actorId: userId,
+    actorRole: null,
+    action: AuditAction.USER_PASSWORD_RESET,
+    entityType: "User",
+    entityId: userId,
+    metadata: { via: "settings-self-service" },
+  });
+}
+
+/** Settings → Account: the only self-editable field on User itself
+ * (email intentionally excluded — changing it would need its own
+ * re-verification flow, not a plain text field). */
+export async function updateMe(prisma: PrismaClient, userId: string, name: string | undefined) {
+  if (name === undefined) return;
+  await prisma.user.update({ where: { id: userId }, data: { name } });
+}

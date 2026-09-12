@@ -58,3 +58,18 @@ export const ResetPasswordSchema = z.object({
     .regex(/[0-9]/, "Password must contain a number"),
 });
 export type ResetPasswordInput = z.infer<typeof ResetPasswordSchema>;
+
+export const ChangePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain an uppercase letter")
+    .regex(/[0-9]/, "Password must contain a number"),
+});
+export type ChangePasswordInput = z.infer<typeof ChangePasswordSchema>;
+
+export const UpdateMeSchema = z.object({
+  name: z.string().trim().min(2).max(120).optional(),
+});
+export type UpdateMeInput = z.infer<typeof UpdateMeSchema>;

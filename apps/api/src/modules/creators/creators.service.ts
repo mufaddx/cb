@@ -180,6 +180,7 @@ export async function updateCreatorProfile(prisma: PrismaClient, userId: string,
         location: input.location,
         languages: input.languages as any,
         contentFormats: input.contentFormats as any,
+        ...(input.campaignPreferences ? { campaignPreferences: input.campaignPreferences as any } : {}),
       },
     });
 

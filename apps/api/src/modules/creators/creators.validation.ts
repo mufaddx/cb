@@ -24,5 +24,8 @@ export const UpdateCreatorSchema = z.object({
   languages: z.array(z.string()).optional(),
   categoryIds: z.array(z.string()).max(3, "Pick at most 3 categories").optional(),
   contentFormats: z.array(z.string()).optional(),
+  // Editable after signup too, not just picked once and locked in —
+  // see matching.service.ts for how this actually filters offers.
+  campaignPreferences: z.array(z.enum(["CLIPPING", "CREATOR_CONTENT"])).optional(),
 });
 export type UpdateCreatorInput = z.infer<typeof UpdateCreatorSchema>;
