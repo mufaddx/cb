@@ -296,4 +296,19 @@ export async function listCampaignReviewQueue(prisma: PrismaClient) {
   });
 }
 
+/** Every campaign that's actually LIVE (or already mid-matching) —
+ * the set an admin needs to see to run matching.service's
+ * createOffersForCampaign against, since nothing does that
+ * automatically yet (no scheduler exists — see matching.service.ts).
+ * Without this list existing anywhere, a campaign could sit fully
+ * paid and LIVE forever with zero creators ever offered it, because
+ * there was previously no way for an admin to even find it. */
+export async function listLiveCampaignsForAdmin(prisma: PrismaClient) {
+  return prisma.campaign.findMany({
+    where: { status: { in: [PrismaCampaignStatus.LIVE, PrismaCampaignStatus.MATCHING] } },
+    include: { brand: true, targetingSlabs: true },
+    orderBy: { liveAt: "desc" },
+  });
+}
+
 export { transitionCampaign };

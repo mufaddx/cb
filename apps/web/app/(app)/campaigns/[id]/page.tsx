@@ -43,6 +43,23 @@ interface Message {
   createdAt: string;
 }
 
+interface CampaignDocument {
+  id: string;
+  type: string;
+  createdAt: string;
+  downloadUrl: string;
+}
+
+const DOCUMENT_TYPE_LABEL: Record<string, string> = {
+  AGREEMENT: "Agreement",
+  INVOICE: "Invoice",
+  RECEIPT: "Receipt",
+  EARNINGS_STATEMENT: "Earnings Statement",
+  REFUND: "Refund Document",
+  SHIPPING: "Shipping Document",
+  EVIDENCE_PACK: "Evidence Pack",
+};
+
 const CANCELLABLE = ["DRAFT", "SUBMITTED", "UNDER_REVIEW", "APPROVED", "PAYMENT_PENDING", "LIVE", "MATCHING", "IN_PROGRESS"];
 
 export default function CampaignDetailPage() {
@@ -54,6 +71,7 @@ export default function CampaignDetailPage() {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [documents, setDocuments] = useState<CampaignDocument[] | null>(null);
   const [messageDraft, setMessageDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -64,6 +82,10 @@ export default function CampaignDetailPage() {
     apiFetch<Offer[]>(`/api/campaigns/${id}/offers`).then(setOffers).catch(() => setOffers([]));
     apiFetch<Assignment[]>("/api/assignments").then((all) => setAssignments(all.filter((a) => a.campaign.id === id))).catch(() => setAssignments([]));
     apiFetch<Message[]>(`/api/messages/${id}`).then(setMessages).catch(() => setMessages([]));
+    // Real, already-built backend (the "Evidence Vault") that had no
+    // consumer anywhere — every generated agreement/invoice/receipt
+    // for this campaign, each resolved to a real signed download URL.
+    apiFetch<CampaignDocument[]>(`/api/documents/campaigns/${id}`).then(setDocuments).catch(() => setDocuments([]));
   }
   useEffect(load, [id]);
 
@@ -271,6 +293,30 @@ export default function CampaignDetailPage() {
             <input className="input" placeholder="Send a message…" value={messageDraft} onChange={(e) => setMessageDraft(e.target.value)} />
             <Button onClick={sendMessage}>Send</Button>
           </div>
+        </div>
+
+        <div className="card">
+          <h3>Documents</h3>
+          {!documents ? (
+            <p className="helper-text">Loading…</p>
+          ) : documents.length === 0 ? (
+            <p className="helper-text">Nothing generated for this campaign yet — agreements appear here once a creator accepts an offer.</p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {documents.map((doc) => (
+                <a
+                  key={doc.id}
+                  href={doc.downloadUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--color-border)", color: "var(--color-text)", textDecoration: "none" }}
+                >
+                  <span style={{ fontWeight: 600, fontSize: 13.5 }}>{DOCUMENT_TYPE_LABEL[doc.type] ?? doc.type}</span>
+                  <span className="helper-text">{new Date(doc.createdAt).toLocaleDateString()} · Download →</span>
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       </main>
     </>

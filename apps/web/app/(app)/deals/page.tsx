@@ -50,6 +50,7 @@ export default function DealsPage() {
   const [assignments, setAssignments] = useState<Assignment[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [loadingAgreementId, setLoadingAgreementId] = useState<string | null>(null);
   const [tab, setTab] = useState<DealTab>("ALL");
 
   // Per-assignment draft state for the various inline forms below.
@@ -110,6 +111,22 @@ export default function DealsPage() {
       window.open(url, "_blank", "noopener,noreferrer");
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : "Couldn't get the source video.");
+    }
+  }
+
+  // The signed PDF generated when this deal's offer was accepted —
+  // real backend feature (GET /api/agreements/assignment/:id) that
+  // had no UI anywhere calling it before this.
+  async function viewAgreement(assignmentId: string) {
+    setLoadingAgreementId(assignmentId);
+    setError(null);
+    try {
+      const { downloadUrl } = await apiFetch<{ downloadUrl: string }>(`/api/agreements/assignment/${assignmentId}`);
+      window.open(downloadUrl, "_blank", "noopener,noreferrer");
+    } catch (err) {
+      setError(err instanceof ApiClientError ? err.message : "Couldn't open the agreement.");
+    } finally {
+      setLoadingAgreementId(null);
     }
   }
 
@@ -279,7 +296,14 @@ export default function DealsPage() {
                   </div>
                   <div style={{ textAlign: "right" }}>
                     <div style={{ fontSize: 18, fontWeight: 700, color: "var(--color-primary)" }}>₹{a.payoutAmount}</div>
-                    <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{STATUS_LABELS[a.status] ?? a.status}</div>
+                    <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginBottom: 6 }}>{STATUS_LABELS[a.status] ?? a.status}</div>
+                    <button
+                      onClick={() => viewAgreement(a.id)}
+                      disabled={loadingAgreementId === a.id}
+                      style={{ background: "none", border: "none", color: "var(--color-primary)", fontSize: 12.5, fontWeight: 600, cursor: "pointer", padding: 0 }}
+                    >
+                      {loadingAgreementId === a.id ? "Opening…" : "View Agreement"}
+                    </button>
                   </div>
                 </div>
 

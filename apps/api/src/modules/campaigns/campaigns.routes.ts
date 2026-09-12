@@ -29,6 +29,15 @@ router.get(
   asyncHandler(controller.getCampaignReviewQueueHandler)
 );
 
+// Every LIVE/MATCHING campaign — what an admin needs to see to
+// actually run matching (POST /:id/match below); see
+// listLiveCampaignsForAdmin's own comment for why this exists.
+router.get(
+  "/live",
+  requirePermission(Permission.CAMPAIGN_READ_ALL),
+  asyncHandler(controller.getLiveCampaignsHandler)
+);
+
 router.get(
   "/:id",
   requireAnyPermission(Permission.CAMPAIGN_READ_OWN, Permission.CAMPAIGN_READ_ALL),

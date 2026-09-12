@@ -53,6 +53,11 @@ export async function getCampaignReviewQueueHandler(_req: Request, res: Response
   sendSuccess(res, queue);
 }
 
+export async function getLiveCampaignsHandler(_req: Request, res: Response) {
+  const campaigns = await campaignsService.listLiveCampaignsForAdmin(prisma);
+  sendSuccess(res, campaigns);
+}
+
 export async function getCampaignOffersHandler(req: Request, res: Response) {
   const brandId = requireBrandId(req);
   // Ownership check happens inside — reuses the same guard as
