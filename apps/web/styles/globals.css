@@ -56,6 +56,20 @@
   --color-danger-hover: #b91c1c;
   --color-danger-soft: #fef2f2;
 
+  /* A small tint palette for stat-card/empty-state icon badges (Creator
+     panel) — a soft pastel circle behind a saturated icon, one color
+     per "kind" of number rather than every badge being brand indigo. */
+  --tint-purple-bg: #f1edfe;
+  --tint-purple-fg: #7c3aed;
+  --tint-blue-bg: #e8f1fe;
+  --tint-blue-fg: #2563eb;
+  --tint-green-bg: #e8f9ef;
+  --tint-green-fg: #16a34a;
+  --tint-pink-bg: #fdecf3;
+  --tint-pink-fg: #db2777;
+  --tint-amber-bg: #fef6e7;
+  --tint-amber-fg: #d97706;
+
   --color-text: var(--paper-ink);
   --color-text-secondary: var(--paper-ink-secondary);
   --color-text-faint: var(--paper-ink-faint);
@@ -507,6 +521,69 @@ a {
   background-repeat: repeat;
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-paper);
+}
+
+/* Icon badge — a tinted circle behind an icon, used on stat cards and
+   empty states (StatCard/EmptyState). `.icon-badge-lg` is the bigger
+   size an empty state's centerpiece icon uses. */
+.icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  flex-shrink: 0;
+  background: var(--tint-bg, var(--color-primary-soft));
+  color: var(--tint-fg, var(--color-primary));
+}
+.icon-badge-lg {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+}
+.icon-badge-purple {
+  --tint-bg: var(--tint-purple-bg);
+  --tint-fg: var(--tint-purple-fg);
+}
+.icon-badge-blue {
+  --tint-bg: var(--tint-blue-bg);
+  --tint-fg: var(--tint-blue-fg);
+}
+.icon-badge-green {
+  --tint-bg: var(--tint-green-bg);
+  --tint-fg: var(--tint-green-fg);
+}
+.icon-badge-pink {
+  --tint-bg: var(--tint-pink-bg);
+  --tint-fg: var(--tint-pink-fg);
+}
+.icon-badge-amber {
+  --tint-bg: var(--tint-amber-bg);
+  --tint-fg: var(--tint-amber-fg);
+}
+
+.account-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: none;
+  background: none;
+  color: var(--color-text);
+  font-size: 13.5px;
+  font-weight: 500;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.account-menu-item:hover {
+  background: var(--color-bg-subtle);
+}
+.account-menu-item-danger {
+  color: var(--color-danger);
 }
 
 .eyebrow {
