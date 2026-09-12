@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "./Button";
+import { InstagramIcon } from "./icons";
 import { apiFetch, ApiClientError } from "../lib/apiClient";
 
 interface InstagramMetrics {
@@ -56,7 +57,12 @@ export function InstagramConnect() {
 
   return (
     <div className="card" style={{ maxWidth: 360, flex: "1 1 280px" }}>
-      <h3>Instagram</h3>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+        <span className="icon-badge icon-badge-pink" aria-hidden="true">
+          <InstagramIcon width={17} height={17} />
+        </span>
+        <h3 style={{ margin: 0 }}>Instagram</h3>
+      </div>
       {connected ? (
         <>
           <p style={{ margin: "4px 0 8px", fontWeight: 600 }}>@{status.username}</p>

@@ -1,19 +1,22 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, type DependencyList, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type DependencyList, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { apiFetch, clearTokens } from "../lib/apiClient";
+import { AccountMenu } from "./AccountMenu";
 import { BottomNav } from "./BottomNav";
 import { NotificationBell } from "./NotificationBell";
 import {
   ChatIcon,
+  GearIcon,
   HandshakeIcon,
   HomeIcon,
   InstagramIcon,
   LogOutIcon,
   MegaphoneIcon,
   MenuIcon,
+  SearchIcon,
   SparkIcon,
   TargetIcon,
   UserIcon,
@@ -42,7 +45,10 @@ const CREATOR_NAV = [
   { href: "/messages", label: "Messages", icon: ChatIcon },
   { href: "/wallet", label: "Wallet", icon: WalletIcon },
   { href: "/profile", label: "Profile", icon: UserIcon },
+  { href: "/settings", label: "Settings", icon: GearIcon },
 ];
+
+const MARKETING_URL = process.env.NEXT_PUBLIC_MARKETING_URL || "https://vidlix.in";
 
 interface Me {
   email: string;
@@ -72,43 +78,27 @@ export function usePageHeaderExtra(node: ReactNode, deps: DependencyList) {
 }
 
 /**
- * Persistent app shell for brand/creator pages (spec §66/67).
+ * Persistent app shell for brand/creator pages.
  *
- * Desktop gets a fixed left sidebar. Mobile does NOT get that sidebar
- * squeezed into a horizontal strip (that was the earlier approach —
- * it duplicated BottomNav's links in a cramped, easily-cut-off row).
- * Instead mobile gets its own minimal top bar (logo + a "more" menu
- * for the account/log-out actions BottomNav has no room for) and
- * relies on BottomNav for the primary nav links, the same 4 items the
- * sidebar shows on desktop.
+ * The creator experience got a dedicated visual pass (search/command
+ * palette in the header, an account menu, a sidebar tagline + upgrade
+ * card, a real pending-offers badge) that the brand side intentionally
+ * does NOT get here — brand keeps the exact header/sidebar it already
+ * had. Every `accountType === "CREATOR"` branch below is additive;
+ * removing it entirely would put brand and creator back to identical
+ * chrome, which is what this file looked like before.
  */
-// The nav/sidebar reads entirely off `me` (accountType decides which
-// list, BRAND_NAV or CREATOR_NAV) — with no cache, every refresh or
-// hard navigation started this at null and left the sidebar rendered
-// with an empty nav (just the logo, no links) until /api/auth/me
-// answered, reading as "the sidebar disappeared". Caching the last
-// known `me` in localStorage lets the nav render correctly on the very
-// first paint, with the network call only there to reconcile it
-// afterward — the same stale-while-revalidate trade every page that
-// remembers who you are makes.
-const ME_CACHE_KEY = "vidlix:me";
-
-function readCachedMe(): Me | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = localStorage.getItem(ME_CACHE_KEY);
-    return raw ? (JSON.parse(raw) as Me) : null;
-  } catch {
-    return null;
-  }
-}
-
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [me, setMe] = useState<Me | null>(readCachedMe);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [headerExtra, setHeaderExtra] = useState<ReactNode>(null);
+  const [pendingOffers, setPendingOffers] = useState<number | null>(null);
+  const [search, setSearch] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchBoxRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     apiFetch<Me>("/api/auth/me")
@@ -146,6 +136,53 @@ export function AppShell({ children }: { children: ReactNode }) {
   const initial = displayName ? displayName.trim().charAt(0).toUpperCase() : "";
   const pageTitle = nav.find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))?.label ?? "";
 
+  // A real (if modest) count — how many offers are actually waiting on
+  // this creator — rather than a placeholder number. Not polled as
+  // aggressively as notifications since it's sidebar chrome, not a
+  // live feed.
+  useEffect(() => {
+    if (accountType !== "CREATOR") return;
+    function loadPending() {
+      apiFetch<Array<{ status: string }>>("/api/campaign-offers")
+        .then((offers) => setPendingOffers(offers.filter((o) => o.status === "OFFERED" || o.status === "VIEWED").length))
+        .catch(() => null);
+    }
+    loadPending();
+    const timer = setInterval(loadPending, 60_000);
+    return () => clearInterval(timer);
+  }, [accountType]);
+
+  // Cmd/Ctrl+K focuses the header search (creator only) from anywhere
+  // on the page, matching the shortcut hint shown next to it.
+  useEffect(() => {
+    if (accountType !== "CREATOR") return;
+    function onKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [accountType]);
+
+  useEffect(() => {
+    if (!searchOpen) return;
+    function onClickAway(e: MouseEvent) {
+      if (searchBoxRef.current && !searchBoxRef.current.contains(e.target as Node)) setSearchOpen(false);
+    }
+    document.addEventListener("mousedown", onClickAway);
+    return () => document.removeEventListener("mousedown", onClickAway);
+  }, [searchOpen]);
+
+  const searchResults = nav.filter((item) => item.label.toLowerCase().includes(search.trim().toLowerCase()));
+
+  function goToSearchResult(href: string) {
+    router.push(href);
+    setSearch("");
+    setSearchOpen(false);
+  }
+
   function logout() {
     // Best-effort — invalidates the refresh token server-side so it
     // can't be reused if it were ever stolen, but the local tokens are
@@ -156,6 +193,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     clearTokens();
     router.push("/login");
   }
+
+  const isCreator = accountType === "CREATOR";
 
   return (
     <PageHeaderExtraContext.Provider value={setHeaderExtra}>
@@ -178,7 +217,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       >
         <Link
           href="/dashboard"
-          style={{ display: "flex", alignItems: "center", gap: 9, padding: "4px 10px 26px", color: "var(--color-text)" }}
+          style={{ display: "flex", alignItems: "center", gap: 9, padding: "4px 10px 10px", color: "var(--color-text)" }}
         >
           <span
             style={{
@@ -194,13 +233,22 @@ export function AppShell({ children }: { children: ReactNode }) {
           >
             <SparkIcon width={16} height={16} stroke="#fff" />
           </span>
-          <span style={{ fontSize: 17, fontWeight: 750, letterSpacing: "-0.02em" }}>Vidlix</span>
+          <span>
+            <span style={{ display: "block", fontSize: 17, fontWeight: 750, letterSpacing: "-0.02em" }}>Vidlix</span>
+            {isCreator && (
+              <span style={{ display: "block", fontSize: 10.5, color: "var(--color-text-faint)", fontWeight: 600 }}>
+                Create. Collaborate. Grow.
+              </span>
+            )}
+          </span>
         </Link>
+        {isCreator && <div style={{ height: 16 }} />}
 
         <nav style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1 }}>
           {nav.map((item) => {
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
             const Icon = item.icon;
+            const badge = isCreator && item.href === "/offers" ? pendingOffers : null;
             return (
               <Link
                 key={item.href}
@@ -220,14 +268,65 @@ export function AppShell({ children }: { children: ReactNode }) {
                 }}
               >
                 <Icon width={17} height={17} style={{ flexShrink: 0, opacity: active ? 1 : 0.85 }} />
-                {item.label}
+                <span style={{ flex: 1 }}>{item.label}</span>
+                {!!badge && (
+                  <span
+                    style={{
+                      minWidth: 18,
+                      height: 18,
+                      padding: "0 5px",
+                      borderRadius: 9,
+                      background: "var(--color-danger)",
+                      color: "#fff",
+                      fontSize: 10.5,
+                      fontWeight: 700,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {badge}
+                  </span>
+                )}
               </Link>
             );
           })}
         </nav>
 
+        {isCreator && (
+          <a
+            href={`${MARKETING_URL}/for-creators`}
+            target="_blank"
+            rel="noreferrer"
+            className="paper-modal"
+            style={{ display: "block", padding: 14, marginBottom: 14, textDecoration: "none", color: "var(--color-text)" }}
+          >
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 26,
+                height: 26,
+                borderRadius: 8,
+                background: "var(--tint-amber-bg)",
+                color: "var(--tint-amber-fg)",
+                marginBottom: 8,
+              }}
+              aria-hidden="true"
+            >
+              <SparkIcon width={14} height={14} />
+            </span>
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 2 }}>Grow with Vidlix</div>
+            <div style={{ fontSize: 11.5, color: "var(--color-text-secondary)", marginBottom: 8 }}>
+              See tips for landing more brand deals.
+            </div>
+            <span style={{ fontSize: 12, fontWeight: 700, color: "var(--color-primary)" }}>Learn more →</span>
+          </a>
+        )}
+
         <div
-          style={{ borderTop: "1px solid var(--color-border)", paddingTop: 14, marginTop: 14, display: "flex", alignItems: "center", gap: 10 }}
+          style={{ borderTop: "1px solid var(--color-border)", paddingTop: 14, marginTop: isCreator ? 0 : 14, display: "flex", alignItems: "center", gap: 10 }}
         >
           <div
             style={{
@@ -299,7 +398,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <main className="app-content" style={{ flex: 1, minWidth: 0, marginLeft: "var(--sidebar-width)" }}>
         <div className="page-header" style={{ justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
             <button
               className="mobile-only"
               onClick={() => setDrawerOpen(true)}
@@ -308,11 +407,77 @@ export function AppShell({ children }: { children: ReactNode }) {
             >
               <MenuIcon width={20} height={20} />
             </button>
-            <span>{pageTitle}</span>
+
+            {isCreator ? (
+              <div ref={searchBoxRef} className="desktop-only" style={{ position: "relative", maxWidth: 420, width: "100%" }}>
+                <SearchIcon
+                  width={16}
+                  height={16}
+                  style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--color-text-faint)", pointerEvents: "none" }}
+                />
+                <input
+                  ref={searchInputRef}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onFocus={() => setSearchOpen(true)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && searchResults[0]) goToSearchResult(searchResults[0].href);
+                    if (e.key === "Escape") {
+                      setSearchOpen(false);
+                      searchInputRef.current?.blur();
+                    }
+                  }}
+                  placeholder="Search pages…"
+                  aria-label="Search pages"
+                  className="input"
+                  style={{ paddingLeft: 36, paddingRight: 52, height: 38 }}
+                />
+                <span
+                  aria-hidden="true"
+                  style={{
+                    position: "absolute",
+                    right: 8,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    color: "var(--color-text-faint)",
+                    background: "var(--color-bg)",
+                    border: "1px solid var(--color-border)",
+                    borderRadius: 5,
+                    padding: "2px 5px",
+                  }}
+                >
+                  Ctrl K
+                </span>
+                {searchOpen && search.trim() && (
+                  <div className="paper-modal" style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, right: 0, padding: 6, zIndex: 200 }}>
+                    {searchResults.length === 0 ? (
+                      <div className="helper-text" style={{ padding: "8px 10px" }}>
+                        No pages match &quot;{search}&quot;.
+                      </div>
+                    ) : (
+                      searchResults.map((item) => (
+                        <button
+                          key={item.href}
+                          onClick={() => goToSearchResult(item.href)}
+                          className="account-menu-item"
+                        >
+                          <item.icon width={16} height={16} /> {item.label}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <span>{pageTitle}</span>
+            )}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
             {headerExtra}
             {accountType && <NotificationBell />}
+            {isCreator && <AccountMenu initial={initial} settingsHref="/settings" />}
           </div>
         </div>
         {children}
@@ -322,4 +487,25 @@ export function AppShell({ children }: { children: ReactNode }) {
     </div>
     </PageHeaderExtraContext.Provider>
   );
+}
+
+// The nav/sidebar reads entirely off `me` (accountType decides which
+// list, BRAND_NAV or CREATOR_NAV) — with no cache, every refresh or
+// hard navigation started this at null and left the sidebar rendered
+// with an empty nav (just the logo, no links) until /api/auth/me
+// answered, reading as "the sidebar disappeared". Caching the last
+// known `me` in localStorage lets the nav render correctly on the very
+// first paint, with the network call only there to reconcile it
+// afterward — the same stale-while-revalidate trade every page that
+// remembers who you are makes.
+const ME_CACHE_KEY = "vidlix:me";
+
+function readCachedMe(): Me | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(ME_CACHE_KEY);
+    return raw ? (JSON.parse(raw) as Me) : null;
+  } catch {
+    return null;
+  }
 }
