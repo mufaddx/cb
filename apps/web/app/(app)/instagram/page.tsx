@@ -3,7 +3,10 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/Button";
+import { PageHeading } from "@/components/PageHeading";
 import { PageLoader } from "@/components/PageLoader";
+import { StatCard } from "@/components/StatCard";
+import { EyeIcon, HeartIcon, RefreshIcon, TargetIcon, TrendingUpIcon, UserIcon } from "@/components/icons";
 import { apiFetch, ApiClientError } from "@/lib/apiClient";
 import { useConfirm } from "@/lib/useConfirm";
 
@@ -209,6 +212,23 @@ function InstagramDashboard() {
 
   return (
     <main style={{ padding: 32 }}>
+      <PageHeading
+        icon={TargetIcon}
+        tint="purple"
+        title="Instagram"
+        description="Track your Instagram performance and grow with brand collaborations."
+        action={
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <span className="helper-text">
+              {status.lastSyncedAt ? `Last updated ${new Date(status.lastSyncedAt).toLocaleString()}` : "Not synced yet"}
+            </span>
+            <Button variant="secondary" onClick={handleRefresh} loading={refreshing}>
+              <RefreshIcon width={15} height={15} /> Refresh
+            </Button>
+          </div>
+        }
+      />
+
       {justConnected && (
         <div
           className="card"
@@ -256,24 +276,23 @@ function InstagramDashboard() {
             under the profile they act on — not scattered further down
             the page next to unrelated stats. */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
-          <span className="badge badge-success">Connected</span>
-          <div style={{ display: "flex", gap: 8 }}>
-            <Button variant="secondary" onClick={handleRefresh} loading={refreshing}>Refresh</Button>
-            <Button variant="danger" onClick={handleDisconnect} loading={disconnecting}>Disconnect</Button>
-          </div>
+          <Button
+            variant="secondary"
+            onClick={() => window.open(`https://instagram.com/${status.username}`, "_blank", "noopener,noreferrer")}
+          >
+            View on Instagram ↗
+          </Button>
+          <Button variant="danger" onClick={handleDisconnect} loading={disconnecting}>Disconnect</Button>
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12, marginBottom: 20 }}>
-        <Stat label="Followers" value={fmt(m?.followers)} />
-        <Stat label="Avg. reach" value={fmt(m?.avgReach)} />
-        <Stat label="Avg. views" value={fmt(m?.avgViews)} />
-        <Stat label="Engagement rate" value={status.engagementRatePct != null ? `${status.engagementRatePct}%` : "—"} />
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 20 }}>
+        <StatCard icon={UserIcon} tint="purple" label="Followers" value={fmt(m?.followers)} />
+        <StatCard icon={TrendingUpIcon} tint="blue" label="Avg. reach" value={fmt(m?.avgReach)} trend={m?.avgReach == null ? "No data yet" : undefined} />
+        <StatCard icon={EyeIcon} tint="green" label="Avg. views" value={fmt(m?.avgViews)} trend={m?.avgViews == null ? "No data yet" : undefined} />
+        <StatCard icon={HeartIcon} tint="pink" label="Engagement rate" value={status.engagementRatePct != null ? `${status.engagementRatePct}%` : "—"} trend={status.engagementRatePct == null ? "No data yet" : undefined} />
       </div>
 
-      <span className="helper-text">
-        {status.lastSyncedAt ? `Last synced ${new Date(status.lastSyncedAt).toLocaleString()}` : "Not synced yet"}
-      </span>
       {error && <p className="error-text" style={{ marginTop: 12 }}>{error}</p>}
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "32px 0 16px" }}>

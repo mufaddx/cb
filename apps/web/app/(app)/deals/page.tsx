@@ -2,8 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/Button";
+import { EmptyState } from "@/components/EmptyState";
+import { PageHeading } from "@/components/PageHeading";
 import { PageLoader } from "@/components/PageLoader";
+import { CheckCircleIcon, HandshakeIcon, TargetIcon, WalletIcon, XCircleIcon } from "@/components/icons";
 import { apiFetch, ApiClientError, uploadFile } from "@/lib/apiClient";
+
+type DealTab = "ALL" | "ONGOING" | "COMPLETED" | "CANCELLED";
+const DEAL_TABS: Array<{ key: DealTab; label: string }> = [
+  { key: "ALL", label: "All Deals" },
+  { key: "ONGOING", label: "Ongoing" },
+  { key: "COMPLETED", label: "Completed" },
+  { key: "CANCELLED", label: "Cancelled" },
+];
 
 interface Shipment {
   status: string;
@@ -39,6 +50,7 @@ export default function DealsPage() {
   const [assignments, setAssignments] = useState<Assignment[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [tab, setTab] = useState<DealTab>("ALL");
 
   // Per-assignment draft state for the various inline forms below.
   const [urlDraft, setUrlDraft] = useState<Record<string, string>>({});
@@ -134,19 +146,130 @@ export default function DealsPage() {
     return <PageLoader />;
   }
 
+  const counts: Record<DealTab, number> = {
+    ALL: assignments.length,
+    ONGOING: assignments.filter((a) => a.status !== "PAID" && a.status !== "FAILED").length,
+    COMPLETED: assignments.filter((a) => a.status === "PAID").length,
+    CANCELLED: assignments.filter((a) => a.status === "FAILED").length,
+  };
+  const visible = assignments.filter((a) => {
+    if (tab === "ALL") return true;
+    if (tab === "ONGOING") return a.status !== "PAID" && a.status !== "FAILED";
+    if (tab === "COMPLETED") return a.status === "PAID";
+    return a.status === "FAILED";
+  });
+
   return (
     <>
       <main style={{ padding: "32px" }}>
+        <PageHeading
+          icon={HandshakeIcon}
+          tint="pink"
+          title="My Deals"
+          description="Manage your accepted brand deals and track your progress."
+        />
+
+        {assignments.length > 0 && (
+          <div style={{ display: "flex", gap: 4, marginBottom: 20, borderBottom: "1px solid var(--color-border)" }}>
+            {DEAL_TABS.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  borderBottom: tab === t.key ? "2px solid var(--color-primary)" : "2px solid transparent",
+                  padding: "10px 14px",
+                  marginBottom: -1,
+                  fontSize: 13.5,
+                  fontWeight: tab === t.key ? 700 : 500,
+                  color: tab === t.key ? "var(--color-primary)" : "var(--color-text-secondary)",
+                  cursor: "pointer",
+                }}
+              >
+                {t.label} ({counts[t.key]})
+              </button>
+            ))}
+          </div>
+        )}
+
         {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
 
         {assignments.length === 0 ? (
-          <div className="card">
-            <p style={{ margin: 0 }}>No accepted deals yet.</p>
-            <p className="helper-text">Accept a campaign offer to see it here.</p>
+          <EmptyState
+            icon={CheckCircleIcon}
+            tint="green"
+            heading="No accepted deals yet."
+            description="Accept a campaign offer to see it here and start your collaboration journey."
+            primary={{ label: "Browse Campaigns", href: "/offers" }}
+            secondary={{ label: "View Offers", href: "/offers" }}
+          >
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, textAlign: "left", marginBottom: 32 }}>
+              <div style={{ display: "flex", gap: 10 }}>
+                <span className="icon-badge icon-badge-purple" aria-hidden="true"><HandshakeIcon width={16} height={16} /></span>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 13.5 }}>Collaborate with top brands</div>
+                  <div className="helper-text" style={{ fontSize: 12.5 }}>Work with verified brands and grow your audience.</div>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 10 }}>
+                <span className="icon-badge icon-badge-blue" aria-hidden="true"><TargetIcon width={16} height={16} /></span>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 13.5 }}>Track your progress</div>
+                  <div className="helper-text" style={{ fontSize: 12.5 }}>Manage deliverables and deadlines easily.</div>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 10 }}>
+                <span className="icon-badge icon-badge-green" aria-hidden="true"><WalletIcon width={16} height={16} /></span>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 13.5 }}>Get paid securely</div>
+                  <div className="helper-text" style={{ fontSize: 12.5 }}>Receive payments directly to your wallet.</div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ textAlign: "left" }}>
+              <h3 style={{ marginBottom: 12, fontSize: 15 }}>How it works?</h3>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 16 }}>
+                {[
+                  { n: 1, title: "Find Offers", desc: "Browse campaign offers from top brands." },
+                  { n: 2, title: "Accept Offer", desc: "Review details and accept the offer." },
+                  { n: 3, title: "Complete Deliverables", desc: "Create and submit your content." },
+                  { n: 4, title: "Get Paid", desc: "Receive payment after approval." },
+                ].map((s) => (
+                  <div key={s.n}>
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: 28,
+                        height: 28,
+                        borderRadius: "50%",
+                        background: "var(--color-primary-soft)",
+                        color: "var(--color-primary)",
+                        fontWeight: 700,
+                        fontSize: 13,
+                        marginBottom: 8,
+                      }}
+                    >
+                      {s.n}
+                    </span>
+                    <div style={{ fontWeight: 700, fontSize: 13.5 }}>{s.title}</div>
+                    <div className="helper-text" style={{ fontSize: 12.5 }}>{s.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </EmptyState>
+        ) : visible.length === 0 ? (
+          <div className="card" style={{ textAlign: "center", padding: 40 }}>
+            <XCircleIcon width={24} height={24} style={{ color: "var(--color-text-faint)", marginBottom: 8 }} />
+            <p className="helper-text" style={{ margin: 0 }}>No deals in this view.</p>
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {assignments.map((a) => (
+            {visible.map((a) => (
               <div key={a.id} className="card">
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
                   <div>

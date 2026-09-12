@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/Button";
+import { PageHeading } from "@/components/PageHeading";
+import { StatCard } from "@/components/StatCard";
+import { DownloadIcon, LifeBuoyIcon, RefreshIcon, ShieldIcon, TrendingUpIcon, WalletIcon as WalletBadgeIcon } from "@/components/icons";
 import { apiFetch, ApiClientError } from "@/lib/apiClient";
 import { completeCheckout, type CheckoutPayload } from "@/lib/payments";
 import { useConfirm } from "@/lib/useConfirm";
@@ -158,6 +161,13 @@ export default function WalletPage() {
 
   const txFilterTypes = accountType === "BRAND" ? BRAND_TX_FILTER_TYPES : CREATOR_TX_FILTER_TYPES;
   const visibleTransactions = transactions?.filter((t) => !txFilter || t.type === txFilter) ?? null;
+  const totalEarnings = transactions
+    ? transactions.filter((t) => t.type === "CREATOR_EARNING").reduce((sum, t) => sum + Number(t.amount), 0)
+    : null;
+  const totalWithdrawn = transactions
+    ? transactions.filter((t) => t.type === "WITHDRAWAL").reduce((sum, t) => sum + Number(t.amount), 0)
+    : null;
+  const isCreator = accountType === "CREATOR";
 
   function load() {
     apiFetch<Me>("/api/auth/me").then((me) => setAccountType(me.brand ? "BRAND" : "CREATOR"));
@@ -220,18 +230,62 @@ export default function WalletPage() {
   return (
     <>
       <main style={{ padding: "32px" }}>
+        {isCreator && (
+          <PageHeading
+            icon={WalletBadgeIcon}
+            tint="blue"
+            title="Wallet"
+            description="Manage your balance, withdrawals and transaction history."
+            action={
+              <div className="card" style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px" }}>
+                <span className="icon-badge icon-badge-blue" aria-hidden="true">
+                  <ShieldIcon width={16} height={16} />
+                </span>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 13 }}>Secure &amp; Fast Payments</div>
+                  <div className="helper-text" style={{ fontSize: 11.5 }}>Your earnings are safe with bank-grade security.</div>
+                </div>
+              </div>
+            }
+          />
+        )}
+        {isCreator && (
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 20 }}>
+            <StatCard
+              icon={TrendingUpIcon}
+              tint="green"
+              label="Total Earnings"
+              value={totalEarnings != null ? `₹${totalEarnings.toLocaleString("en-IN")}` : "—"}
+              trend="+0% this month"
+            />
+            <StatCard
+              icon={DownloadIcon}
+              tint="pink"
+              label="Total Withdrawn"
+              value={totalWithdrawn != null ? `₹${totalWithdrawn.toLocaleString("en-IN")}` : "—"}
+              trend="+0% this month"
+            />
+          </div>
+        )}
         <div className="wallet-grid" style={{ display: "grid", gridTemplateColumns: "360px 1fr", gap: 24, alignItems: "start" }}>
           {/* Left: balance + the one action (Add Funds for a brand,
               Withdraw for a creator) — everything you'd act on. */}
           <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-            <div className="card">
-              <div className="helper-text">Available Balance</div>
+            <div
+              className="card"
+              style={
+                isCreator
+                  ? { background: "var(--gradient-brand)", color: "#fff", border: "none" }
+                  : undefined
+              }
+            >
+              <div className="helper-text" style={isCreator ? { color: "rgba(255,255,255,0.85)" } : undefined}>Available Balance</div>
               <div style={{ fontSize: 32, fontWeight: 700 }}>₹{wallet?.availableBalance ?? "—"}</div>
               {wallet && Number(wallet.reservedBalance) > 0 && (
-                <div className="helper-text">Reserved: ₹{wallet.reservedBalance}</div>
+                <div className="helper-text" style={isCreator ? { color: "rgba(255,255,255,0.85)" } : undefined}>Reserved: ₹{wallet.reservedBalance}</div>
               )}
               {accountType === "CREATOR" && !!wallet?.platformFeePct && (
-                <div className="helper-text" style={{ marginTop: 4 }}>
+                <div className="helper-text" style={{ marginTop: 4, color: isCreator ? "rgba(255,255,255,0.85)" : undefined }}>
                   A {wallet.platformFeePct}% platform fee is deducted from each payout — shown as its own line below.
                 </div>
               )}
@@ -240,7 +294,7 @@ export default function WalletPage() {
                   Add Funds
                 </Button>
               )}
-              {fundedMessage && <p style={{ color: "var(--color-success)", fontSize: 13, marginTop: 12 }}>{fundedMessage}</p>}
+              {fundedMessage && <p style={{ color: isCreator ? "#fff" : "var(--color-success)", fontSize: 13, marginTop: 12 }}>{fundedMessage}</p>}
             </div>
 
             {accountType === "CREATOR" && (
@@ -323,6 +377,36 @@ export default function WalletPage() {
             </div>
           </div>
         </div>
+
+        {isCreator && (
+          <div className="card" style={{ marginTop: 24 }}>
+            <h3 style={{ marginTop: 0, marginBottom: 4 }}>Wallet Information</h3>
+            <p className="helper-text" style={{ marginBottom: 20 }}>Everything you need to know about your earnings and withdrawals.</p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
+              <div style={{ display: "flex", gap: 10 }}>
+                <span className="icon-badge icon-badge-green" aria-hidden="true"><ShieldIcon width={16} height={16} /></span>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 13.5 }}>Secure Payments</div>
+                  <div className="helper-text" style={{ fontSize: 12.5 }}>Your money is protected with bank-grade security.</div>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 10 }}>
+                <span className="icon-badge icon-badge-blue" aria-hidden="true"><RefreshIcon width={16} height={16} /></span>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 13.5 }}>Fast Withdrawals</div>
+                  <div className="helper-text" style={{ fontSize: 12.5 }}>Withdrawals are reviewed and paid out by our team.</div>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 10 }}>
+                <span className="icon-badge icon-badge-purple" aria-hidden="true"><LifeBuoyIcon width={16} height={16} /></span>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 13.5 }}>Need Help?</div>
+                  <div className="helper-text" style={{ fontSize: 12.5 }}>Contact our support team for any wallet related queries.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
 
       {showAddFunds && <AddFundsModal onClose={() => setShowAddFunds(false)} onFunded={handleFunded} />}
