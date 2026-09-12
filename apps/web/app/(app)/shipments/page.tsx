@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/Button";
+import { PageLoader } from "@/components/PageLoader";
 import { apiFetch, ApiClientError } from "@/lib/apiClient";
 
 interface Assignment {
@@ -56,7 +57,7 @@ export default function ShipmentsPage() {
     }
   }
 
-  if (!assignments) return <main style={{ padding: 48 }}>Loading…</main>;
+  if (!assignments) return <PageLoader />;
 
   return (
     <>

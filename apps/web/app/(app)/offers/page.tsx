@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/Button";
+import { PageLoader } from "@/components/PageLoader";
 import { apiFetch, ApiClientError } from "@/lib/apiClient";
 
 interface Offer {
@@ -61,7 +62,7 @@ export default function OffersPage() {
   }
 
   if (!offers) {
-    return <main className="container" style={{ padding: "64px 24px" }}>Loading…</main>;
+    return <PageLoader />;
   }
 
   return (

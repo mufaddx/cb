@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { PageLoader } from "../../../components/PageLoader";
 import { apiFetch, ApiClientError } from "../../../lib/apiClient";
 
 interface Analytics {
@@ -37,7 +38,7 @@ export default function AdminAnalyticsPage() {
   }, []);
 
   if (error) return <p className="error-text">{error}</p>;
-  if (!data) return <p>Loading…</p>;
+  if (!data) return <PageLoader />;
 
   return (
     <div>

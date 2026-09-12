@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/Button";
+import { PageLoader } from "@/components/PageLoader";
 import { apiFetch, ApiClientError } from "@/lib/apiClient";
 
 interface Campaign {
@@ -55,7 +56,7 @@ export default function CampaignsPage() {
         )}
 
         {!campaigns ? (
-          <p>Loading…</p>
+          <PageLoader />
         ) : campaigns.length === 0 ? (
           <div className="card">
             <p style={{ margin: 0 }}>No campaigns yet.</p>

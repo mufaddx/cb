@@ -370,6 +370,24 @@ a {
   margin-top: 6px;
 }
 
+/* The one loading indicator every page uses (via <PageLoader/>) instead
+   of a plain "Loading…" string — a brand-colored ring, not text, so a
+   loading page reads as "working", not as an unstyled placeholder. */
+.spinner {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Wide content (tables, etc.) scrolls inside its own container —
    the page body itself must never scroll horizontally. */
 .table-scroll {

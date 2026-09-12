@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "../../../components/Button";
+import { PageLoader } from "../../../components/PageLoader";
 import { apiFetch, ApiClientError } from "../../../lib/apiClient";
 import { useConfirm } from "../../../lib/useConfirm";
 
@@ -56,7 +57,7 @@ export default function VerificationQueuePage() {
     }
   }
 
-  if (!queue) return <p>Loading…</p>;
+  if (!queue) return <PageLoader />;
 
   return (
     <div>

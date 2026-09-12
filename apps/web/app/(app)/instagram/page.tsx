@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/Button";
+import { PageLoader } from "@/components/PageLoader";
 import { apiFetch, ApiClientError } from "@/lib/apiClient";
 import { useConfirm } from "@/lib/useConfirm";
 
@@ -179,7 +180,7 @@ function InstagramDashboard() {
   }
 
   if (!status) {
-    return <main style={{ padding: 32 }}><p className="helper-text">Loading…</p></main>;
+    return <PageLoader />;
   }
 
   if (status.status !== "CONNECTED") {

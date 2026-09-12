@@ -7,6 +7,7 @@ import { apiFetch, ApiClientError, clearTokens } from "../../lib/apiClient";
 import { ConfirmProvider } from "../../lib/useConfirm";
 import { LogOutIcon, MenuIcon, SparkIcon } from "../../components/icons";
 import { NotificationBell } from "../../components/NotificationBell";
+import { PageLoader } from "../../components/PageLoader";
 
 const ADMIN_ROLES = ["SUPER_ADMIN", "OPERATIONS_ADMIN", "FINANCE_ADMIN", "KYC_ADMIN", "CONTENT_REVIEWER", "SUPPORT_ADMIN"];
 
@@ -80,7 +81,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, []);
 
   if (status === "checking") {
-    return <main style={{ padding: 48 }}>Checking access…</main>;
+    return <PageLoader />;
   }
 
   if (status === "error") {

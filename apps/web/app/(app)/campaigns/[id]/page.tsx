@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/Button";
+import { PageLoader } from "@/components/PageLoader";
 import { apiFetch, ApiClientError } from "@/lib/apiClient";
 import { completeCheckout, type CheckoutPayload } from "@/lib/payments";
 import { useConfirm } from "@/lib/useConfirm";
@@ -146,7 +147,7 @@ export default function CampaignDetailPage() {
   }
 
   if (error && !campaign) return <p className="error-text" style={{ padding: 48 }}>{error}</p>;
-  if (!campaign) return <p style={{ padding: 48 }}>Loading…</p>;
+  if (!campaign) return <PageLoader />;
 
   const pricing = campaign.pricingSnapshots[0];
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/Button";
+import { PageLoader } from "@/components/PageLoader";
 import { apiFetch, ApiClientError, uploadFile } from "@/lib/apiClient";
 
 interface Shipment {
@@ -130,7 +131,7 @@ export default function DealsPage() {
   }
 
   if (!assignments) {
-    return <main className="container" style={{ padding: "64px 24px" }}>Loading…</main>;
+    return <PageLoader />;
   }
 
   return (

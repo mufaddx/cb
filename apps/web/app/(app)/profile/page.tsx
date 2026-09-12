@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/Button";
+import { PageLoader } from "@/components/PageLoader";
 import { apiFetch, ApiClientError } from "@/lib/apiClient";
 
 interface Category {
@@ -87,7 +88,7 @@ export default function ProfilePage() {
   return (
     <main style={{ padding: 32 }}>
       {!loaded || categories === null ? (
-        <p className="helper-text">Loading…</p>
+        <PageLoader />
       ) : (
         <div className="card" style={{ maxWidth: 640, padding: 28 }}>
           <form onSubmit={save}>

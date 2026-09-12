@@ -4,6 +4,7 @@ import { useEffect, useState, type SVGProps } from "react";
 import Link from "next/link";
 import { apiFetch, ApiClientError } from "@/lib/apiClient";
 import { InstagramConnect } from "@/components/InstagramConnect";
+import { PageLoader } from "@/components/PageLoader";
 import {
   CheckCircleIcon,
   HandshakeIcon,
@@ -140,7 +141,7 @@ export default function DashboardPage() {
   }
 
   if (!me) {
-    return <main style={{ padding: "32px" }}>Loading…</main>;
+    return <PageLoader />;
   }
 
   const accountType = me.brand ? "BRAND" : "CREATOR";

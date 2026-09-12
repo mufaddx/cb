@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/Button";
+import { PageLoader } from "@/components/PageLoader";
 import { apiFetch, ApiClientError } from "@/lib/apiClient";
 
 interface Product {
@@ -82,7 +83,7 @@ export default function ProductsPage() {
         </div>
 
         {!products ? (
-          <p>Loading…</p>
+          <PageLoader />
         ) : products.length === 0 ? (
           <div className="card">No products yet.</div>
         ) : (

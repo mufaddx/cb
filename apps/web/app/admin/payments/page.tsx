@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "../../../components/Button";
+import { PageLoader } from "../../../components/PageLoader";
 import { apiFetch, ApiClientError } from "../../../lib/apiClient";
 import { useConfirm } from "../../../lib/useConfirm";
 
@@ -68,7 +69,7 @@ export default function PaymentsPage() {
     }
   }
 
-  if (!payments) return <p>Loading…</p>;
+  if (!payments) return <PageLoader />;
 
   return (
     <div>

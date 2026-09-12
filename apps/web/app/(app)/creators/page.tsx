@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/Button";
 import { usePageHeaderExtra } from "@/components/AppShell";
 import { ChatIcon, LockIcon } from "@/components/icons";
+import { PageLoader } from "@/components/PageLoader";
 import { apiFetch, ApiClientError } from "@/lib/apiClient";
 import { completeCheckout, type CheckoutPayload } from "@/lib/payments";
 
@@ -248,7 +249,7 @@ export default function TopCreatorsPage() {
       </div>
 
       {!creators ? (
-        <p className="helper-text">Loading…</p>
+        <PageLoader />
       ) : creators.length === 0 ? (
         <p className="helper-text">No creators match these filters.</p>
       ) : (

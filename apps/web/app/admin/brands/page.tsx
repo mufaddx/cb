@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { PageLoader } from "../../../components/PageLoader";
 import { apiFetch, ApiClientError } from "../../../lib/apiClient";
 
 interface BrandRow {
@@ -38,7 +39,7 @@ export default function AdminBrandsPage() {
       />
 
       {!brands ? (
-        <p>Loading…</p>
+        <PageLoader />
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {brands.map((b) => (

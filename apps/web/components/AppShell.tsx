@@ -82,17 +82,56 @@ export function usePageHeaderExtra(node: ReactNode, deps: DependencyList) {
  * relies on BottomNav for the primary nav links, the same 4 items the
  * sidebar shows on desktop.
  */
+// The nav/sidebar reads entirely off `me` (accountType decides which
+// list, BRAND_NAV or CREATOR_NAV) — with no cache, every refresh or
+// hard navigation started this at null and left the sidebar rendered
+// with an empty nav (just the logo, no links) until /api/auth/me
+// answered, reading as "the sidebar disappeared". Caching the last
+// known `me` in localStorage lets the nav render correctly on the very
+// first paint, with the network call only there to reconcile it
+// afterward — the same stale-while-revalidate trade every page that
+// remembers who you are makes.
+const ME_CACHE_KEY = "vidlix:me";
+
+function readCachedMe(): Me | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(ME_CACHE_KEY);
+    return raw ? (JSON.parse(raw) as Me) : null;
+  } catch {
+    return null;
+  }
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [me, setMe] = useState<Me | null>(null);
+  const [me, setMe] = useState<Me | null>(readCachedMe);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [headerExtra, setHeaderExtra] = useState<ReactNode>(null);
 
   useEffect(() => {
     apiFetch<Me>("/api/auth/me")
-      .then(setMe)
-      .catch(() => null);
+      .then((m) => {
+        setMe(m);
+        try {
+          localStorage.setItem(ME_CACHE_KEY, JSON.stringify(m));
+        } catch {
+          // Storage can throw (private mode, quota, disabled) — the
+          // cache is a pure UX nicety, losing it just means the next
+          // load falls back to the network-only behavior below.
+        }
+      })
+      .catch(() => {
+        // A real failure (or a session that's no longer valid)
+        // shouldn't leave a stale identity/nav cached for next time.
+        setMe(null);
+        try {
+          localStorage.removeItem(ME_CACHE_KEY);
+        } catch {
+          // ignore
+        }
+      });
   }, []);
 
   // Auto-close the mobile drawer whenever a nav link changes the route
