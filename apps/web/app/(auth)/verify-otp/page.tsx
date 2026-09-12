@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/Button";
+import { FormField } from "@/components/FormField";
 import { apiFetch, ApiClientError, setTokens } from "@/lib/apiClient";
 
 const RESEND_COOLDOWN_SECONDS = 60;
@@ -76,26 +77,30 @@ function VerifyOtpForm() {
 
   return (
     <>
-      <h1 style={{ fontSize: 26 }}>Verify your email</h1>
+      <h1 style={{ fontSize: 27 }}>Verify your email</h1>
       <p className="helper-text" style={{ marginBottom: 28, fontSize: 14.5 }}>
         We sent a 6-digit code to <strong>{masked || email}</strong>.
       </p>
 
-      <form onSubmit={handleVerify}>
-        <label className="label" htmlFor="code">Verification code</label>
-        <input
+      <form onSubmit={handleVerify} noValidate>
+        <FormField
           id="code"
-          className="input"
+          label="Verification code"
           inputMode="numeric"
           pattern="[0-9]*"
           maxLength={6}
           required
+          autoComplete="one-time-code"
           value={code}
           onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-          style={{ marginBottom: 16, letterSpacing: 6, fontSize: 20, textAlign: "center" }}
+          style={{ letterSpacing: 6, fontSize: 20, textAlign: "center" }}
         />
 
-        {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
+        {error && (
+          <p className="error-text" role="alert" style={{ marginBottom: 16 }}>
+            {error}
+          </p>
+        )}
 
         <Button type="submit" loading={loading} disabled={code.length !== 6} style={{ width: "100%", marginBottom: 16 }}>
           Verify

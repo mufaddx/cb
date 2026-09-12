@@ -90,6 +90,8 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --duration-fast: 0.15s;
   --duration-base: 0.25s;
+  --auth-flip-duration: 600ms;
+  --auth-flip-ease: cubic-bezier(0.22, 1, 0.36, 1);
 
   --sidebar-width: 260px;
 
@@ -193,6 +195,191 @@ body {
   background-color: var(--paper-bg);
   background-image: var(--paper-grain);
   background-repeat: repeat;
+}
+
+/* ---- Auth card: split brand/form panel with an animated swap ----
+   One physical card, two absolutely-positioned halves each spanning
+   50% of it — the brand panel starts at the left half, the form side
+   at the right; picking Sign up/Log in swaps which half each one
+   occupies by translating each by exactly its own width (100%), so
+   they trade places instead of the page just cutting to a new one.
+   `perspective` on the card is what gives the brand panel's rotateY
+   dip (driven by --auth-tilt, set briefly from AuthLayout's JS) actual
+   3D depth rather than a flat skew. */
+.auth-card {
+  position: relative;
+  width: min(920px, 100%);
+  min-height: 600px;
+  border-radius: 24px;
+  overflow: hidden;
+  background: var(--paper-elevated);
+  box-shadow: var(--shadow-lg);
+}
+
+.auth-brand-panel {
+  --auth-tilt: 0deg;
+  position: absolute;
+  inset: 0;
+  width: 50%;
+  z-index: 2;
+  background: var(--gradient-brand);
+  color: #fff;
+  transition: transform var(--auth-flip-duration, 600ms) var(--auth-flip-ease, cubic-bezier(0.22, 1, 0.36, 1));
+  transform: translateX(0%) rotateY(var(--auth-tilt));
+  backface-visibility: hidden;
+}
+.auth-brand-panel[data-side="signup"] {
+  transform: translateX(100%) rotateY(var(--auth-tilt));
+}
+
+.auth-brand-panel-inner {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 44px 40px;
+}
+
+.auth-brand-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  width: fit-content;
+}
+.auth-brand-logo-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+}
+.auth-brand-heading {
+  color: #fff;
+  font-size: 29px;
+  line-height: 1.22;
+  margin-bottom: 12px;
+}
+.auth-brand-body {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 15px;
+  line-height: 1.6;
+  max-width: 340px;
+}
+.auth-brand-switch {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 13.5px;
+}
+.auth-brand-switch-cta {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 6px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14.5px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.14);
+  transition: background-color var(--duration-fast) ease;
+}
+.auth-brand-switch-cta:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.auth-form-side {
+  position: absolute;
+  inset: 0;
+  left: 50%;
+  width: 50%;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--auth-flip-duration, 600ms) var(--auth-flip-ease, cubic-bezier(0.22, 1, 0.36, 1));
+  transform: translateX(0%);
+}
+.auth-form-side[data-side="signup"] {
+  transform: translateX(-100%);
+}
+
+.auth-back-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin: 20px 0 0 20px;
+  border-radius: 8px;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-subtle);
+  flex-shrink: 0;
+}
+
+.auth-form-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 12px 44px 44px;
+  overflow-y: auto;
+  view-transition-name: auth-form;
+}
+
+/* The actual morph between two different mounted pages (Login’s DOM
+   fully unmounting, Signup’s fully mounting) needs the View
+   Transitions API — a plain CSS transition can’t animate between two
+   elements that never coexist. AuthNavLink names the direction
+   (data-auth-direction on <html>, set only for the duration of the
+   transition) so the slide direction matches whichever way the card
+   is conceptually flipping. Falls back to nothing extra (the
+   platform’s default crossfade) wherever this isn’t supported, or
+   when prefers-reduced-motion is set (AuthNavLink skips the whole
+   View Transition call in that case). */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(auth-form),
+  ::view-transition-new(auth-form) {
+    animation-duration: 550ms;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  :root[data-auth-direction="forward"] ::view-transition-old(auth-form) {
+    animation-name: auth-form-exit-left;
+  }
+  :root[data-auth-direction="forward"] ::view-transition-new(auth-form) {
+    animation-name: auth-form-enter-right;
+  }
+  :root[data-auth-direction="back"] ::view-transition-old(auth-form) {
+    animation-name: auth-form-exit-right;
+  }
+  :root[data-auth-direction="back"] ::view-transition-new(auth-form) {
+    animation-name: auth-form-enter-left;
+  }
+}
+
+@keyframes auth-form-exit-left {
+  from { opacity: 1; transform: translateX(0) scale(1); }
+  to { opacity: 0; transform: translateX(-28px) scale(0.97); }
+}
+@keyframes auth-form-enter-right {
+  from { opacity: 0; transform: translateX(28px) scale(0.97); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes auth-form-exit-right {
+  from { opacity: 1; transform: translateX(0) scale(1); }
+  to { opacity: 0; transform: translateX(28px) scale(0.97); }
+}
+@keyframes auth-form-enter-left {
+  from { opacity: 0; transform: translateX(-28px) scale(0.97); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
 }
 
 h1,
@@ -382,6 +569,50 @@ a {
 .input:disabled {
   background: var(--color-bg);
   color: var(--color-text-secondary);
+}
+
+/* A leading icon (FormField) and/or a trailing show/hide toggle
+   (PasswordField) laid over the same .input — the icon is
+   aria-hidden (its meaning is already in the field's real <label>),
+   the toggle is a real button with its own aria-label. */
+.input-icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.input-icon {
+  position: absolute;
+  left: 14px;
+  display: flex;
+  align-items: center;
+  color: var(--color-text-faint);
+  pointer-events: none;
+}
+.input-with-icon {
+  padding-left: 42px;
+}
+.input-eye-toggle {
+  position: absolute;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) ease, color var(--duration-fast) ease;
+}
+.input-eye-toggle:hover {
+  background: var(--color-border);
+  color: var(--color-text);
+}
+.input-eye-toggle:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
 }
 
 .label {
@@ -621,19 +852,69 @@ a {
     grid-template-columns: 1fr !important;
   }
 
-  /* Auth forms (login/signup/forgot/reset/verify): the centered card
-     with outer page padding left a small floating box with wasted
-     space on both sides on a phone. Full screen instead — the form
-     itself becomes the page, no inset, no rounded edges cutting it
-     off from the screen edge. */
+  /* Auth forms (login/signup/forgot/reset/verify): full screen instead
+     of a floating card with wasted space on both sides. The desktop
+     split (two 50%-wide panels sliding past each other) doesn't just
+     shrink — it collapses to a single column: the brand panel becomes
+     a compact top strip (logo + one-line switch CTA, no heading/body —
+     nothing sized for the desktop card fits a phone-width strip) and
+     the form becomes the rest of the screen below it. Sliding/rotating
+     transforms are switched off entirely, both because a 3D transform
+     on a full-width block is exactly the "horizontal scroll/clipped
+     content" failure mode to avoid on a phone, and because there's no
+     second half for either panel to swap into once they're stacked. */
   .auth-shell {
     padding: 0 !important;
     align-items: stretch !important;
   }
   .auth-card {
-    max-width: 100% !important;
+    width: 100% !important;
     min-height: 100vh;
     border-radius: 0 !important;
-    padding: 28px 20px !important;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+  }
+  .auth-brand-panel {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    flex-shrink: 0;
+    transform: none !important;
+    transition: none !important;
+  }
+  .auth-brand-panel-inner {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    gap: 12px;
+  }
+  .auth-brand-heading,
+  .auth-brand-body {
+    display: none;
+  }
+  .auth-brand-switch {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    white-space: nowrap;
+  }
+  .auth-brand-switch-cta {
+    padding: 7px 12px;
+    font-size: 13px;
+  }
+  .auth-form-side {
+    position: relative !important;
+    inset: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    flex: 1;
+    transform: none !important;
+    transition: none !important;
+  }
+  .auth-form-pane {
+    padding: 24px 20px 32px;
   }
 }

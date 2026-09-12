@@ -2,15 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Button } from "@/components/Button";
+import { AuthNavLink } from "@/components/AuthNavLink";
+import { FormField } from "@/components/FormField";
+import { PasswordField } from "@/components/PasswordField";
+import { MailIcon } from "@/components/icons";
 import { apiFetch, ApiClientError, getAccessToken, setTokens } from "@/lib/apiClient";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,37 +46,42 @@ export default function LoginPage() {
 
   return (
     <>
-      <h1 style={{ fontSize: 26 }}>Welcome back</h1>
-      <p className="helper-text" style={{ marginBottom: 28, fontSize: 14.5 }}>Log in to your Vidlix account.</p>
+      <h1 style={{ fontSize: 27 }}>Welcome back</h1>
+      <p className="helper-text" style={{ marginBottom: 28, fontSize: 14.5 }}>
+        Log in to your Vidlix account.
+      </p>
 
-      <form onSubmit={handleSubmit}>
-        <label className="label" htmlFor="email">Email</label>
-        <input id="email" className="input" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} style={{ marginBottom: 16 }} />
+      <form onSubmit={handleSubmit} noValidate>
+        <FormField
+          id="email"
+          label="Email"
+          type="email"
+          icon={<MailIcon width={16} height={16} />}
+          required
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
-        <label className="label" htmlFor="password">Password</label>
-        <div style={{ position: "relative", marginBottom: 8 }}>
-          <input
-            id="password"
-            className="input"
-            type={showPassword ? "text" : "password"}
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword((v) => !v)}
-            style={{ position: "absolute", right: 12, top: 11, background: "none", border: "none", color: "var(--color-text-secondary)", cursor: "pointer", fontSize: 13 }}
-          >
-            {showPassword ? "Hide" : "Show"}
-          </button>
-        </div>
+        <PasswordField
+          id="password"
+          label="Password"
+          value={password}
+          onChange={setPassword}
+          autoComplete="current-password"
+        />
 
         <div style={{ textAlign: "right", marginBottom: 20 }}>
-          <Link href="/forgot-password" style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>Forgot password?</Link>
+          <AuthNavLink href="/forgot-password" style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>
+            Forgot password?
+          </AuthNavLink>
         </div>
 
-        {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
+        {error && (
+          <p className="error-text" role="alert" style={{ marginBottom: 16 }}>
+            {error}
+          </p>
+        )}
 
         <Button type="submit" loading={loading} style={{ width: "100%" }}>
           Log in
@@ -82,7 +89,7 @@ export default function LoginPage() {
       </form>
 
       <p style={{ marginTop: 20, fontSize: 14, color: "var(--color-text-secondary)", textAlign: "center" }}>
-        Don&apos;t have an account? <Link href="/signup" style={{ fontWeight: 600 }}>Create one</Link>
+        Don&apos;t have an account? <AuthNavLink href="/signup" style={{ fontWeight: 600 }}>Create one</AuthNavLink>
       </p>
     </>
   );

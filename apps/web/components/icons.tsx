@@ -233,3 +233,39 @@ export function YoutubeIcon(props: IconProps) {
     </svg>
   );
 }
+
+export function MailIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="3.5" y="5.5" width="17" height="13" rx="2" />
+      <path d="M4.5 7 12 12.5 19.5 7" />
+    </svg>
+  );
+}
+
+export function PhoneIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M7 3.5h2.2l1.1 4-1.9 1.6a11.5 11.5 0 0 0 5.5 5.5l1.6-1.9 4 1.1V16a2 2 0 0 1-2.1 2A16.5 16.5 0 0 1 5 5.6 2 2 0 0 1 7 3.5Z" />
+    </svg>
+  );
+}
+
+export function EyeIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" />
+      <circle cx="12" cy="12" r="2.6" />
+    </svg>
+  );
+}
+
+export function EyeOffIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M3.5 3.5l17 17" />
+      <path d="M10.6 5.7A10.7 10.7 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a15.5 15.5 0 0 1-3.2 4.1M7.3 7.3C4.7 8.9 2.5 12 2.5 12S6 18.5 12 18.5a9.9 9.9 0 0 0 3.5-.65" />
+      <path d="M9.9 10a2.6 2.6 0 0 0 3.65 3.4" />
+    </svg>
+  );
+}

@@ -2,8 +2,10 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
 import { Button } from "@/components/Button";
+import { AuthNavLink } from "@/components/AuthNavLink";
+import { FormField } from "@/components/FormField";
+import { PasswordField } from "@/components/PasswordField";
 import { apiFetch, ApiClientError, setTokens } from "@/lib/apiClient";
 
 const RESEND_COOLDOWN_SECONDS = 60;
@@ -70,43 +72,45 @@ function ResetPasswordForm() {
 
   return (
     <>
-      <h1 style={{ fontSize: 26 }}>Enter your reset code</h1>
+      <h1 style={{ fontSize: 27 }}>Enter your reset code</h1>
       <p className="helper-text" style={{ marginBottom: 28, fontSize: 14.5 }}>
         We sent a 6-digit code to <strong>{masked || email}</strong>.
         {!email && (
           <>
-            {" "}Don&apos;t have one? <Link href="/forgot-password">Request a code</Link>.
+            {" "}
+            Don&apos;t have one? <AuthNavLink href="/forgot-password">Request a code</AuthNavLink>.
           </>
         )}
       </p>
 
-      <form onSubmit={handleSubmit}>
-        <label className="label" htmlFor="code">Reset code</label>
-        <input
+      <form onSubmit={handleSubmit} noValidate>
+        <FormField
           id="code"
-          className="input"
+          label="Reset code"
           inputMode="numeric"
           pattern="[0-9]*"
           maxLength={6}
           required
+          autoComplete="one-time-code"
           value={code}
           onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-          style={{ marginBottom: 16, letterSpacing: 6, fontSize: 20, textAlign: "center" }}
+          style={{ letterSpacing: 6, fontSize: 20, textAlign: "center" }}
         />
 
-        <label className="label" htmlFor="newPassword">New password</label>
-        <input
+        <PasswordField
           id="newPassword"
-          className="input"
-          type="password"
-          required
-          minLength={8}
+          label="New password"
           value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          style={{ marginBottom: 16 }}
+          onChange={setNewPassword}
+          autoComplete="new-password"
+          minLength={8}
         />
 
-        {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
+        {error && (
+          <p className="error-text" role="alert" style={{ marginBottom: 16 }}>
+            {error}
+          </p>
+        )}
 
         <Button
           type="submit"

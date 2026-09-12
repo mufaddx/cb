@@ -2,9 +2,12 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
 import { Button } from "@/components/Button";
+import { AuthNavLink } from "@/components/AuthNavLink";
 import { CampaignPreferenceInfoModal } from "@/components/CampaignPreferenceInfoModal";
+import { FormField } from "@/components/FormField";
+import { PasswordField } from "@/components/PasswordField";
+import { MailIcon, PhoneIcon, UserIcon } from "@/components/icons";
 import { apiFetch, ApiClientError } from "@/lib/apiClient";
 
 const CAMPAIGN_PREFERENCE_OPTIONS = [
@@ -30,7 +33,6 @@ function SignupForm() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [campaignPreferences, setCampaignPreferences] = useState<string[]>([]);
@@ -71,8 +73,10 @@ function SignupForm() {
 
   return (
     <>
-      <h1 style={{ fontSize: 26 }}>Create your account</h1>
-      <p className="helper-text" style={{ marginBottom: 24, fontSize: 14.5 }}>Start launching campaigns or accepting offers in minutes.</p>
+      <h1 style={{ fontSize: 27 }}>Create your account</h1>
+      <p className="helper-text" style={{ marginBottom: 24, fontSize: 14.5 }}>
+        Start launching campaigns or accepting offers in minutes.
+      </p>
 
       <div style={{ display: "flex", gap: 12, marginBottom: 24 }}>
         {(["BRAND", "CREATOR"] as const).map((type) => (
@@ -86,6 +90,7 @@ function SignupForm() {
               textAlign: "left",
               cursor: "pointer",
               background: accountType === type ? "var(--color-primary-soft)" : "var(--color-bg-subtle)",
+              borderColor: accountType === type ? "var(--color-primary)" : undefined,
             }}
           >
             <strong>{type === "BRAND" ? "Brand" : "Creator"}</strong>
@@ -110,6 +115,7 @@ function SignupForm() {
                   alignItems: "center",
                   gap: 10,
                   background: campaignPreferences.includes(opt.value) ? "var(--color-primary-soft)" : "transparent",
+                  borderColor: campaignPreferences.includes(opt.value) ? "var(--color-primary)" : undefined,
                 }}
               >
                 <input
@@ -139,49 +145,58 @@ function SignupForm() {
 
       {infoModalType && <CampaignPreferenceInfoModal type={infoModalType} onClose={() => setInfoModalType(null)} />}
 
-      <form onSubmit={handleSubmit}>
-        <label className="label" htmlFor="name">Full name</label>
-        <input id="name" className="input" type="text" required value={name} onChange={(e) => setName(e.target.value)} style={{ marginBottom: 16 }} />
+      <form onSubmit={handleSubmit} noValidate>
+        <FormField
+          id="name"
+          label="Full name"
+          type="text"
+          icon={<UserIcon width={16} height={16} />}
+          required
+          autoComplete="name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
 
-        <label className="label" htmlFor="email">Email</label>
-        <input id="email" className="input" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} style={{ marginBottom: 16 }} />
+        <FormField
+          id="email"
+          label="Email"
+          type="email"
+          icon={<MailIcon width={16} height={16} />}
+          required
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
-        <label className="label" htmlFor="phone">Mobile number</label>
-        <input
+        <FormField
           id="phone"
-          className="input"
+          label="Mobile number"
           type="tel"
+          icon={<PhoneIcon width={16} height={16} />}
           inputMode="numeric"
           required
+          autoComplete="tel"
           placeholder="10-digit mobile number"
           maxLength={10}
           value={phone}
           onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
-          style={{ marginBottom: 16 }}
         />
 
-        <label className="label" htmlFor="password">Password</label>
-        <div style={{ position: "relative", marginBottom: 8 }}>
-          <input
-            id="password"
-            className="input"
-            type={showPassword ? "text" : "password"}
-            required
-            minLength={8}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword((v) => !v)}
-            style={{ position: "absolute", right: 12, top: 11, background: "none", border: "none", color: "var(--color-text-secondary)", cursor: "pointer", fontSize: 13 }}
-          >
-            {showPassword ? "Hide" : "Show"}
-          </button>
-        </div>
-        <p className="helper-text" style={{ marginBottom: 20 }}>At least 8 characters, one uppercase letter, one number.</p>
+        <PasswordField
+          id="password"
+          label="Password"
+          value={password}
+          onChange={setPassword}
+          autoComplete="new-password"
+          minLength={8}
+          helperText="At least 8 characters, one uppercase letter, one number."
+        />
 
-        {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
+        {error && (
+          <p className="error-text" role="alert" style={{ marginBottom: 16 }}>
+            {error}
+          </p>
+        )}
 
         <Button type="submit" loading={loading} style={{ width: "100%" }}>
           Create account
@@ -189,7 +204,7 @@ function SignupForm() {
       </form>
 
       <p style={{ marginTop: 20, fontSize: 14, color: "var(--color-text-secondary)", textAlign: "center" }}>
-        Already have an account? <Link href="/login" style={{ fontWeight: 600 }}>Log in</Link>
+        Already have an account? <AuthNavLink href="/login" style={{ fontWeight: 600 }}>Log in</AuthNavLink>
       </p>
     </>
   );
