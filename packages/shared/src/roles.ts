@@ -68,6 +68,10 @@ export enum Permission {
   DISPUTE_MANAGE_ALL = "DISPUTE_MANAGE_ALL",
   FRAUD_MANAGE = "FRAUD_MANAGE",
 
+  // Support tickets
+  SUPPORT_TICKET_CREATE_OWN = "SUPPORT_TICKET_CREATE_OWN",
+  SUPPORT_TICKET_MANAGE_ALL = "SUPPORT_TICKET_MANAGE_ALL",
+
   // Admin / platform
   PRICING_MANAGE = "PRICING_MANAGE",
   USER_MANAGE_ALL = "USER_MANAGE_ALL",
@@ -118,6 +122,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     Permission.MESSAGE_READ_OWN,
     Permission.DISPUTE_MANAGE_ALL,
     Permission.CAMPAIGN_READ_ALL,
+    Permission.SUPPORT_TICKET_MANAGE_ALL,
   ],
 
   [Role.BRAND]: [
@@ -132,6 +137,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     Permission.DOCUMENT_READ_OWN,
     Permission.MESSAGE_READ_OWN,
     Permission.DISPUTE_CREATE_OWN,
+    Permission.SUPPORT_TICKET_CREATE_OWN,
   ],
 
   [Role.CREATOR]: [
@@ -147,6 +153,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     Permission.DOCUMENT_READ_OWN,
     Permission.MESSAGE_READ_OWN,
     Permission.DISPUTE_CREATE_OWN,
+    Permission.SUPPORT_TICKET_CREATE_OWN,
   ],
 };
 

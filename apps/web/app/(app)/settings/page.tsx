@@ -5,8 +5,10 @@ import { Button } from "@/components/Button";
 import { PageHeading } from "@/components/PageHeading";
 import { PageLoader } from "@/components/PageLoader";
 import { PasswordField } from "@/components/PasswordField";
+import { SupportTicketModal } from "@/components/SupportTicketModal";
 import {
   BellIcon,
+  ChatIcon,
   GearIcon,
   InstagramIcon,
   LifeBuoyIcon,
@@ -44,6 +46,22 @@ interface InstagramStatus {
   username?: string;
 }
 
+interface Ticket {
+  id: string;
+  subject: string;
+  status: string;
+  priority: string;
+  updatedAt: string;
+  _count: { messages: number };
+}
+
+const TICKET_STATUS_LABEL: Record<string, string> = {
+  OPEN: "Open",
+  IN_PROGRESS: "In Progress",
+  RESOLVED: "Resolved",
+  CLOSED: "Closed",
+};
+
 /** A section that's visually in place (matching the reference layout)
  * but genuinely has no backend behind it yet — shown honestly as
  * "coming soon" rather than a toggle that silently does nothing. */
@@ -76,6 +94,40 @@ export default function SettingsPage() {
 
   const [disconnecting, setDisconnecting] = useState(false);
 
+  const [tickets, setTickets] = useState<Ticket[] | null>(null);
+  const [openTicketId, setOpenTicketId] = useState<string | null>(null);
+  const [showNewTicket, setShowNewTicket] = useState(false);
+  const [ticketSubject, setTicketSubject] = useState("");
+  const [ticketDescription, setTicketDescription] = useState("");
+  const [ticketPriority, setTicketPriority] = useState<"LOW" | "NORMAL" | "HIGH">("NORMAL");
+  const [submittingTicket, setSubmittingTicket] = useState(false);
+  const [ticketError, setTicketError] = useState<string | null>(null);
+
+  function loadTickets() {
+    apiFetch<Ticket[]>("/api/support/tickets").then(setTickets).catch(() => setTickets([]));
+  }
+
+  async function submitTicket(e: React.FormEvent) {
+    e.preventDefault();
+    setTicketError(null);
+    setSubmittingTicket(true);
+    try {
+      await apiFetch("/api/support/tickets", {
+        method: "POST",
+        body: { subject: ticketSubject, description: ticketDescription, priority: ticketPriority },
+      });
+      setShowNewTicket(false);
+      setTicketSubject("");
+      setTicketDescription("");
+      setTicketPriority("NORMAL");
+      loadTickets();
+    } catch (err) {
+      setTicketError(err instanceof ApiClientError ? err.message : "Something went wrong.");
+    } finally {
+      setSubmittingTicket(false);
+    }
+  }
+
   useEffect(() => {
     apiFetch<Me>("/api/auth/me").then((m) => {
       setMe(m);
@@ -86,6 +138,8 @@ export default function SettingsPage() {
         apiFetch<InstagramStatus>("/api/instagram").then(setInstagram).catch(() => setInstagram({ status: "NOT_CONNECTED" }));
       }
     });
+    loadTickets();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function saveAccount(e: React.FormEvent) {
@@ -347,25 +401,116 @@ export default function SettingsPage() {
       {tab === "appearance" && <ComingSoon text="Vidlix only offers the current look for now — a theme option may come later." />}
 
       {tab === "help" && (
-        <div className="card" style={{ maxWidth: 480 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-            <span className="icon-badge icon-badge-green" aria-hidden="true"><LifeBuoyIcon width={17} height={17} /></span>
-            <h3 style={{ margin: 0 }}>Help &amp; Support</h3>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 20 }}>
+          <div className="card" style={{ maxWidth: 480 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+              <span className="icon-badge icon-badge-green" aria-hidden="true"><LifeBuoyIcon width={17} height={17} /></span>
+              <h3 style={{ margin: 0 }}>Help &amp; Support</h3>
+            </div>
+            <p className="helper-text" style={{ margin: "4px 0 16px" }}>Get help or report a problem.</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <a href={`${MARKETING_URL}/contact`} target="_blank" rel="noreferrer" className="account-menu-item" style={{ background: "var(--color-bg-subtle)" }}>
+                Contact support
+              </a>
+              <a href={`mailto:${SUPPORT_EMAIL}`} className="account-menu-item" style={{ background: "var(--color-bg-subtle)" }}>
+                Email {SUPPORT_EMAIL}
+              </a>
+              <a href={`${MARKETING_URL}/faq`} target="_blank" rel="noreferrer" className="account-menu-item" style={{ background: "var(--color-bg-subtle)" }}>
+                FAQ
+              </a>
+            </div>
           </div>
-          <p className="helper-text" style={{ margin: "4px 0 16px" }}>Get help or report a problem.</p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <a href={`${MARKETING_URL}/contact`} target="_blank" rel="noreferrer" className="account-menu-item" style={{ background: "var(--color-bg-subtle)" }}>
-              Contact support
-            </a>
-            <a href={`mailto:${SUPPORT_EMAIL}`} className="account-menu-item" style={{ background: "var(--color-bg-subtle)" }}>
-              Email {SUPPORT_EMAIL}
-            </a>
-            <a href={`${MARKETING_URL}/faq`} target="_blank" rel="noreferrer" className="account-menu-item" style={{ background: "var(--color-bg-subtle)" }}>
-              FAQ
-            </a>
+
+          <div className="card">
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span className="icon-badge icon-badge-purple" aria-hidden="true"><ChatIcon width={17} height={17} /></span>
+                <h3 style={{ margin: 0 }}>My Tickets</h3>
+              </div>
+              <Button onClick={() => setShowNewTicket(true)}>+ Raise a Ticket</Button>
+            </div>
+            <p className="helper-text" style={{ margin: "4px 0 16px" }}>
+              Ran into a problem? Raise a ticket and see our replies here.
+            </p>
+
+            {showNewTicket && (
+              <form onSubmit={submitTicket} className="card" style={{ marginBottom: 16, background: "var(--color-bg-subtle)" }}>
+                <label className="label">Subject</label>
+                <input
+                  className="input"
+                  value={ticketSubject}
+                  onChange={(e) => setTicketSubject(e.target.value)}
+                  placeholder="Briefly describe the issue"
+                  required
+                  style={{ marginBottom: 12 }}
+                />
+                <label className="label">Description</label>
+                <textarea
+                  className="input"
+                  value={ticketDescription}
+                  onChange={(e) => setTicketDescription(e.target.value)}
+                  placeholder="What's going wrong? Include any details that would help us."
+                  required
+                  style={{ marginBottom: 12, minHeight: 90, resize: "vertical", fontFamily: "inherit" }}
+                />
+                <label className="label">Priority</label>
+                <select
+                  className="input"
+                  value={ticketPriority}
+                  onChange={(e) => setTicketPriority(e.target.value as "LOW" | "NORMAL" | "HIGH")}
+                  style={{ marginBottom: 12 }}
+                >
+                  <option value="LOW">Low</option>
+                  <option value="NORMAL">Normal</option>
+                  <option value="HIGH">High</option>
+                </select>
+                {ticketError && <p className="error-text" style={{ marginBottom: 12 }}>{ticketError}</p>}
+                <div style={{ display: "flex", gap: 8 }}>
+                  <Button type="submit" loading={submittingTicket}>Submit</Button>
+                  <Button type="button" variant="secondary" onClick={() => setShowNewTicket(false)}>Cancel</Button>
+                </div>
+              </form>
+            )}
+
+            {!tickets ? (
+              <PageLoader />
+            ) : tickets.length === 0 ? (
+              <p className="helper-text" style={{ margin: 0 }}>No tickets yet — raise one if something's not working.</p>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                {tickets.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setOpenTicketId(t.id)}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      width: "100%",
+                      textAlign: "left",
+                      background: "none",
+                      border: "none",
+                      borderBottom: "1px solid var(--color-border)",
+                      padding: "10px 4px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 13.5 }}>{t.subject}</div>
+                      <div className="helper-text">
+                        {t._count.messages} message{t._count.messages === 1 ? "" : "s"} · {new Date(t.updatedAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <span className="badge">{TICKET_STATUS_LABEL[t.status] ?? t.status}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
+
+      {openTicketId && <SupportTicketModal ticketId={openTicketId} onClose={() => { setOpenTicketId(null); loadTickets(); }} />}
     </main>
   );
 }

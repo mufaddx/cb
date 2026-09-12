@@ -32,6 +32,7 @@ import productsRoutes from "./modules/products/products.routes";
 import shippingRoutes from "./modules/shipping/shipping.routes";
 import refundsRoutes from "./modules/refunds/refunds.routes";
 import disputesRoutes from "./modules/disputes/disputes.routes";
+import supportRoutes from "./modules/support/support.routes";
 import contentRoutes from "./modules/content/content.routes";
 import notificationsRoutes from "./modules/notifications/notifications.routes";
 import messagesRoutes from "./modules/messages/messages.routes";
@@ -103,6 +104,7 @@ export function createApp() {
   app.use("/api/shipments", shippingRoutes);
   app.use("/api/payments", refundsRoutes);
   app.use("/api/disputes", disputesRoutes);
+  app.use("/api/support", supportRoutes);
   app.use("/api/content", contentRoutes);
   app.use("/api/notifications", notificationsRoutes);
   app.use("/api/messages", messagesRoutes);

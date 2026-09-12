@@ -1107,16 +1107,41 @@ model Dispute {
 }
 
 model SupportTicket {
-  id        String   @id @default(cuid())
-  userId    String   @map("user_id")
-  subject   String
-  status    String   @default("OPEN")
-  priority  String   @default("NORMAL")
-  createdAt DateTime @default(now()) @map("created_at")
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  subject     String
+  description String   @db.Text
+  // OPEN | IN_PROGRESS (support has replied) | RESOLVED | CLOSED — a
+  // plain string like the pre-existing `priority` field rather than an
+  // enum, matching this model's own established convention.
+  status      String   @default("OPEN")
+  priority    String   @default("NORMAL")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
-  user User @relation(fields: [userId], references: [id])
+  user     User                  @relation(fields: [userId], references: [id])
+  messages SupportTicketMessage[]
 
+  @@index([userId, status])
   @@map("support_tickets")
+}
+
+model SupportTicketMessage {
+  id         String   @id @default(cuid())
+  ticketId   String   @map("ticket_id")
+  senderId   String   @map("sender_id")
+  // USER (the ticket owner) or ADMIN (support staff) — who wrote this
+  // reply. Not the same distinction as Message's SenderType (brand vs.
+  // creator): a support ticket's owner is whichever one they are, this
+  // is only about which side of the conversation sent this message.
+  senderRole String   @map("sender_role")
+  body       String   @db.Text
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId, createdAt])
+  @@map("support_ticket_messages")
 }
 
 model FraudFlag {

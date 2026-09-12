@@ -46,6 +46,10 @@ const NAV_SECTIONS: Array<{ title: string; items: Array<{ href: string; label: s
       { href: "/admin/pricing", label: "Pricing & Fees" },
     ],
   },
+  {
+    title: "Support",
+    items: [{ href: "/admin/support", label: "Support Tickets" }],
+  },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

@@ -309,29 +309,26 @@ export default function WalletPage() {
               className="card"
               style={
                 isLoggedIn
-                  ? { background: "var(--gradient-brand)", color: "#fff", border: "none" }
+                  ? { background: "var(--tint-blue-bg)", borderColor: "var(--tint-blue-fg)" }
                   : undefined
               }
             >
-              <div className="helper-text" style={isLoggedIn ? { color: "rgba(255,255,255,0.85)" } : undefined}>Available Balance</div>
+              <div className="helper-text">Available Balance</div>
               <div style={{ fontSize: 32, fontWeight: 700 }}>₹{wallet?.availableBalance ?? "—"}</div>
               {wallet && Number(wallet.reservedBalance) > 0 && (
-                <div className="helper-text" style={isLoggedIn ? { color: "rgba(255,255,255,0.85)" } : undefined}>Reserved: ₹{wallet.reservedBalance}</div>
+                <div className="helper-text">Reserved: ₹{wallet.reservedBalance}</div>
               )}
               {accountType === "CREATOR" && !!wallet?.platformFeePct && (
-                <div className="helper-text" style={{ marginTop: 4, color: isCreator ? "rgba(255,255,255,0.85)" : undefined }}>
+                <div className="helper-text" style={{ marginTop: 4 }}>
                   A {wallet.platformFeePct}% platform fee is deducted from each payout — shown as its own line below.
                 </div>
               )}
               {accountType === "BRAND" && (
-                <Button
-                  onClick={() => setShowAddFunds(true)}
-                  style={{ marginTop: 16, width: "100%", background: "rgba(255,255,255,0.18)", color: "#fff" }}
-                >
+                <Button onClick={() => setShowAddFunds(true)} style={{ marginTop: 16, width: "100%" }}>
                   Add Funds
                 </Button>
               )}
-              {fundedMessage && <p style={{ color: "#fff", fontSize: 13, marginTop: 12 }}>{fundedMessage}</p>}
+              {fundedMessage && <p style={{ color: "var(--color-success)", fontSize: 13, marginTop: 12 }}>{fundedMessage}</p>}
             </div>
 
             {accountType === "CREATOR" && (

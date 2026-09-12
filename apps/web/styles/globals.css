@@ -33,8 +33,8 @@
   --paper-ink: #18181b;
   --paper-ink-secondary: #6b7280;
   --paper-ink-faint: #9ca3af;
-  --paper-line: #e7e7ea;
-  --paper-line-strong: #d8d8dd;
+  --paper-line: #dcdce1;
+  --paper-line-strong: #c7c7cf;
 
   --color-bg: var(--paper-bg);
   --color-bg-subtle: var(--paper-panel);
@@ -519,8 +519,8 @@ a {
   background-color: var(--paper-elevated);
   background-image: var(--paper-grain-soft);
   background-repeat: repeat;
+  border: 1px solid var(--paper-line-strong);
   border-radius: var(--radius-card);
-  box-shadow: var(--shadow-paper);
 }
 
 /* Icon badge — a tinted circle behind an icon, used on stat cards and
@@ -630,18 +630,18 @@ a {
    without a ring or an outline. */
 .input {
   width: 100%;
-  padding: 14px 16px;
-  border: none;
+  padding: 13px 15px;
+  border: 1px solid var(--paper-line-strong);
   border-radius: var(--radius-control);
   font-size: 15.5px;
   font-family: var(--font-sans);
   color: var(--color-text);
   background: var(--color-bg-subtle);
-  transition: background-color var(--duration-fast) ease;
+  transition: background-color var(--duration-fast) ease, border-color var(--duration-fast) ease;
 }
 .input:focus {
   outline: none;
-  background: var(--color-border);
+  border-color: var(--color-primary);
 }
 .input:disabled {
   background: var(--color-bg);
