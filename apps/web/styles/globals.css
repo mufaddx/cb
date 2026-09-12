@@ -234,19 +234,26 @@ a {
 }
 
 /* ---- Paper design system utilities ----
-   Four layers of the same paper (see the :root comment above), plus
-   .card as the one already used in every existing page/component —
-   rather than rename ~70 files to a new class, .card *is* the paper
-   card: same rule, so every current usage picks up the system for
-   free. .paper-surface is that identical rule under its systemic
-   name, for anything reaching for the concept directly instead of
-   "a card". No border, no drop shadow on either — separation from
-   whatever sits behind them comes purely from the paper-surface vs.
-   paper-bg/paper-panel tone contrast, the same "luxury flat" rule
-   this system already followed, just recolored warm. */
+   .card/.paper-surface used to fill with the lighter --paper-surface
+   tone against the page's --paper-bg/--paper-panel underneath it —
+   visually a distinct "container", even with no border or shadow
+   declared, because that tone contrast plus the rounded corners still
+   reads as a boxed-off panel. Every dashboard page (brand/creator/
+   admin) was built out of these boxes stacked and gridded together,
+   while the auth pages (login/signup/forgot/reset) never used a card
+   at all — their fields just sit directly on the page's own paper —
+   which is why those two looks visibly diverged. Flattened to match:
+   .card is now transparent, so content sits directly on whatever
+   paper layer it's placed on (page canvas, sidebar, modal) with only
+   spacing (its own padding, parent gaps) separating one from the
+   next — no border, no shadow, no boxed appearance anywhere, exactly
+   like the auth forms. Kept as a class (rather than deleted outright)
+   purely for the padding/radius/transition every existing usage still
+   wants; a hoverable .card-interactive still gets a momentary tint on
+   hover as an interaction cue, not a permanent container. */
 .card,
 .paper-surface {
-  background: var(--paper-surface);
+  background: transparent;
   border: none;
   border-radius: var(--radius-card);
   padding: 24px;
