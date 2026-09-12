@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function BlogPage() {
   return (
-    <main>
+    <main className="paper-page">
       <MarketingHeader />
       <section className="container" style={{ padding: "64px 24px 96px", maxWidth: 720 }}>
         <span className="eyebrow" style={{ marginBottom: 16 }}>Blog</span>

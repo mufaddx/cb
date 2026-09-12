@@ -45,7 +45,7 @@ function StepList({ title, steps }: { title: string; steps: string[] }) {
 
 export default function HowItWorksPage() {
   return (
-    <main>
+    <main className="paper-page">
       <MarketingHeader />
       <section className="container" style={{ padding: "64px 24px 88px", maxWidth: 920 }}>
         <span className="eyebrow" style={{ marginBottom: 16 }}>How it works</span>

@@ -71,7 +71,7 @@ const benefits = [
 
 export default function HomePage() {
   return (
-    <main>
+    <main className="paper-page">
       <MarketingHeader />
 
       <section

@@ -13,7 +13,7 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "";
 
 export default function ContactPage() {
   return (
-    <main>
+    <main className="paper-page">
       <MarketingHeader />
       <section className="container" style={{ padding: "64px 24px 96px", maxWidth: 760 }}>
         <span className="eyebrow" style={{ marginBottom: 16 }}>Contact</span>

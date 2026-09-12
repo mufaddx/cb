@@ -25,7 +25,7 @@ const SECTIONS = [
 
 export default function TermsPage() {
   return (
-    <main>
+    <main className="paper-page">
       <MarketingHeader />
       <section className="container" style={{ padding: "64px 24px 96px", maxWidth: 760 }}>
         <span className="eyebrow" style={{ marginBottom: 16 }}>Legal</span>

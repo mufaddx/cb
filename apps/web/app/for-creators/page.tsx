@@ -22,7 +22,7 @@ const points = [
 
 export default function ForCreatorsPage() {
   return (
-    <main>
+    <main className="paper-page">
       <MarketingHeader />
       <section className="container" style={{ padding: "64px 24px 40px", maxWidth: 920 }}>
         <span className="eyebrow" style={{ marginBottom: 16 }}>For Creators</span>

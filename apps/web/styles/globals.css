@@ -19,15 +19,22 @@
    for the paper concept directly (grain, the new .paper-* utilities). */
 
 :root {
-  --paper-bg: #f4f0e6;
-  --paper-panel: #eee8da;
-  --paper-surface: #fbf9f3;
-  --paper-elevated: #fdfcf8;
-  --paper-ink: #23201a;
-  --paper-ink-secondary: #6e6759;
-  --paper-ink-faint: #9c9484;
-  --paper-line: #e2dbc9;
-  --paper-line-strong: #d2c9b2;
+  /* Neutral/white is the default everywhere an account actually does
+     work — login/signup/forgot/reset, and every brand/creator/admin
+     dashboard page. The warm cream "paper" look stays, scoped to
+     marketing pages only, via .paper-page below (same variable names,
+     redefined on that class so every component reading --paper-* or
+     --color-* automatically picks up whichever tone it's nested in —
+     no per-component changes needed). */
+  --paper-bg: #ffffff;
+  --paper-panel: #f6f6f7;
+  --paper-surface: #ffffff;
+  --paper-elevated: #ffffff;
+  --paper-ink: #18181b;
+  --paper-ink-secondary: #6b7280;
+  --paper-ink-faint: #9ca3af;
+  --paper-line: #e7e7ea;
+  --paper-line-strong: #d8d8dd;
 
   --color-bg: var(--paper-bg);
   --color-bg-subtle: var(--paper-panel);
@@ -122,18 +129,32 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* The page canvas — every route (marketing, auth, brand/creator/admin)
-   renders inside this one <body>, so this single rule is the "every
-   page inherits the paper automatically" mechanism the rest of the
-   system builds on. Just the grain over a flat tone — an earlier
-   version layered in two large radial-gradient "soft imperfection"
-   washes here, but their percentage-based sizing is relative to
-   whichever box they're painted on, and on a short box (the hero
-   section below, an auth card) that turned a subtle full-page wash
-   into a visibly hard-edged patch. Not worth that fragility for an
-   effect this understated anyway. */
-body,
+/* body renders the neutral/white canvas every functional page (auth,
+   dashboards, admin) uses by default — just the grain over a flat
+   tone. .paper-page opts a subtree back into the warm cream look
+   instead: it redefines every --paper-*/--color-* token declared in
+   :root above, so every component underneath it (header, cards,
+   inputs, text colors — anything already reading those token names)
+   picks up the cream palette automatically, with zero component-level
+   changes. Applied once, on each marketing page's outermost <main>,
+   for exactly the pages the warm look was ever meant for; nothing
+   under an .auth-shell/.app-content/.admin-content is inside one, so
+   those stay on the plain :root default above. */
+body {
+  background-color: var(--paper-bg);
+  background-image: var(--paper-grain);
+  background-repeat: repeat;
+}
 .paper-page {
+  --paper-bg: #f4f0e6;
+  --paper-panel: #eee8da;
+  --paper-surface: #fbf9f3;
+  --paper-elevated: #fdfcf8;
+  --paper-ink: #23201a;
+  --paper-ink-secondary: #6e6759;
+  --paper-ink-faint: #9c9484;
+  --paper-line: #e2dbc9;
+  --paper-line-strong: #d2c9b2;
   background-color: var(--paper-bg);
   background-image: var(--paper-grain);
   background-repeat: repeat;
@@ -227,8 +248,12 @@ a {
   padding: 0 32px;
   /* Same tone as the sidebar (--paper-panel) it sits beside, not the
      lighter page canvas — reads as one continuous chrome bar instead
-     of two panels that happen to be adjacent. */
-  background: rgba(238, 232, 218, 0.88);
+     of two panels that happen to be adjacent. Only used on
+     app-content/admin-content (never inside .paper-page), so this can
+     hardcode --paper-panel's plain/neutral value directly — a literal
+     rgba() is needed here (not var(--paper-panel)) for the alpha
+     blend under backdrop-filter. */
+  background: rgba(246, 246, 247, 0.88);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   font-size: 16px;

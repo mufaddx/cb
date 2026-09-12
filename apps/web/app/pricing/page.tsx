@@ -19,7 +19,7 @@ const BREAKDOWN = [
 
 export default function PricingPage() {
   return (
-    <main>
+    <main className="paper-page">
       <MarketingHeader />
       <section className="container" style={{ padding: "64px 24px 96px", maxWidth: 800 }}>
         <span className="eyebrow" style={{ marginBottom: 16 }}>Pricing</span>
