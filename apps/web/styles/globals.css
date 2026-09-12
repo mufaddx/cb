@@ -56,8 +56,6 @@
   --color-border-strong: var(--paper-line-strong);
 
   --gradient-brand: linear-gradient(135deg, #4f46e5 0%, #6366f1 45%, #06b6d4 100%);
-  --gradient-hero-bg: radial-gradient(60% 55% at 15% 0%, rgba(79, 70, 229, 0.12) 0%, rgba(79, 70, 229, 0) 60%),
-    radial-gradient(50% 45% at 100% 10%, rgba(6, 182, 212, 0.10) 0%, rgba(6, 182, 212, 0) 60%);
 
   /* Fine fractal-noise grain, rendered as SVG rather than a raster
      image — infinitely sharp at any zoom/DPI, a few hundred bytes
@@ -152,17 +150,28 @@ body,
   background-repeat: repeat;
 }
 
-/* The paper canvas with the brand-colored hero wash layered on top —
-   auth pages (login/signup/forgot/reset/verify) and the landing
-   page's hero both use this, instead of each sitting on a flat,
-   ungrained color the way an inline `background` shorthand would
-   otherwise force (shorthand resets every other background-*
-   sub-property, silently stripping the grain layer beneath it). */
+/* The paper canvas, same as body — auth pages (login/signup/forgot/
+   reset/verify) and the landing page's hero both use this class
+   instead of each sitting on a flat, ungrained color the way an
+   inline `background` shorthand would otherwise force (shorthand
+   resets every other background-* sub-property, silently stripping
+   the grain layer beneath it).
+
+   This used to also layer in two radial-gradient "brand wash" blobs
+   (--gradient-hero-bg) for a bit of color in the corners. Removed —
+   a radial-gradient sized by percentage renders relative to the
+   element's own box, and on this section's actual (wide, short-ish)
+   proportions that falloff hit the edge as a visible hard-edged
+   rectangle instead of fading out smoothly, reading as a stray box
+   sitting over the hero/auth background. The exact same failure mode
+   this system already removed from every card and modal for — kept
+   here by mistake as "the one place it's supposedly fine." It isn't;
+   plain grain is enough. */
 .auth-shell,
 .hero-wash {
   background-color: var(--paper-bg);
-  background-image: var(--gradient-hero-bg), var(--paper-grain);
-  background-repeat: no-repeat, repeat;
+  background-image: var(--paper-grain);
+  background-repeat: repeat;
 }
 
 h1,
