@@ -26,7 +26,7 @@ export async function resendOtpHandler(req: Request, res: Response) {
 
 export async function verifyOtpHandler(req: Request, res: Response) {
   const input = VerifyOtpSchema.parse(req.body);
-  const result = await authService.verifyOtp(prisma, input.email, input.code);
+  const result = await authService.verifyOtp(prisma, input.email, input.code, input.campaignPreferences);
   sendSuccess(res, result, "Email verified successfully.");
 }
 

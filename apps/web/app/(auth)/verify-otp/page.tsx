@@ -19,6 +19,11 @@ function VerifyOtpForm() {
   const router = useRouter();
   const params = useSearchParams();
   const email = params.get("email") ?? "";
+  // Set on the signup form (creator accounts only) and carried here via
+  // the URL since the Creator profile this belongs to doesn't exist
+  // until verification succeeds — see auth.service#verifyOtp.
+  const prefParam = params.get("pref");
+  const campaignPreferences = prefParam ? prefParam.split(",").filter(Boolean) : undefined;
 
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
@@ -40,7 +45,7 @@ function VerifyOtpForm() {
       const result = await apiFetch<{ accessToken: string; refreshToken: string }>("/api/auth/otp/verify", {
         method: "POST",
         auth: false,
-        body: { email, code },
+        body: { email, code, campaignPreferences },
       });
       setTokens(result.accessToken, result.refreshToken);
       // Signup already collected everything needed for a starter

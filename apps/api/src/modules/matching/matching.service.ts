@@ -30,17 +30,32 @@ interface EligibleCreator {
  *   5. Their latest follower/reach snapshot falls inside the slab range.
  * Ranked by quality score, then completion rate (best creators first).
  *
- * KYC status and full preference-matching are NOT enforced yet — KYC
- * only gates payout eligibility once submission/verification exists
- * (spec §35), and campaignPreferences filtering is left permissive so
- * a creator who hasn't set preferences isn't silently excluded. Both
- * are documented simplifications, not oversights.
+ * KYC status is NOT enforced yet — it only gates payout eligibility
+ * once submission/verification exists (spec §35). This is a
+ * documented simplification, not an oversight.
+ *
+ * campaignPreferences (set at signup — see auth.service#verifyOtp) IS
+ * enforced, but permissively: a creator who HAS set preferences is
+ * only matched to a campaign type they picked; a creator with no
+ * preferences on file (empty array/null — anyone who signed up before
+ * this existed) is still matched to everything, never silently
+ * excluded by a field they were never asked about.
  */
 type DbClient = PrismaClient | Prisma.TransactionClient;
+
+// PRODUCT_REVIEW predates folding that campaign type into
+// CREATOR_CONTENT (the create-campaign form no longer offers it, but
+// older campaigns can still carry it) — treated as CREATOR_CONTENT
+// here so a creator's preference doesn't need to know about a type
+// they were never shown.
+function preferenceKeyFor(campaignType: string): string {
+  return campaignType === "PRODUCT_REVIEW" ? "CREATOR_CONTENT" : campaignType;
+}
 
 async function findEligibleCreatorsForSlab(
   prisma: DbClient,
   campaignId: string,
+  campaignType: string,
   categoryId: string | null,
   metric: TargetingMetric,
   minValue: number,
@@ -67,6 +82,7 @@ async function findEligibleCreatorsForSlab(
     },
   });
 
+  const requiredPreference = preferenceKeyFor(campaignType);
   const inRange: EligibleCreator[] = [];
   for (const creator of candidates) {
     const snapshot = creator.instagramAccount?.snapshots[0];
@@ -74,6 +90,10 @@ async function findEligibleCreatorsForSlab(
     const value = metric === TargetingMetric.FOLLOWER_COUNT ? snapshot.followers : snapshot.avgReach ?? 0;
     const withinRange = value >= minValue && (maxValue === null || value < maxValue);
     if (!withinRange) continue;
+
+    const preferences = Array.isArray(creator.campaignPreferences) ? (creator.campaignPreferences as string[]) : [];
+    if (preferences.length > 0 && !preferences.includes(requiredPreference)) continue;
+
     inRange.push({
       creatorId: creator.id,
       metricValue: value,
@@ -144,6 +164,7 @@ export async function createOffersForCampaign(
       const eligible = await findEligibleCreatorsForSlab(
         tx,
         campaignId,
+        campaign.type,
         campaign.categoryId,
         campaign.targetingMetric!,
         slab.minValue,

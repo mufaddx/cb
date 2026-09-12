@@ -4,7 +4,13 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/Button";
+import { CampaignPreferenceInfoModal } from "@/components/CampaignPreferenceInfoModal";
 import { apiFetch, ApiClientError } from "@/lib/apiClient";
+
+const CAMPAIGN_PREFERENCE_OPTIONS = [
+  { value: "CLIPPING" as const, label: "Clipping", description: "Post a video the brand already made, as-is." },
+  { value: "CREATOR_CONTENT" as const, label: "Creator Content", description: "Review the product yourself, on camera." },
+];
 
 export default function SignupPage() {
   return (
@@ -27,10 +33,20 @@ function SignupForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [campaignPreferences, setCampaignPreferences] = useState<string[]>([]);
+  const [infoModalType, setInfoModalType] = useState<"CLIPPING" | "CREATOR_CONTENT" | null>(null);
+
+  function togglePreference(value: string) {
+    setCampaignPreferences((prev) => (prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]));
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (accountType === "CREATOR" && campaignPreferences.length === 0) {
+      setError("Choose at least one campaign type you want to do.");
+      return;
+    }
     setLoading(true);
     try {
       await apiFetch("/api/auth/signup", {
@@ -38,7 +54,14 @@ function SignupForm() {
         auth: false,
         body: { name, email, phone, password, accountType },
       });
-      router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
+      // Verification (and the actual Creator profile) happens on the
+      // next screen — carry the choice forward as a query param since
+      // there's no account to attach it to yet.
+      const prefParam =
+        accountType === "CREATOR" && campaignPreferences.length > 0
+          ? `&pref=${campaignPreferences.join(",")}`
+          : "";
+      router.push(`/verify-otp?email=${encodeURIComponent(email)}${prefParam}`);
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : "Something went wrong. Please try again.");
     } finally {
@@ -72,6 +95,49 @@ function SignupForm() {
           </button>
         ))}
       </div>
+
+      {accountType === "CREATOR" && (
+        <div style={{ marginBottom: 24 }}>
+          <label className="label">Which campaigns do you want to do?</label>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {CAMPAIGN_PREFERENCE_OPTIONS.map((opt) => (
+              <div
+                key={opt.value}
+                className="card"
+                style={{
+                  padding: "12px 14px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  background: campaignPreferences.includes(opt.value) ? "var(--color-primary-soft)" : "transparent",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  id={`pref-${opt.value}`}
+                  checked={campaignPreferences.includes(opt.value)}
+                  onChange={() => togglePreference(opt.value)}
+                  style={{ width: 17, height: 17, flexShrink: 0 }}
+                />
+                <label htmlFor={`pref-${opt.value}`} style={{ flex: 1, cursor: "pointer" }}>
+                  <strong style={{ fontSize: 14 }}>{opt.label}</strong>
+                  <div style={{ fontSize: 12.5, color: "var(--color-text-secondary)" }}>{opt.description}</div>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setInfoModalType(opt.value)}
+                  className="badge"
+                  style={{ border: "none", cursor: "pointer", flexShrink: 0 }}
+                >
+                  ℹ️ What&apos;s this?
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {infoModalType && <CampaignPreferenceInfoModal type={infoModalType} onClose={() => setInfoModalType(null)} />}
 
       <form onSubmit={handleSubmit}>
         <label className="label" htmlFor="name">Full name</label>

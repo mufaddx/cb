@@ -111,7 +111,12 @@ export async function resendOtp(prisma: PrismaClient, email: string) {
   return { maskedEmail: maskEmail(email) };
 }
 
-export async function verifyOtp(prisma: PrismaClient, email: string, code: string) {
+export async function verifyOtp(
+  prisma: PrismaClient,
+  email: string,
+  code: string,
+  campaignPreferences?: string[]
+) {
   const user = await prisma.user.findUnique({ where: { email }, include: { roles: { include: { role: true } } } });
   if (!user) throw new ValidationError("Invalid or expired code");
 
@@ -161,7 +166,10 @@ export async function verifyOtp(prisma: PrismaClient, email: string, code: strin
       languages: [],
       categoryIds: [],
       contentFormats: [],
-      campaignPreferences: [],
+      // Left empty (matched permissively, see matching.service.ts) if
+      // the signup form's picker was somehow skipped — never a reason
+      // to block verification.
+      campaignPreferences: campaignPreferences ?? [],
     });
   }
 

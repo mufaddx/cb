@@ -19,6 +19,11 @@ export type SignupInput = z.infer<typeof SignupSchema>;
 export const VerifyOtpSchema = z.object({
   email: z.string().email(),
   code: z.string().length(6),
+  // Only meaningful for a CREATOR signup (ignored otherwise) — the
+  // campaign-type preference they picked on the signup form, carried
+  // forward to this step since the creator profile itself isn't
+  // created until verification succeeds (see auth.service#verifyOtp).
+  campaignPreferences: z.array(z.enum(["CLIPPING", "CREATOR_CONTENT"])).optional(),
 });
 export type VerifyOtpInput = z.infer<typeof VerifyOtpSchema>;
 
