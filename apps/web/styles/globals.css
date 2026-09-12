@@ -243,18 +243,20 @@ a {
    while the auth pages (login/signup/forgot/reset) never used a card
    at all — their fields just sit directly on the page's own paper —
    which is why those two looks visibly diverged. Flattened to match:
-   .card is now transparent, so content sits directly on whatever
-   paper layer it's placed on (page canvas, sidebar, modal) with only
-   spacing (its own padding, parent gaps) separating one from the
-   next — no border, no shadow, no boxed appearance anywhere, exactly
-   like the auth forms. Kept as a class (rather than deleted outright)
-   purely for the padding/radius/transition every existing usage still
-   wants; a hoverable .card-interactive still gets a momentary tint on
-   hover as an interaction cue, not a permanent container. */
+   .card is transparent, so content sits directly on whatever paper
+   layer it's placed on (page canvas, sidebar, modal) instead of a
+   filled box — but with nothing at all marking where one card ends
+   and the next begins, adjacent cards on a busy page (a grid of stat
+   tiles, a list of queue rows) blurred into one paragraph of text.
+   A hairline border (--paper-line-strong — the same muted tan already
+   used for --color-border-strong elsewhere, not a hard black rule)
+   gives each one a subtle edge without going back to a filled,
+   "boxed" background — exactly like the auth forms, just with a
+   faint outline instead of nothing. */
 .card,
 .paper-surface {
   background: transparent;
-  border: none;
+  border: 1px solid var(--paper-line-strong);
   border-radius: var(--radius-card);
   padding: 24px;
   transition: background-color var(--duration-base) var(--ease-out), transform var(--duration-base) var(--ease-out);
