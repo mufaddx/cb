@@ -148,7 +148,7 @@ body {
 /* body renders the neutral/white canvas every functional page (auth,
    dashboards, admin) uses by default — just the grain over a flat
    tone. .paper-page opts a subtree back into the warm cream look
-   instead: it redefines every --paper-*/--color-* token declared in
+   instead: it redefines every --paper-* / --color-* token declared in
    :root above, so every component underneath it (header, cards,
    inputs, text colors — anything already reading those token names)
    picks up the cream palette automatically, with zero component-level
