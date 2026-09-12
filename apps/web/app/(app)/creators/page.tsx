@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/Button";
 import { usePageHeaderExtra } from "@/components/AppShell";
-import { ChatIcon, LockIcon } from "@/components/icons";
+import { ChatIcon, LockIcon, UserIcon } from "@/components/icons";
+import { PageHeading } from "@/components/PageHeading";
 import { PageLoader } from "@/components/PageLoader";
 import { apiFetch, ApiClientError } from "@/lib/apiClient";
 import { completeCheckout, type CheckoutPayload } from "@/lib/payments";
@@ -217,6 +218,12 @@ export default function TopCreatorsPage() {
 
   return (
     <main style={{ padding: "32px" }}>
+      <PageHeading
+        icon={UserIcon}
+        tint="purple"
+        title="Top Creators"
+        description="Discover and collaborate with amazing creators."
+      />
       <div className="card" style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end", marginBottom: 20, padding: 16 }}>
         <div>
           <label className="label">Category</label>

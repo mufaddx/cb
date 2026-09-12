@@ -36,6 +36,7 @@ interface Me {
   name: string | null;
   email: string;
   creator: { displayName: string; location: string | null } | null;
+  brand: { companyName: string } | null;
 }
 
 interface InstagramStatus {
@@ -61,6 +62,7 @@ export default function SettingsPage() {
   const [instagram, setInstagram] = useState<InstagramStatus | null>(null);
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
+  const [companyName, setCompanyName] = useState("");
   const [savingAccount, setSavingAccount] = useState(false);
   const [accountError, setAccountError] = useState<string | null>(null);
   const [accountSuccess, setAccountSuccess] = useState<string | null>(null);
@@ -79,8 +81,11 @@ export default function SettingsPage() {
       setMe(m);
       setName(m.name ?? "");
       setLocation(m.creator?.location ?? "");
+      setCompanyName(m.brand?.companyName ?? "");
+      if (m.creator) {
+        apiFetch<InstagramStatus>("/api/instagram").then(setInstagram).catch(() => setInstagram({ status: "NOT_CONNECTED" }));
+      }
     });
-    apiFetch<InstagramStatus>("/api/instagram").then(setInstagram).catch(() => setInstagram({ status: "NOT_CONNECTED" }));
   }, []);
 
   async function saveAccount(e: React.FormEvent) {
@@ -90,7 +95,11 @@ export default function SettingsPage() {
     setSavingAccount(true);
     try {
       await apiFetch("/api/auth/me", { method: "PATCH", body: { name } });
-      await apiFetch("/api/creators/me", { method: "PATCH", body: { location } });
+      if (me?.creator) {
+        await apiFetch("/api/creators/me", { method: "PATCH", body: { location } });
+      } else if (me?.brand) {
+        await apiFetch("/api/brands/me", { method: "PATCH", body: { companyName } });
+      }
       setAccountSuccess("Account updated.");
     } catch (err) {
       setAccountError(err instanceof ApiClientError ? err.message : "Something went wrong.");
@@ -225,6 +234,19 @@ export default function SettingsPage() {
                 </>
               )}
 
+              {me.brand && (
+                <>
+                  <label className="label">Company Name</label>
+                  <input
+                    className="input"
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    placeholder="Enter your company name"
+                    style={{ marginBottom: 16 }}
+                  />
+                </>
+              )}
+
               {accountError && <p className="error-text" style={{ marginBottom: 16 }}>{accountError}</p>}
               {accountSuccess && <p style={{ color: "var(--color-success)", fontSize: 13, marginBottom: 16 }}>{accountSuccess}</p>}
 
@@ -292,7 +314,11 @@ export default function SettingsPage() {
         <ComingSoon text="Profile visibility and data controls aren't available yet. For a copy of your data or a privacy request, contact support." />
       )}
 
-      {tab === "apps" && (
+      {tab === "apps" && !me.creator && (
+        <ComingSoon text="Instagram connection is a creator feature — there's nothing for a brand account to connect here yet." />
+      )}
+
+      {tab === "apps" && me.creator && (
         <div className="card" style={{ maxWidth: 480 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
             <span className="icon-badge icon-badge-pink" aria-hidden="true"><InstagramIcon width={17} height={17} /></span>

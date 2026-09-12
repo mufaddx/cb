@@ -19,6 +19,7 @@ import {
   SearchIcon,
   SparkIcon,
   TargetIcon,
+  TrendingUpIcon,
   UserIcon,
   WalletIcon,
 } from "./icons";
@@ -35,6 +36,8 @@ const BRAND_NAV = [
   { href: "/creators", label: "Top Creators", icon: UserIcon },
   { href: "/messages", label: "Messages", icon: ChatIcon },
   { href: "/wallet", label: "Wallet", icon: WalletIcon },
+  { href: "/analytics", label: "Analytics", icon: TrendingUpIcon },
+  { href: "/settings", label: "Settings", icon: GearIcon },
 ];
 
 const CREATOR_NAV = [
@@ -152,10 +155,10 @@ export function AppShell({ children }: { children: ReactNode }) {
     return () => clearInterval(timer);
   }, [accountType]);
 
-  // Cmd/Ctrl+K focuses the header search (creator only) from anywhere
-  // on the page, matching the shortcut hint shown next to it.
+  // Cmd/Ctrl+K focuses the header search from anywhere on the page,
+  // matching the shortcut hint shown next to it.
   useEffect(() => {
-    if (accountType !== "CREATOR") return;
+    if (!accountType) return;
     function onKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
@@ -195,6 +198,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   const isCreator = accountType === "CREATOR";
+  const isLoggedIn = accountType !== null;
+  const proCardHref = isCreator ? `${MARKETING_URL}/for-creators` : `${MARKETING_URL}/for-brands`;
 
   return (
     <PageHeaderExtraContext.Provider value={setHeaderExtra}>
@@ -235,14 +240,14 @@ export function AppShell({ children }: { children: ReactNode }) {
           </span>
           <span>
             <span style={{ display: "block", fontSize: 17, fontWeight: 750, letterSpacing: "-0.02em" }}>Vidlix</span>
-            {isCreator && (
+            {isLoggedIn && (
               <span style={{ display: "block", fontSize: 10.5, color: "var(--color-text-faint)", fontWeight: 600 }}>
                 Create. Collaborate. Grow.
               </span>
             )}
           </span>
         </Link>
-        {isCreator && <div style={{ height: 16 }} />}
+        {isLoggedIn && <div style={{ height: 16 }} />}
 
         <nav style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1 }}>
           {nav.map((item) => {
@@ -293,9 +298,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           })}
         </nav>
 
-        {isCreator && (
+        {isLoggedIn && (
           <a
-            href={`${MARKETING_URL}/for-creators`}
+            href={proCardHref}
             target="_blank"
             rel="noreferrer"
             className="paper-modal"
@@ -319,14 +324,14 @@ export function AppShell({ children }: { children: ReactNode }) {
             </span>
             <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 2 }}>Grow with Vidlix</div>
             <div style={{ fontSize: 11.5, color: "var(--color-text-secondary)", marginBottom: 8 }}>
-              See tips for landing more brand deals.
+              {isCreator ? "See tips for landing more brand deals." : "See tips for running better campaigns."}
             </div>
             <span style={{ fontSize: 12, fontWeight: 700, color: "var(--color-primary)" }}>Learn more →</span>
           </a>
         )}
 
         <div
-          style={{ borderTop: "1px solid var(--color-border)", paddingTop: 14, marginTop: isCreator ? 0 : 14, display: "flex", alignItems: "center", gap: 10 }}
+          style={{ borderTop: "1px solid var(--color-border)", paddingTop: 14, marginTop: isLoggedIn ? 0 : 14, display: "flex", alignItems: "center", gap: 10 }}
         >
           <div
             style={{
@@ -408,7 +413,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <MenuIcon width={20} height={20} />
             </button>
 
-            {isCreator ? (
+            {isLoggedIn ? (
               <div ref={searchBoxRef} className="desktop-only" style={{ position: "relative", maxWidth: 420, width: "100%" }}>
                 <SearchIcon
                   width={16}
@@ -477,7 +482,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
             {headerExtra}
             {accountType && <NotificationBell />}
-            {isCreator && <AccountMenu initial={initial} settingsHref="/settings" />}
+            {isLoggedIn && <AccountMenu initial={initial} settingsHref="/settings" />}
           </div>
         </div>
         {children}

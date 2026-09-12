@@ -1,6 +1,6 @@
 import { PrismaClient, WalletOwnerType } from "@prisma/client";
-import { ConflictError } from "../../lib/errors";
-import type { CreateBrandInput } from "./brands.validation";
+import { ConflictError, NotFoundError } from "../../lib/errors";
+import type { CreateBrandInput, UpdateBrandInput } from "./brands.validation";
 
 export async function createBrandProfile(prisma: PrismaClient, userId: string, input: CreateBrandInput) {
   const existing = await prisma.brand.findUnique({ where: { userId } });
@@ -25,4 +25,14 @@ export async function createBrandProfile(prisma: PrismaClient, userId: string, i
     await tx.wallet.create({ data: { ownerType: WalletOwnerType.BRAND, brandId: brand.id } });
     return brand;
   });
+}
+
+/** Settings → Account, for a brand: the only field exposed for
+ * self-edit there is companyName — everything else on Brand (GSTIN,
+ * billing address, industry) is invoice/compliance data that isn't
+ * part of this redesign's scope. */
+export async function updateBrandProfile(prisma: PrismaClient, userId: string, input: UpdateBrandInput) {
+  const brand = await prisma.brand.findUnique({ where: { userId } });
+  if (!brand) throw new NotFoundError("Brand profile not found");
+  return prisma.brand.update({ where: { id: brand.id }, data: { companyName: input.companyName } });
 }

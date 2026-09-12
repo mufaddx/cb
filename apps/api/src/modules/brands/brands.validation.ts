@@ -12,3 +12,8 @@ export const CreateBrandSchema = z.object({
   categoryIds: z.array(z.string()).default([]),
 });
 export type CreateBrandInput = z.infer<typeof CreateBrandSchema>;
+
+export const UpdateBrandSchema = z.object({
+  companyName: z.string().min(2).max(200),
+});
+export type UpdateBrandInput = z.infer<typeof UpdateBrandSchema>;

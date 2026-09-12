@@ -2,7 +2,9 @@
 
 import { useEffect, useState, type SVGProps } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { apiFetch, ApiClientError } from "@/lib/apiClient";
+import { Button } from "@/components/Button";
 import { InstagramConnect } from "@/components/InstagramConnect";
 import { PageLoader } from "@/components/PageLoader";
 import { StatCard } from "@/components/StatCard";
@@ -35,7 +37,11 @@ interface Wallet {
 }
 
 interface Campaign {
+  id: string;
+  code: string;
+  title: string;
   status: string;
+  createdAt: string;
   pricingSnapshots: Array<{ totalAmount: string }>;
 }
 
@@ -147,6 +153,7 @@ function useRecentActivity(offers: Offer[] | null, assignments: Assignment[] | n
 }
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [me, setMe] = useState<Me | null>(null);
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [campaigns, setCampaigns] = useState<Campaign[] | null>(null);
@@ -189,6 +196,7 @@ export default function DashboardPage() {
   }
 
   const accountType = me.brand ? "BRAND" : "CREATOR";
+  const today = new Date();
 
   const totalSpend = campaigns
     ?.filter((c) => SPENT_STATUSES.has(c.status))
@@ -202,44 +210,175 @@ export default function DashboardPage() {
   const pendingOffers = offers?.filter((o) => o.status === "OFFERED" || o.status === "VIEWED").length ?? 0;
 
   if (accountType === "BRAND") {
+    const recentCampaigns = campaigns
+      ? [...campaigns].sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? "")).slice(0, 5)
+      : null;
+
     return (
       <main style={{ padding: "32px" }}>
-        <h1>Good morning, {me.brand?.companyName ?? me.name ?? me.email}</h1>
-
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", margin: "20px 0" }}>
-          <Stat icon={MegaphoneIcon} label="Total campaigns" value={campaigns ? String(campaigns.length) : "—"} />
-          <Stat icon={TargetIcon} label="Active now" value={campaigns ? String(campaigns.filter((c) => LIVE_STATUSES.has(c.status)).length) : "—"} />
-          <Stat icon={CheckCircleIcon} label="Completed" value={campaigns ? String(campaigns.filter((c) => c.status === "COMPLETED").length) : "—"} />
-          <Stat icon={WalletIcon} label="Total spend" value={totalSpend != null ? `₹${totalSpend.toLocaleString("en-IN")}` : "—"} />
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, marginBottom: 24, flexWrap: "wrap" }}>
+          <div>
+            <h1>Good morning, {me.brand?.companyName ?? me.name ?? me.email} 👋</h1>
+            <p className="helper-text" style={{ marginTop: -8, fontSize: 14.5 }}>Here&apos;s what&apos;s happening with your campaigns today.</p>
+          </div>
+          <div className="card" style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px" }}>
+            <span className="icon-badge icon-badge-blue" aria-hidden="true">
+              <CalendarIcon width={16} height={16} />
+            </span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 13.5 }}>
+                {today.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "short", year: "numeric" })}
+              </div>
+              <div className="helper-text">Let&apos;s create something amazing today!</div>
+            </div>
+          </div>
         </div>
 
-        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-          <div className="card" style={{ maxWidth: 360, flex: "1 1 280px" }}>
+        <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 }}>
+          <StatCard
+            icon={MegaphoneIcon}
+            tint="purple"
+            label="Total Campaigns"
+            href="/campaigns"
+            value={campaigns ? campaigns.length : "—"}
+            trend="+0% from last month"
+          />
+          <StatCard
+            icon={TargetIcon}
+            tint="green"
+            label="Active Now"
+            href="/campaigns"
+            value={campaigns ? campaigns.filter((c) => LIVE_STATUSES.has(c.status)).length : "—"}
+            trend="+0% from last month"
+          />
+          <StatCard
+            icon={CheckCircleIcon}
+            tint="blue"
+            label="Completed"
+            href="/campaigns"
+            value={campaigns ? campaigns.filter((c) => c.status === "COMPLETED").length : "—"}
+            trend="+0% from last month"
+          />
+          <StatCard
+            icon={WalletIcon}
+            tint="pink"
+            label="Total Spend"
+            href="/wallet"
+            value={totalSpend != null ? `₹${totalSpend.toLocaleString("en-IN")}` : "—"}
+            trend="+0% from last month"
+          />
+        </div>
+
+        <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 }}>
+          <div className="card" style={{ flex: "1 1 280px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-              <span
-                aria-hidden="true"
-                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, borderRadius: 8, background: "var(--color-primary-soft)", flexShrink: 0 }}
-              >
-                <WalletIcon width={16} height={16} stroke="var(--color-primary)" />
+              <span className="icon-badge icon-badge-blue" aria-hidden="true">
+                <WalletIcon width={17} height={17} />
               </span>
               <h3 style={{ margin: 0 }}>Wallet</h3>
             </div>
+            <p className="helper-text" style={{ margin: "4px 0 16px" }}>Manage your balance and payments.</p>
             {wallet ? (
               <>
-                <p style={{ margin: "4px 0" }}>Available: ₹{wallet.availableBalance}</p>
-                <p style={{ margin: "4px 0", color: "var(--color-text-secondary)" }}>Reserved: ₹{wallet.reservedBalance}</p>
+                <p style={{ margin: "2px 0 4px", fontSize: 22, fontWeight: 750 }}>₹{Number(wallet.availableBalance).toFixed(2)}</p>
+                <p style={{ margin: "0 0 16px", color: "var(--color-text-secondary)", fontSize: 13 }}>Reserved: ₹{wallet.reservedBalance}</p>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <Button variant="secondary" onClick={() => router.push("/wallet")}>View Transactions</Button>
+                  <Button onClick={() => router.push("/wallet")}>Add Funds</Button>
+                </div>
               </>
             ) : (
               <p className="helper-text">No wallet yet.</p>
             )}
           </div>
-          <ShortcutCard icon={MegaphoneIcon} title="Campaigns" description="Launch and manage your campaigns." href="/campaigns" linkLabel="View campaigns" />
+
+          <div className="card" style={{ flex: "1 1 280px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+              <span className="icon-badge icon-badge-purple" aria-hidden="true">
+                <MegaphoneIcon width={17} height={17} />
+              </span>
+              <h3 style={{ margin: 0 }}>Campaigns</h3>
+            </div>
+            <p className="helper-text" style={{ margin: "4px 0 16px" }}>Launch and manage your campaigns.</p>
+            <Button onClick={() => router.push("/campaigns")}>View campaigns</Button>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+          <div className="card" style={{ flex: "2 1 420px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span className="icon-badge icon-badge-blue" aria-hidden="true">
+                  <MegaphoneIcon width={17} height={17} />
+                </span>
+                <h3 style={{ margin: 0 }}>Recent Campaigns</h3>
+              </div>
+              <Link href="/campaigns" style={{ fontSize: 13, fontWeight: 600, color: "var(--color-primary)" }}>
+                View all →
+              </Link>
+            </div>
+            <p className="helper-text" style={{ margin: "4px 0 16px" }}>Your latest campaign activity.</p>
+            {!recentCampaigns ? (
+              <PageLoader />
+            ) : recentCampaigns.length === 0 ? (
+              <div style={{ padding: "32px 0", textAlign: "center" }}>
+                <span className="icon-badge icon-badge-purple" style={{ margin: "0 auto 12px" }} aria-hidden="true">
+                  <MegaphoneIcon width={18} height={18} />
+                </span>
+                <p style={{ margin: 0, fontWeight: 600 }}>No campaigns yet</p>
+                <p className="helper-text" style={{ marginTop: 4, marginBottom: 16 }}>Create your first campaign to get started.</p>
+                <Button onClick={() => router.push("/campaigns")}>+ Create Campaign</Button>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                {recentCampaigns.map((c) => (
+                  <Link
+                    key={c.id}
+                    href={`/campaigns/${c.id}`}
+                    style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--color-border)", color: "var(--color-text)", textDecoration: "none" }}
+                  >
+                    <span style={{ fontSize: 13.5, fontWeight: 600 }}>{c.title ?? c.code}</span>
+                    <span className="helper-text">{c.status}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="card" style={{ flex: "1 1 280px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+              <span className="icon-badge icon-badge-amber" aria-hidden="true">
+                <TargetIcon width={17} height={17} />
+              </span>
+              <h3 style={{ margin: 0 }}>Quick Actions</h3>
+            </div>
+            <p className="helper-text" style={{ margin: "4px 0 16px" }}>Everything you need, one click away.</p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              {[
+                { icon: MegaphoneIcon, tint: "purple" as const, title: "Create Campaign", desc: "Launch a new campaign", href: "/campaigns" },
+                { icon: UserIcon, tint: "blue" as const, title: "Find Creators", desc: "Browse top creators", href: "/creators" },
+                { icon: ChatIcon, tint: "green" as const, title: "Check Messages", desc: "View your conversations", href: "/messages" },
+                { icon: WalletIcon, tint: "amber" as const, title: "Manage Wallet", desc: "Add funds or view history", href: "/wallet" },
+              ].map((a) => (
+                <Link
+                  key={a.href}
+                  href={a.href}
+                  className="card card-interactive"
+                  style={{ padding: 12, textDecoration: "none", color: "var(--color-text)" }}
+                >
+                  <span className={`icon-badge icon-badge-${a.tint}`} aria-hidden="true" style={{ width: 32, height: 32, borderRadius: 9, marginBottom: 8 }}>
+                    <a.icon width={15} height={15} />
+                  </span>
+                  <div style={{ fontSize: 13, fontWeight: 700 }}>{a.title}</div>
+                  <div className="helper-text" style={{ fontSize: 11.5 }}>{a.desc}</div>
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
       </main>
     );
   }
-
-  const today = new Date();
 
   return (
     <main style={{ padding: "32px" }}>

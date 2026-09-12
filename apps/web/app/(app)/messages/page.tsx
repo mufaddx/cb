@@ -91,7 +91,7 @@ function MessagesContent() {
 
   if (error) return <main style={{ padding: 32 }}><p className="error-text">{error}</p></main>;
 
-  const isCreator = accountType === "CREATOR";
+  const isLoggedIn = accountType !== null;
   const filteredConversations = conversations?.filter((c) => {
     if (!convSearch.trim()) return true;
     const other = accountType === "BRAND" ? c.creator.displayName : c.brand.companyName;
@@ -100,7 +100,7 @@ function MessagesContent() {
 
   return (
     <main style={{ padding: 32 }}>
-      {isCreator && (
+      {isLoggedIn && (
         <PageHeading
           icon={ChatIcon}
           tint="purple"
@@ -111,7 +111,7 @@ function MessagesContent() {
       <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: 20, minHeight: "calc(100vh - 180px)" }}>
       <div className="card" style={{ padding: 0, overflow: "hidden", display: "flex", flexDirection: "column" }}>
         <div style={{ padding: "14px 16px", fontWeight: 700, fontSize: 14 }}>Conversations</div>
-        {isCreator && conversations && conversations.length > 0 && (
+        {isLoggedIn && conversations && conversations.length > 0 && (
           <div style={{ padding: "0 12px 10px", position: "relative" }}>
             <SearchIcon width={14} height={14} style={{ position: "absolute", left: 22, top: "50%", transform: "translateY(-50%)", color: "var(--color-text-faint)" }} />
             <input

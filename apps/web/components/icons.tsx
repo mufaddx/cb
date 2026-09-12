@@ -373,6 +373,16 @@ export function LifeBuoyIcon(props: IconProps) {
   );
 }
 
+export function FileTextIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M7 3.5h7l4 4V19a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 19V5A1.5 1.5 0 0 1 7 3.5Z" />
+      <path d="M14 3.5V8h4.5" />
+      <path d="M9 12.5h6M9 15.5h6M9 9.5h2" />
+    </svg>
+  );
+}
+
 export function SendIcon(props: IconProps) {
   return (
     <svg {...base} {...props}>
