@@ -221,10 +221,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           overflowY: "auto",
         }}
       >
-        <Link
-          href="/dashboard"
-          style={{ display: "flex", alignItems: "center", gap: 9, padding: "4px 10px 10px", color: "var(--color-text)" }}
-        >
+        <Link href="/dashboard" className="shell-brand">
           <span
             style={{
               display: "inline-flex",
@@ -248,7 +245,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             )}
           </span>
         </Link>
-        {isLoggedIn && <div style={{ height: 16 }} />}
 
         <nav style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1 }}>
           {nav.map((item) => {

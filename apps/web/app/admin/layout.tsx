@@ -152,10 +152,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             overflowY: "auto",
           }}
         >
-          <div
-            className="admin-sidebar-title"
-            style={{ display: "flex", alignItems: "center", gap: 9, padding: "4px 10px 22px" }}
-          >
+          <div className="admin-sidebar-title shell-brand">
             <span
               style={{
                 display: "inline-flex",
