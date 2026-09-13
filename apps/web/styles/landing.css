@@ -2,12 +2,10 @@
    VIDLIX LANDING PAGE — visual system rebuilt from the 5
    reference screenshots.
 
-   Everything here is scoped under .vx-landing (set on the
-   homepage's outer <main>), so the shared MarketingHeader /
-   MarketingFooter / .card / .badge components pick up this
-   page's palette through the existing --color-* / --paper-*
-   token names without affecting any other marketing page or
-   the app/admin panels.
+   Everything here is scoped under .vx-landing (set on each marketing
+   page outer <main>), so shared components like .card and .badge pick
+   up this palette through the existing --color-* / --paper-* token
+   names without affecting the app/admin panels.
 
    MEASUREMENTS: taken off the reference exports (~1672px wide)
    and expressed fluidly so the same proportions hold from
@@ -845,16 +843,6 @@
   --vx-tile-b: #db2777;
   --vx-tile-shadow: rgba(219, 39, 119, 0.28);
 }
-/* flat-ish small square used at the top-left of the feature cards */
-.vx-chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 13px;
-  flex-shrink: 0;
-}
 
 /* ============================================================
    HOW IT WORKS  (screenshot 2)
@@ -955,39 +943,6 @@
   filter: brightness(0.97);
 }
 
-/* glass stat bar under the steps */
-.vx-glassbar {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 18px;
-  margin-top: clamp(34px, 3.4vw, 52px);
-  padding: 22px 26px;
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.62);
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  box-shadow: var(--vx-shadow-card);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-.vx-glassbar-item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-.vx-glassbar-item + .vx-glassbar-item {
-  padding-left: 18px;
-  border-left: 1px solid var(--paper-line);
-}
-.vx-glassbar-v {
-  font-size: 24px;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1.1;
-}
-.vx-glassbar-l {
-  font-size: 13.5px;
-  color: var(--paper-ink-secondary);
-}
 
 /* ============================================================
    CAMPAIGN TYPES  (screenshot 3) — two large dominant cards
@@ -1369,26 +1324,6 @@
   flex-wrap: wrap;
   margin-top: 30px;
 }
-.vx-cta-trust {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 22px;
-  flex-wrap: wrap;
-  margin-top: 32px;
-}
-.vx-cta-trust-item {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  font-size: var(--vx-small);
-  color: rgba(226, 232, 240, 0.78);
-  white-space: nowrap;
-}
-.vx-cta-trust-item + .vx-cta-trust-item {
-  padding-left: 22px;
-  border-left: 1px solid rgba(255, 255, 255, 0.14);
-}
 /* floating glass cubes (left) + mini chart card (right) */
 .vx-cta-deco {
   position: absolute;
@@ -1571,14 +1506,6 @@
   .vx-why > .vx-why-aside-cell {
     grid-column: span 2;
   }
-  .vx-glassbar {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 22px;
-  }
-  .vx-glassbar-item:nth-child(odd) {
-    padding-left: 0;
-    border-left: 0;
-  }
 }
 
 @media (max-width: 1199px) {
@@ -1652,14 +1579,6 @@
   .vx-statsband-item:nth-child(odd) {
     border-left: 0;
   }
-  .vx-glassbar {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 16px;
-  }
-  .vx-glassbar-item {
-    padding-left: 0 !important;
-    border-left: 0 !important;
-  }
   .vx-footer-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 26px 20px;
@@ -1684,13 +1603,11 @@
   .vx-ring {
     display: none;
   }
-  .vx-hero-trust-item + .vx-hero-trust-item,
-  .vx-cta-trust-item + .vx-cta-trust-item {
+  .vx-hero-trust-item + .vx-hero-trust-item {
     padding-left: 0;
     border-left: 0;
   }
-  .vx-hero-trust,
-  .vx-cta-trust {
+  .vx-hero-trust {
     gap: 14px 18px;
   }
   .vx-btn {
@@ -1826,6 +1743,139 @@
   .vx-dash-avatar {
     width: 22px;
     height: 22px;
+  }
+}
+
+/* ---------- phone refinements ----------
+   A deliberate phone layout rather than the desktop one squeezed:
+   compact nav, one-line hero badge, trust signals as three even
+   columns, a trimmed product preview (no sidebar, secondary panel or
+   floating cards) and shorter cards throughout. */
+@media (max-width: 768px) {
+  .vx-nav-inner {
+    height: 60px;
+    gap: 10px;
+  }
+  .vx-nav-logo-mark {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+  }
+  .vx-nav-logo-text {
+    font-size: 19px;
+  }
+  .vx-nav-actions {
+    gap: 8px;
+  }
+  .vx-nav-cta {
+    height: 38px;
+    padding: 0 14px;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(84, 60, 240, 0.28);
+  }
+  .vx-nav-cta .vx-btn-arrow {
+    display: none;
+  }
+  .vx-nav-toggle {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+  }
+  .vx-section {
+    padding-block: 44px;
+  }
+  .vx-hero {
+    padding-block: 28px 36px;
+  }
+  .vx-hero .vx-badge {
+    padding: 7px 12px;
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+  .vx-h1 {
+    margin-top: 16px;
+    letter-spacing: -0.03em;
+  }
+  .vx-lead {
+    margin-top: 16px;
+  }
+  .vx-hero-cta {
+    margin-top: 24px;
+  }
+  .vx-hero-trust {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 26px;
+  }
+  .vx-hero-trust-item {
+    flex-direction: column;
+    gap: 6px;
+    font-size: 12px;
+    line-height: 1.3;
+    text-align: center;
+    white-space: normal;
+  }
+  .vx-hero-visual {
+    padding: 0;
+    margin-top: 4px;
+  }
+  .vx-dash-body {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+  }
+  .vx-dash-side,
+  .vx-dash-greet-row .vx-dash-pill,
+  .vx-dash-row > .vx-dash-panel:last-child,
+  .vx-float {
+    display: none !important;
+  }
+  .vx-dash-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .vx-dash-main {
+    padding: 14px;
+  }
+  .vx-dash-chart svg {
+    height: 96px;
+  }
+  .vx-steps {
+    gap: 14px;
+  }
+  .vx-step {
+    padding: 18px;
+  }
+  .vx-step-top {
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .vx-step .vx-tile {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+  }
+  .vx-step p {
+    margin-bottom: 14px;
+  }
+  .vx-format {
+    padding: 22px;
+  }
+  .vx-why {
+    gap: 14px;
+  }
+  .vx-why-card {
+    padding: 18px;
+  }
+  .vx-why > .vx-why-aside-cell {
+    display: none;
+  }
+  .vx-cta {
+    padding: 36px 20px;
+    border-radius: 22px;
+  }
+  .vx-cta-buttons .vx-btn {
+    width: 100%;
   }
 }
 

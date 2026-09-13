@@ -3,7 +3,6 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/Button";
-import { AuthNavLink } from "@/components/AuthNavLink";
 import { CampaignPreferenceInfoModal } from "@/components/CampaignPreferenceInfoModal";
 import { FormField } from "@/components/FormField";
 import { PasswordField } from "@/components/PasswordField";
@@ -71,24 +70,28 @@ function SignupForm() {
     }
   }
 
+  // "Already have an account? Log in" is deliberately not repeated here —
+  // the auth layout's brand panel (and the top strip on mobile) already
+  // carries that prompt.
   return (
     <>
-      <h1 style={{ fontSize: 27 }}>Create your account</h1>
-      <p className="helper-text" style={{ marginBottom: 24, fontSize: 14.5 }}>
-        Start launching campaigns or accepting offers in minutes.
-      </p>
+      <h1 className="auth-title">Create your account</h1>
+      <p className="helper-text auth-subtitle">Start launching campaigns or accepting offers in minutes.</p>
 
-      <div style={{ display: "flex", gap: 12, marginBottom: 24 }}>
+      <div role="radiogroup" aria-label="Account type" style={{ display: "flex", gap: 12, marginBottom: 20 }}>
         {(["BRAND", "CREATOR"] as const).map((type) => (
           <button
             key={type}
             type="button"
+            role="radio"
+            aria-checked={accountType === type}
             onClick={() => setAccountType(type)}
             className="card"
             style={{
               flex: 1,
               textAlign: "left",
               cursor: "pointer",
+              padding: "12px 16px",
               background: accountType === type ? "var(--color-primary-soft)" : "var(--color-bg-subtle)",
               borderColor: accountType === type ? "var(--color-primary)" : undefined,
             }}
@@ -102,7 +105,7 @@ function SignupForm() {
       </div>
 
       {accountType === "CREATOR" && (
-        <div style={{ marginBottom: 24 }}>
+        <div style={{ marginBottom: 20 }}>
           <label className="label">Which campaigns do you want to do?</label>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {CAMPAIGN_PREFERENCE_OPTIONS.map((opt) => (
@@ -110,7 +113,7 @@ function SignupForm() {
                 key={opt.value}
                 className="card"
                 style={{
-                  padding: "12px 14px",
+                  padding: "10px 14px",
                   display: "flex",
                   alignItems: "center",
                   gap: 10,
@@ -153,6 +156,7 @@ function SignupForm() {
           icon={<UserIcon width={16} height={16} />}
           required
           autoComplete="name"
+          placeholder="Your full name"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
@@ -164,6 +168,7 @@ function SignupForm() {
           icon={<MailIcon width={16} height={16} />}
           required
           autoComplete="email"
+          placeholder="you@example.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -202,10 +207,6 @@ function SignupForm() {
           Create account
         </Button>
       </form>
-
-      <p style={{ marginTop: 20, fontSize: 14, color: "var(--color-text-secondary)", textAlign: "center" }}>
-        Already have an account? <AuthNavLink href="/login" style={{ fontWeight: 600 }}>Log in</AuthNavLink>
-      </p>
     </>
   );
 }

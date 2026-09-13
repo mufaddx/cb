@@ -13,11 +13,13 @@ import {
   CheckCircleIcon,
   ChatIcon,
   DownloadIcon,
+  GearIcon,
   GiftIcon,
   HandshakeIcon,
   InstagramIcon,
   MegaphoneIcon,
   TargetIcon,
+  TrendingUpIcon,
   UserIcon,
   WalletIcon,
 } from "@/components/icons";
@@ -197,6 +199,9 @@ export default function DashboardPage() {
 
   const accountType = me.brand ? "BRAND" : "CREATOR";
   const today = new Date();
+  // Local time of day, not a fixed string — this rendered "Good morning" at night.
+  const hour = today.getHours();
+  const greeting = hour >= 5 && hour < 12 ? "Good morning" : hour >= 12 && hour < 17 ? "Good afternoon" : "Good evening";
 
   const totalSpend = campaigns
     ?.filter((c) => SPENT_STATUSES.has(c.status))
@@ -218,7 +223,7 @@ export default function DashboardPage() {
       <main style={{ padding: "32px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, marginBottom: 24, flexWrap: "wrap" }}>
           <div>
-            <h1>Good morning, {me.brand?.companyName ?? me.name ?? me.email} 👋</h1>
+            <h1>{greeting}, {me.brand?.companyName ?? me.name ?? me.email} 👋</h1>
             <p className="helper-text" style={{ marginTop: -8, fontSize: 14.5 }}>Here&apos;s what&apos;s happening with your campaigns today.</p>
           </div>
           <div className="card" style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px" }}>
@@ -292,16 +297,6 @@ export default function DashboardPage() {
             )}
           </div>
 
-          <div className="card" style={{ flex: "1 1 280px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-              <span className="icon-badge icon-badge-purple" aria-hidden="true">
-                <MegaphoneIcon width={17} height={17} />
-              </span>
-              <h3 style={{ margin: 0 }}>Campaigns</h3>
-            </div>
-            <p className="helper-text" style={{ margin: "4px 0 16px" }}>Launch and manage your campaigns.</p>
-            <Button onClick={() => router.push("/campaigns")}>View campaigns</Button>
-          </div>
         </div>
 
         <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
@@ -358,7 +353,7 @@ export default function DashboardPage() {
                 { icon: MegaphoneIcon, tint: "purple" as const, title: "Create Campaign", desc: "Launch a new campaign", href: "/campaigns" },
                 { icon: UserIcon, tint: "blue" as const, title: "Find Creators", desc: "Browse top creators", href: "/creators" },
                 { icon: ChatIcon, tint: "green" as const, title: "Check Messages", desc: "View your conversations", href: "/messages" },
-                { icon: WalletIcon, tint: "amber" as const, title: "Manage Wallet", desc: "Add funds or view history", href: "/wallet" },
+                { icon: TrendingUpIcon, tint: "amber" as const, title: "View Analytics", desc: "Track campaign performance", href: "/analytics" },
               ].map((a) => (
                 <Link
                   key={a.href}
@@ -384,7 +379,7 @@ export default function DashboardPage() {
     <main style={{ padding: "32px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, marginBottom: 24, flexWrap: "wrap" }}>
         <div>
-          <h1>Good morning, {me.creator?.displayName ?? me.name ?? me.email} 👋</h1>
+          <h1>{greeting}, {me.creator?.displayName ?? me.name ?? me.email} 👋</h1>
           <p className="helper-text" style={{ marginTop: -8, fontSize: 14.5 }}>Ready to create something amazing today?</p>
         </div>
         <div className="card" style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px" }}>
@@ -527,9 +522,9 @@ export default function DashboardPage() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             {[
               { icon: UserIcon, tint: "purple" as const, title: "Complete Profile", desc: "Get matched faster", href: "/profile" },
-              { icon: TargetIcon, tint: "amber" as const, title: "Browse Offers", desc: "Find brand deals", href: "/offers" },
+              { icon: HandshakeIcon, tint: "amber" as const, title: "My Deals", desc: "Track accepted deals", href: "/deals" },
               { icon: ChatIcon, tint: "blue" as const, title: "Check Messages", desc: "View conversations", href: "/messages" },
-              { icon: WalletIcon, tint: "green" as const, title: "Manage Wallet", desc: "Add funds or withdraw", href: "/wallet" },
+              { icon: GearIcon, tint: "green" as const, title: "Settings", desc: "Account & preferences", href: "/settings" },
             ].map((a) => (
               <Link
                 key={a.href}

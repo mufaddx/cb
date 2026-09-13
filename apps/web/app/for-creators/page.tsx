@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { MarketingHeader } from "../../components/MarketingHeader";
-import { MarketingFooter } from "../../components/MarketingFooter";
+import { LandingNav } from "../../components/landing/LandingNav";
+import { LandingFooter } from "../../components/landing/LandingFooter";
 
 export const metadata: Metadata = {
   title: "For Creators",
@@ -22,8 +22,8 @@ const points = [
 
 export default function ForCreatorsPage() {
   return (
-    <main className="paper-page">
-      <MarketingHeader />
+    <main className="vx-landing">
+      <LandingNav />
       <section className="container" style={{ padding: "64px 24px 40px", maxWidth: 920 }}>
         <span className="eyebrow" style={{ marginBottom: 16 }}>For Creators</span>
         <h1 style={{ marginTop: 12, maxWidth: 620 }}>Get matched. Get paid. Get verified.</h1>
@@ -70,7 +70,7 @@ export default function ForCreatorsPage() {
           Join as a Creator →
         </a>
       </section>
-      <MarketingFooter />
+      <LandingFooter />
     </main>
   );
 }

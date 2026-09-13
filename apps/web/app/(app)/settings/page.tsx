@@ -76,6 +76,12 @@ function ComingSoon({ text }: { text: string }) {
 export default function SettingsPage() {
   const confirm = useConfirm();
   const [tab, setTab] = useState<TabKey>("account");
+
+  // Deep link, e.g. the sidebar's "Need help?" card → /settings?tab=help.
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("tab");
+    if (requested && TABS.some((t) => t.key === requested)) setTab(requested as TabKey);
+  }, []);
   const [me, setMe] = useState<Me | null>(null);
   const [instagram, setInstagram] = useState<InstagramStatus | null>(null);
   const [name, setName] = useState("");

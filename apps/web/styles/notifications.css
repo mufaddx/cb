@@ -1,0 +1,234 @@
+/* Notification drawer (NotificationBell) + the full /notifications page.
+   Reads the shared --color-* / --paper-* tokens, and the drawer is
+   portalled into .app-shell / .admin-shell, so it follows the current
+   panel's accent color. */
+
+.notif-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+}
+.notif-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.32);
+  animation: notif-fade 0.18s ease both;
+}
+.notif-drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(400px, 100vw);
+  display: flex;
+  flex-direction: column;
+  background: var(--paper-elevated, #fff);
+  border-left: 1px solid var(--paper-line-strong);
+  box-shadow: -18px 0 48px rgba(15, 23, 42, 0.14);
+  animation: notif-slide 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.notif-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 20px 14px;
+  border-bottom: 1px solid var(--paper-line);
+}
+.notif-heading {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+}
+.notif-sub {
+  margin: 3px 0 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+.notif-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  border: 1px solid var(--paper-line-strong);
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+}
+.notif-close:hover {
+  background: var(--color-bg-subtle);
+}
+.notif-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--paper-line);
+}
+.notif-tabs {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--paper-line);
+}
+.notif-tab {
+  border: 0;
+  background: transparent;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+.notif-tab.is-active {
+  background: var(--paper-elevated, #fff);
+  color: var(--color-text);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1);
+}
+.notif-link-btn {
+  border: 0;
+  background: none;
+  padding: 6px 0;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary);
+  cursor: pointer;
+}
+.notif-list {
+  flex: 1;
+  overflow-y: auto;
+}
+.notif-item {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 20px;
+  border: 0;
+  border-bottom: 1px solid var(--paper-line);
+  background: transparent;
+  text-align: left;
+  font: inherit;
+  color: var(--color-text);
+  cursor: pointer;
+}
+.notif-item:last-child {
+  border-bottom: 0;
+}
+.notif-item:hover {
+  background: var(--color-bg-subtle);
+}
+.notif-item.is-unread {
+  background: var(--color-primary-soft);
+}
+.notif-dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: transparent;
+}
+.notif-item.is-unread .notif-dot {
+  background: var(--color-primary);
+}
+.notif-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 650;
+}
+.notif-body {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+.notif-time {
+  display: block;
+  margin-top: 5px;
+  font-size: 12px;
+  color: var(--color-text-faint);
+}
+.notif-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 48px 24px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+.notif-empty strong {
+  font-size: 14.5px;
+  color: var(--color-text);
+}
+.notif-empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 6px;
+  border-radius: 14px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+.notif-foot {
+  padding: 12px 20px;
+  border-top: 1px solid var(--paper-line);
+}
+.notif-all {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid var(--paper-line-strong);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+.notif-all:hover {
+  background: var(--color-bg-subtle);
+}
+.notif-page-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+@keyframes notif-slide {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes notif-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .notif-drawer,
+  .notif-backdrop {
+    animation: none;
+  }
+}

@@ -13,6 +13,7 @@ import {
   HandshakeIcon,
   HomeIcon,
   InstagramIcon,
+  LifeBuoyIcon,
   LogOutIcon,
   MegaphoneIcon,
   MenuIcon,
@@ -51,7 +52,8 @@ const CREATOR_NAV = [
   { href: "/settings", label: "Settings", icon: GearIcon },
 ];
 
-const MARKETING_URL = process.env.NEXT_PUBLIC_MARKETING_URL || "https://vidlix.in";
+// Routes reachable outside the sidebar nav that still need a header title.
+const EXTRA_PAGE_TITLES: Record<string, string> = { "/notifications": "Notifications" };
 
 interface Me {
   email: string;
@@ -137,7 +139,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const nav = accountType === "BRAND" ? BRAND_NAV : accountType === "CREATOR" ? CREATOR_NAV : [];
   const displayName = me?.brand?.companyName ?? me?.creator?.displayName ?? me?.name ?? me?.email ?? "";
   const initial = displayName ? displayName.trim().charAt(0).toUpperCase() : "";
-  const pageTitle = nav.find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))?.label ?? "";
+  const pageTitle = nav.find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))?.label ?? EXTRA_PAGE_TITLES[pathname] ?? "";
 
   // A real (if modest) count — how many offers are actually waiting on
   // this creator — rather than a placeholder number. Not polled as
@@ -199,7 +201,6 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const isCreator = accountType === "CREATOR";
   const isLoggedIn = accountType !== null;
-  const proCardHref = isCreator ? `${MARKETING_URL}/for-creators` : `${MARKETING_URL}/for-brands`;
 
   return (
     <PageHeaderExtraContext.Provider value={setHeaderExtra}>
@@ -298,11 +299,12 @@ export function AppShell({ children }: { children: ReactNode }) {
           })}
         </nav>
 
+        {/* Points at the real support-ticket flow. The previous "Grow with
+            Vidlix, see tips" card promised tips that did not exist and
+            only opened the marketing site. */}
         {isLoggedIn && (
-          <a
-            href={proCardHref}
-            target="_blank"
-            rel="noreferrer"
+          <Link
+            href="/settings?tab=help"
             className="paper-modal"
             style={{ display: "block", padding: 14, marginBottom: 14, textDecoration: "none", color: "var(--color-text)" }}
           >
@@ -314,20 +316,20 @@ export function AppShell({ children }: { children: ReactNode }) {
                 width: 26,
                 height: 26,
                 borderRadius: 8,
-                background: "var(--tint-amber-bg)",
-                color: "var(--tint-amber-fg)",
+                background: "var(--color-primary-soft)",
+                color: "var(--color-primary)",
                 marginBottom: 8,
               }}
               aria-hidden="true"
             >
-              <SparkIcon width={14} height={14} />
+              <LifeBuoyIcon width={14} height={14} />
             </span>
-            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 2 }}>Grow with Vidlix</div>
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 2 }}>Need help?</div>
             <div style={{ fontSize: 11.5, color: "var(--color-text-secondary)", marginBottom: 8 }}>
-              {isCreator ? "See tips for landing more brand deals." : "See tips for running better campaigns."}
+              Raise a support ticket and track replies from our team.
             </div>
-            <span style={{ fontSize: 12, fontWeight: 700, color: "var(--color-primary)" }}>Learn more →</span>
-          </a>
+            <span style={{ fontSize: 12, fontWeight: 700, color: "var(--color-primary)" }}>Contact support →</span>
+          </Link>
         )}
 
         <div
@@ -484,7 +486,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
             {headerExtra}
-            {accountType && <NotificationBell />}
+            {accountType && <NotificationBell allHref="/notifications" />}
             {isLoggedIn && <AccountMenu initial={initial} settingsHref="/settings" />}
           </div>
         </div>

@@ -44,12 +44,12 @@ export default function LoginPage() {
     }
   }
 
+  // "New to Vidlix? Create an account" lives in the auth layout's brand
+  // panel (top strip on mobile) — not repeated under the form.
   return (
     <>
-      <h1 style={{ fontSize: 27 }}>Welcome back</h1>
-      <p className="helper-text" style={{ marginBottom: 28, fontSize: 14.5 }}>
-        Log in to your Vidlix account.
-      </p>
+      <h1 className="auth-title">Welcome back</h1>
+      <p className="helper-text auth-subtitle">Log in to your Vidlix account.</p>
 
       <form onSubmit={handleSubmit} noValidate>
         <FormField
@@ -59,6 +59,7 @@ export default function LoginPage() {
           icon={<MailIcon width={16} height={16} />}
           required
           autoComplete="email"
+          placeholder="you@example.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -72,7 +73,7 @@ export default function LoginPage() {
         />
 
         <div style={{ textAlign: "right", marginBottom: 20 }}>
-          <AuthNavLink href="/forgot-password" style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>
+          <AuthNavLink href="/forgot-password" style={{ fontSize: 13.5, fontWeight: 600 }}>
             Forgot password?
           </AuthNavLink>
         </div>
@@ -87,10 +88,6 @@ export default function LoginPage() {
           Log in
         </Button>
       </form>
-
-      <p style={{ marginTop: 20, fontSize: 14, color: "var(--color-text-secondary)", textAlign: "center" }}>
-        Don&apos;t have an account? <AuthNavLink href="/signup" style={{ fontWeight: 600 }}>Create one</AuthNavLink>
-      </p>
     </>
   );
 }

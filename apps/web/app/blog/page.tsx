@@ -1,5 +1,5 @@
-import { MarketingHeader } from "../../components/MarketingHeader";
-import { MarketingFooter } from "../../components/MarketingFooter";
+import { LandingNav } from "../../components/landing/LandingNav";
+import { LandingFooter } from "../../components/landing/LandingFooter";
 
 import type { Metadata } from "next";
 
@@ -11,8 +11,8 @@ export const metadata: Metadata = {
 
 export default function BlogPage() {
   return (
-    <main className="paper-page">
-      <MarketingHeader />
+    <main className="vx-landing">
+      <LandingNav />
       <section className="container" style={{ padding: "64px 24px 96px", maxWidth: 720 }}>
         <span className="eyebrow" style={{ marginBottom: 16 }}>Blog</span>
         <h1 style={{ marginTop: 12 }}>Notes on running creator campaigns.</h1>
@@ -24,7 +24,7 @@ export default function BlogPage() {
           <p className="helper-text" style={{ margin: 0 }}>Check back soon, or follow us on social for updates in the meantime.</p>
         </div>
       </section>
-      <MarketingFooter />
+      <LandingFooter />
     </main>
   );
 }

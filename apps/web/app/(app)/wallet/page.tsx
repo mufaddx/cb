@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/Button";
 import { PageHeading } from "@/components/PageHeading";
 import { StatCard } from "@/components/StatCard";
-import { DownloadIcon, LifeBuoyIcon, RefreshIcon, ShieldIcon, TrendingUpIcon, WalletIcon as WalletBadgeIcon } from "@/components/icons";
+import { CheckCircleIcon, DownloadIcon, LockIcon, RefreshIcon, ShieldIcon, TrendingUpIcon, WalletIcon as WalletBadgeIcon } from "@/components/icons";
 import { apiFetch, ApiClientError } from "@/lib/apiClient";
 import { completeCheckout, type CheckoutPayload } from "@/lib/payments";
 import { useConfirm } from "@/lib/useConfirm";
@@ -247,19 +247,6 @@ export default function WalletPage() {
                 ? "Manage your balance, withdrawals and transaction history."
                 : "Manage your funds, track transactions and power your campaigns."
             }
-            action={
-              <div className="card" style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px" }}>
-                <span className="icon-badge icon-badge-blue" aria-hidden="true">
-                  <ShieldIcon width={16} height={16} />
-                </span>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 13 }}>{isCreator ? "Secure & Fast Payments" : "Secure & Reliable Payments"}</div>
-                  <div className="helper-text" style={{ fontSize: 11.5 }}>
-                    {isCreator ? "Your earnings are safe with bank-grade security." : "Your transactions are safe and encrypted."}
-                  </div>
-                </div>
-              </div>
-            }
           />
         )}
         {isLoggedIn && (
@@ -418,48 +405,43 @@ export default function WalletPage() {
               <>
                 <h3 style={{ marginTop: 0, marginBottom: 4 }}>Wallet Information</h3>
                 <p className="helper-text" style={{ marginBottom: 20 }}>Everything you need to know about your earnings and withdrawals.</p>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
-                  <div style={{ display: "flex", gap: 10 }}>
-                    <span className="icon-badge icon-badge-green" aria-hidden="true"><ShieldIcon width={16} height={16} /></span>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: 13.5 }}>Secure Payments</div>
-                      <div className="helper-text" style={{ fontSize: 12.5 }}>Your money is protected with bank-grade security.</div>
+                {/* Each point in its own bordered box. "Need help?" lives in the
+                    sidebar support card, so this row covers payouts instead. */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
+                  {[
+                    { icon: ShieldIcon, tint: "green", title: "Secure Payments", text: "Your money is protected with bank-grade security." },
+                    { icon: RefreshIcon, tint: "blue", title: "Reviewed Withdrawals", text: "Every withdrawal is checked and paid out by our team." },
+                    { icon: WalletBadgeIcon, tint: "purple", title: "UPI Payouts", text: "Money is sent straight to your verified UPI ID." },
+                  ].map((item) => (
+                    <div key={item.title} className="wallet-info-box">
+                      <span className={`icon-badge icon-badge-${item.tint}`} aria-hidden="true"><item.icon width={16} height={16} /></span>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 13.5 }}>{item.title}</div>
+                        <div className="helper-text" style={{ fontSize: 12.5, marginTop: 2 }}>{item.text}</div>
+                      </div>
                     </div>
-                  </div>
-                  <div style={{ display: "flex", gap: 10 }}>
-                    <span className="icon-badge icon-badge-blue" aria-hidden="true"><RefreshIcon width={16} height={16} /></span>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: 13.5 }}>Fast Withdrawals</div>
-                      <div className="helper-text" style={{ fontSize: 12.5 }}>Withdrawals are reviewed and paid out by our team.</div>
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", gap: 10 }}>
-                    <span className="icon-badge icon-badge-purple" aria-hidden="true"><LifeBuoyIcon width={16} height={16} /></span>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: 13.5 }}>Need Help?</div>
-                      <div className="helper-text" style={{ fontSize: 12.5 }}>Contact our support team for any wallet related queries.</div>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </>
             ) : (
               <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
                 <span className="icon-badge icon-badge-blue" aria-hidden="true"><ShieldIcon width={18} height={18} /></span>
-                <div style={{ flex: 1, minWidth: 220 }}>
+                <div style={{ flex: "1 1 280px", minWidth: 0 }}>
                   <h3 style={{ margin: "0 0 4px" }}>Secure &amp; Reliable Payments</h3>
                   <p className="helper-text" style={{ margin: 0 }}>
                     Your transactions are safe and encrypted. Add funds to create campaigns, collaborate with creators, and grow your brand on Vidlix.
                   </p>
                 </div>
-                <div style={{ display: "flex", gap: 24 }}>
+                {/* Each point in its own bordered box (these were bare icon + label pairs). */}
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                   {[
-                    { icon: ShieldIcon, label: "Secure Payments" },
-                    { icon: TrendingUpIcon, label: "Trusted Platform" },
-                    { icon: LifeBuoyIcon, label: "Your Data is Safe" },
+                    { icon: CheckCircleIcon, label: "Verified Deposits" },
+                    { icon: ShieldIcon, label: "Trusted Platform" },
+                    { icon: LockIcon, label: "Your Data is Safe" },
                   ].map((item) => (
-                    <div key={item.label} style={{ textAlign: "center" }}>
-                      <item.icon width={18} height={18} style={{ color: "var(--color-text-secondary)", marginBottom: 4 }} />
-                      <div className="helper-text" style={{ fontSize: 11.5 }}>{item.label}</div>
+                    <div key={item.label} className="wallet-info-box wallet-info-box-compact">
+                      <item.icon width={18} height={18} style={{ color: "var(--color-primary)" }} />
+                      <div style={{ fontSize: 12.5, fontWeight: 600 }}>{item.label}</div>
                     </div>
                   ))}
                 </div>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { MarketingHeader } from "../../components/MarketingHeader";
-import { MarketingFooter } from "../../components/MarketingFooter";
+import { LandingNav } from "../../components/landing/LandingNav";
+import { LandingFooter } from "../../components/landing/LandingFooter";
 
 export const metadata: Metadata = {
   title: "About",
@@ -11,8 +11,8 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <main className="paper-page">
-      <MarketingHeader />
+    <main className="vx-landing">
+      <LandingNav />
       <section className="container" style={{ padding: "64px 24px 72px", maxWidth: 720 }}>
         <span className="eyebrow" style={{ marginBottom: 18 }}>About Vidlix</span>
         <h1 style={{ marginTop: 4 }}>Built for the campaign, not the spreadsheet.</h1>
@@ -23,7 +23,7 @@ export default function AboutPage() {
           itself from brief to payout.
         </p>
       </section>
-      <MarketingFooter />
+      <LandingFooter />
     </main>
   );
 }

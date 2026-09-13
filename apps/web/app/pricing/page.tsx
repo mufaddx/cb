@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { MarketingHeader } from "../../components/MarketingHeader";
-import { MarketingFooter } from "../../components/MarketingFooter";
+import { LandingNav } from "../../components/landing/LandingNav";
+import { LandingFooter } from "../../components/landing/LandingFooter";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -19,8 +19,8 @@ const BREAKDOWN = [
 
 export default function PricingPage() {
   return (
-    <main className="paper-page">
-      <MarketingHeader />
+    <main className="vx-landing">
+      <LandingNav />
       <section className="container" style={{ padding: "64px 24px 96px", maxWidth: 800 }}>
         <span className="eyebrow" style={{ marginBottom: 16 }}>Pricing</span>
         <h1 style={{ marginTop: 12, maxWidth: 640 }}>One transparent breakdown, every time you pay.</h1>
@@ -83,7 +83,7 @@ export default function PricingPage() {
           </a>
         </div>
       </section>
-      <MarketingFooter />
+      <LandingFooter />
     </main>
   );
 }

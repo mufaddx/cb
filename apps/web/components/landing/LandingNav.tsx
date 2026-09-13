@@ -2,6 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+// Every marketing page renders this nav, so the landing design system
+// is loaded once here rather than imported page by page.
+import "../../styles/landing.css";
 import { ArrowRightIcon, MenuIcon, SparkIcon, CloseIcon } from "../icons";
 
 // Login/signup live on the app domain (see middleware.ts), so they need
@@ -17,9 +20,8 @@ const NAV = [
   { href: "/faq", label: "FAQ" },
 ];
 
-/** Landing-page navbar (styled by .vx-nav in landing.css). Kept separate
- * from the shared MarketingHeader so the rest of the marketing pages
- * keep their current look until they get the same treatment. */
+/** Navbar for every marketing page (styled by .vx-nav in landing.css),
+ * with a real mobile menu below 769px. */
 export function LandingNav() {
   const [open, setOpen] = useState(false);
 

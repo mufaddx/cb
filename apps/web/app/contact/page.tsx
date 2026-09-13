@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { MarketingHeader } from "../../components/MarketingHeader";
-import { MarketingFooter } from "../../components/MarketingFooter";
+import { LandingNav } from "../../components/landing/LandingNav";
+import { LandingFooter } from "../../components/landing/LandingFooter";
 import { HandshakeIcon, MegaphoneIcon } from "../../components/icons";
 
 export const metadata: Metadata = {
@@ -13,8 +13,8 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "";
 
 export default function ContactPage() {
   return (
-    <main className="paper-page">
-      <MarketingHeader />
+    <main className="vx-landing">
+      <LandingNav />
       <section className="container" style={{ padding: "64px 24px 96px", maxWidth: 760 }}>
         <span className="eyebrow" style={{ marginBottom: 16 }}>Contact</span>
         <h1 style={{ marginTop: 12, maxWidth: 560 }}>The fastest way to reach us depends on where you are.</h1>
@@ -75,7 +75,7 @@ export default function ContactPage() {
           </div>
         </div>
       </section>
-      <MarketingFooter />
+      <LandingFooter />
     </main>
   );
 }

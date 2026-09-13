@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { MarketingHeader } from "../../components/MarketingHeader";
-import { MarketingFooter } from "../../components/MarketingFooter";
+import { LandingNav } from "../../components/landing/LandingNav";
+import { LandingFooter } from "../../components/landing/LandingFooter";
 
 const FAQS = [
   {
@@ -35,8 +35,8 @@ export default function FaqContent() {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <main className="paper-page">
-      <MarketingHeader />
+    <main className="vx-landing">
+      <LandingNav />
       <section className="container" style={{ padding: "64px 24px 96px", maxWidth: 760 }}>
         <span className="eyebrow" style={{ marginBottom: 16 }}>FAQ</span>
         <h1 style={{ marginTop: 12 }}>Frequently asked questions</h1>
@@ -80,7 +80,7 @@ export default function FaqContent() {
           })}
         </div>
       </section>
-      <MarketingFooter />
+      <LandingFooter />
     </main>
   );
 }

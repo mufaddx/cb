@@ -1,12 +1,10 @@
 import type { SVGProps } from "react";
-import "../styles/landing.css";
 import { LandingFooter } from "../components/landing/LandingFooter";
 import { LandingNav } from "../components/landing/LandingNav";
 import { RevealOnScroll } from "../components/RevealOnScroll";
 import {
   ArrowRightIcon,
   BarChartIcon,
-  BoltIcon,
   CalendarIcon,
   ChatIcon,
   CheckCircleIcon,
@@ -49,7 +47,9 @@ const TINT: Record<Tint, { bg: string; fg: string }> = {
   pink: { bg: "var(--vx-t-pink)", fg: "var(--vx-t-pink-fg)" },
 };
 
-/* ---------------- content (copy unchanged from the existing page) ---------------- */
+/* ---------------- content ----------------
+   Each message appears once on the page: the stats live only in the
+   band under the hero, the trust signals only under the hero CTAs. */
 
 const heroTrust: Array<{ icon: Icon; label: string }> = [
   { icon: ShieldIcon, label: "Secure Payments" },
@@ -58,10 +58,10 @@ const heroTrust: Array<{ icon: Icon; label: string }> = [
 ];
 
 const stats = [
-  { value: "2+", label: "Campaign formats", icon: UsersIcon, tint: "purple" as Tint },
-  { value: "100%", label: "Tracked to payout", icon: BoltIcon, tint: "blue" as Tint },
-  { value: "0", label: "Spreadsheets required", icon: ShieldIcon, tint: "purple" as Tint },
-  { value: "10x", label: "Faster campaign launch", icon: BarChartIcon, tint: "purple" as Tint },
+  { value: "2+", label: "Campaign formats" },
+  { value: "100%", label: "Tracked to payout" },
+  { value: "0", label: "Spreadsheets required" },
+  { value: "10x", label: "Faster campaign launch" },
 ];
 
 const steps: Array<{ title: string; description: string; icon: Icon; tint: Tint; link: string; href: string }> = [
@@ -78,7 +78,7 @@ const steps: Array<{ title: string; description: string; icon: Icon; tint: Tint;
     description: "Admin reviews the campaign; the brand pays, and funds are reserved.",
     icon: SearchIcon,
     tint: "blue",
-    link: "Secure & track",
+    link: "See pricing",
     href: "/pricing",
   },
   {
@@ -94,7 +94,7 @@ const steps: Array<{ title: string; description: string; icon: Icon; tint: Tint;
     description: "Creators accept, post or ship, and submit proof of delivery.",
     icon: PackageIcon,
     tint: "amber",
-    link: "Track in real-time",
+    link: "See the full flow",
     href: "/how-it-works",
   },
   {
@@ -102,7 +102,7 @@ const steps: Array<{ title: string; description: string; icon: Icon; tint: Tint;
     description: "Content and retention are verified before payout is released.",
     icon: WalletIcon,
     tint: "pink",
-    link: "Get paid securely",
+    link: "Join as a creator",
     href: "/for-creators",
   },
 ];
@@ -125,7 +125,7 @@ const benefits: Array<{ icon: Icon; tint: Tint; bg: string; title: string; descr
     title: "Real Instagram data",
     description:
       "Follower count and average reach come from the creator's own connected Instagram account, not a number they typed in.",
-    link: "See how it works",
+    link: "For creators",
     href: "/for-creators",
   },
   {
@@ -135,7 +135,7 @@ const benefits: Array<{ icon: Icon; tint: Tint; bg: string; title: string; descr
     title: "Category-matched targeting",
     description:
       "Target by follower count or reach and by content category — only creators who actually fit both are ever offered the campaign.",
-    link: "Explore categories",
+    link: "For brands",
     href: "/for-brands",
   },
   {
@@ -155,8 +155,8 @@ const benefits: Array<{ icon: Icon; tint: Tint; bg: string; title: string; descr
     title: "Retention enforced automatically",
     description:
       "Campaigns that require a post to stay live for a set window have that checked on a schedule — no manual follow-up needed.",
-    link: "See retention rules",
-    href: "/how-it-works",
+    link: "Read the FAQ",
+    href: "/faq",
   },
   {
     icon: WalletIcon,
@@ -228,8 +228,8 @@ function DashboardMockup() {
 
         <div className="vx-dash-main">
           <div className="vx-dash-greet-row">
-            <div>
-              <div className="vx-dash-greet-sm">Good morning,</div>
+            <div style={{ minWidth: 0 }}>
+              <div className="vx-dash-greet-sm">Welcome back,</div>
               <div className="vx-dash-greet-lg">Your campaign is performing great! 🔥</div>
             </div>
             <span className="vx-dash-pill">
@@ -324,7 +324,7 @@ export default function HomePage() {
     <main className="vx-landing">
       <LandingNav />
 
-      {/* ===================== HERO (screenshot 1) ===================== */}
+      {/* ===================== HERO ===================== */}
       <section className="vx-hero">
         <div className="vx-container vx-hero-grid">
           <div className="vx-hero-copy">
@@ -424,7 +424,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ===================== HOW IT WORKS (screenshot 2) ===================== */}
+      {/* ===================== HOW IT WORKS ===================== */}
       <section className="vx-section">
         <div className="vx-container-wide" style={{ position: "relative" }}>
           <div className="vx-script" aria-hidden="true" style={{ left: "6%", top: 0, transform: "rotate(-12deg)" }}>
@@ -432,9 +432,6 @@ export default function HomePage() {
             <span style={{ display: "block", marginLeft: 50 }}>
               <CurvedArrow width={38} />
             </span>
-          </div>
-          <div className="vx-script" aria-hidden="true" style={{ right: "6%", top: 0, transform: "rotate(-10deg)" }}>
-            {"More Creators\nBigger Stories"}
           </div>
 
           <RevealOnScroll>
@@ -471,26 +468,10 @@ export default function HomePage() {
               </RevealOnScroll>
             ))}
           </div>
-
-          <RevealOnScroll>
-            <div className="vx-glassbar" style={{ position: "relative" }}>
-              {stats.map((s) => (
-                <div key={s.label} className="vx-glassbar-item">
-                  <span className="vx-chip" style={{ width: 48, height: 48, borderRadius: "50%", background: TINT[s.tint].bg, color: TINT[s.tint].fg }}>
-                    <s.icon width={22} height={22} />
-                  </span>
-                  <div>
-                    <div className="vx-glassbar-v">{s.value}</div>
-                    <div className="vx-glassbar-l">{s.label}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </RevealOnScroll>
         </div>
       </section>
 
-      {/* ===================== CAMPAIGN TYPES (screenshot 3) ===================== */}
+      {/* ===================== CAMPAIGN TYPES ===================== */}
       <section id="campaign-types" className="vx-section" style={{ paddingTop: 20 }}>
         <div className="vx-container" style={{ position: "relative" }}>
           <div className="vx-script" aria-hidden="true" style={{ right: "4%", top: 20, transform: "rotate(-10deg)" }}>
@@ -520,7 +501,7 @@ export default function HomePage() {
                   <h3>Clipping</h3>
                   <p>Creators re-cut and post brand-supplied video for reach, under defined usage rights.</p>
                   <div className="vx-checks">
-                    {["Brand footage", "Clear guidelines", "Track performance"].map((c) => (
+                    {["Brand footage", "Clear guidelines", "Performance tracking"].map((c) => (
                       <span key={c} className="vx-check">
                         <span style={{ background: "#7c3aed" }}>
                           <CheckIcon width={10} height={10} strokeWidth={3} />
@@ -560,7 +541,7 @@ export default function HomePage() {
                     approval built in.
                   </p>
                   <div className="vx-checks">
-                    {["Original content", "Revisions & approval", "Built-in tracking"].map((c) => (
+                    {["Original content", "Revisions & approval", "Product reviews"].map((c) => (
                       <span key={c} className="vx-check">
                         <span style={{ background: "#3b82f6" }}>
                           <CheckIcon width={10} height={10} strokeWidth={3} />
@@ -600,7 +581,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===================== WHY VIDLIX (screenshot 4) ===================== */}
+      {/* ===================== WHY VIDLIX ===================== */}
       <section className="vx-section" style={{ paddingTop: 20 }}>
         <div className="vx-container" style={{ position: "relative" }}>
           <div className="vx-script" aria-hidden="true" style={{ left: "1%", top: 14, transform: "rotate(-10deg)" }}>
@@ -627,14 +608,9 @@ export default function HomePage() {
             {benefits.map((b, i) => (
               <RevealOnScroll key={b.title} delayMs={i * 60}>
                 <a href={b.href} className="vx-why-card" style={{ height: "100%", ["--vx-card-bg" as string]: b.bg, color: "inherit" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
-                    <span className="vx-chip" style={{ background: TINT[b.tint].bg, color: TINT[b.tint].fg }}>
-                      <b.icon width={20} height={20} />
-                    </span>
-                    <span className={`vx-tile vx-tile-${b.tint}`} style={{ width: 74, height: 74, borderRadius: 22 }}>
-                      <b.icon width={32} height={32} strokeWidth={2} />
-                    </span>
-                  </div>
+                  <span className={`vx-tile vx-tile-${b.tint}`} style={{ width: 64, height: 64, borderRadius: 20 }}>
+                    <b.icon width={28} height={28} strokeWidth={2} />
+                  </span>
                   <h3>{b.title}</h3>
                   <p>{b.description}</p>
                   <div className="vx-why-foot" style={{ color: TINT[b.tint].fg }}>
@@ -665,7 +641,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===================== FINAL CTA (screenshot 5) ===================== */}
+      {/* ===================== FINAL CTA ===================== */}
       <section className="vx-cta-wrap">
         <div className="vx-container-wide">
           <RevealOnScroll>
@@ -726,18 +702,6 @@ export default function HomePage() {
                       <ArrowRightIcon width={13} height={13} />
                     </span>
                   </a>
-                </div>
-                <div className="vx-cta-trust">
-                  {[
-                    { icon: ShieldIcon, label: "Secure & Verified" },
-                    { icon: BarChartIcon, label: "Track in Real-time" },
-                    { icon: BoltIcon, label: "Get Paid Securely" },
-                  ].map((t) => (
-                    <div key={t.label} className="vx-cta-trust-item">
-                      <t.icon width={17} height={17} />
-                      {t.label}
-                    </div>
-                  ))}
                 </div>
               </div>
             </div>

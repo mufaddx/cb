@@ -16,12 +16,9 @@ interface Offer {
   campaign: { title: string; type: string; retentionDays: number; code: string; disclosureRequired: boolean };
 }
 
+// "How do I receive offers?" isn't asked here — the empty state's own
+// description directly above already answers exactly that.
 const FAQ_ITEMS = [
-  {
-    icon: SearchIcon,
-    q: "How do I receive offers?",
-    a: "Complete your profile and connect your Instagram to get started.",
-  },
   {
     icon: LinkIcon,
     q: "Do I need to connect Instagram?",

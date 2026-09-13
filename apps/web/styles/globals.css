@@ -161,20 +161,6 @@ body {
   background-image: var(--paper-grain);
   background-repeat: repeat;
 }
-.paper-page {
-  --paper-bg: #f4f0e6;
-  --paper-panel: #eee8da;
-  --paper-surface: #fbf9f3;
-  --paper-elevated: #fdfcf8;
-  --paper-ink: #23201a;
-  --paper-ink-secondary: #6e6759;
-  --paper-ink-faint: #9c9484;
-  --paper-line: #e2dbc9;
-  --paper-line-strong: #d2c9b2;
-  background-color: var(--paper-bg);
-  background-image: var(--paper-grain);
-  background-repeat: repeat;
-}
 /* .app-content/.admin-content are opaque, full-viewport elements
    sitting beside a fixed sidebar — they'd otherwise hide body's own
    canvas entirely rather than sharing it, so they get the identical
@@ -249,6 +235,7 @@ body {
    3D depth rather than a flat skew. */
 .auth-card {
   position: relative;
+  display: flex;
   width: min(920px, 100%);
   min-height: 600px;
   border-radius: 24px;
@@ -337,9 +324,10 @@ body {
   background: rgba(255, 255, 255, 0.24);
 }
 
+/* In normal flow (only the brand panel is absolutely positioned), so the
+   card grows with the form instead of scrolling inside a fixed height. */
 .auth-form-side {
-  position: absolute;
-  inset: 0;
+  position: relative;
   left: 50%;
   width: 50%;
   z-index: 1;
@@ -353,12 +341,15 @@ body {
 }
 
 .auth-back-link {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 32px;
   height: 32px;
-  margin: 20px 0 0 20px;
   border-radius: 8px;
   color: var(--color-text-secondary);
   background: var(--color-bg-subtle);
@@ -370,9 +361,17 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 12px 44px 44px;
-  overflow-y: auto;
+  padding: 56px 44px 36px;
   view-transition-name: auth-form;
+}
+.auth-title {
+  margin: 0 0 6px;
+  font-size: 26px;
+  letter-spacing: -0.02em;
+}
+.auth-subtitle {
+  margin: 0 0 20px;
+  font-size: 14.5px;
 }
 
 /* The actual morph between two different mounted pages (Login’s DOM
@@ -820,43 +819,7 @@ a {
   }
 }
 
-/* Hover/press/focus for the inline-styled "Get Started" CTA in the
-   shared MarketingHeader (every marketing page except the homepage,
-   which has its own .vx-btn system in landing.css). */
-.hero-cta-btn {
-  display: inline-flex;
-  align-items: center;
-  transition: transform var(--duration-fast) ease, box-shadow var(--duration-fast) ease, opacity var(--duration-fast) ease;
-}
-.hero-cta-btn:hover {
-  transform: translateY(-2px);
-}
-.hero-cta-btn:active {
-  transform: translateY(0);
-}
-.hero-cta-btn:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-.hero-cta-btn--primary:hover {
-  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(0, 0, 0, 0.02);
-  opacity: 0.94;
-}
 
-/* Footer links/social icons had no hover feedback either. */
-.footer-link {
-  transition: color var(--duration-fast) ease;
-}
-.footer-link:hover {
-  color: var(--color-text) !important;
-}
-.footer-social-link {
-  transition: background-color var(--duration-fast) ease, color var(--duration-fast) ease;
-}
-.footer-social-link:hover {
-  background: var(--color-primary-soft) !important;
-  color: var(--color-primary) !important;
-}
 
 /* Cards throughout the marketing page already lift on hover
    (.card-interactive) but stayed shadowless the whole time — the lift
@@ -894,10 +857,10 @@ a {
   .mobile-only {
     display: flex;
   }
-  /* Reserve space so page content doesn't end up hidden behind the
-     fixed bottom nav (spec §66) — applied to every page rather than
-     per-page so no page has to remember to add it. */
-  body {
+  /* Reserve space so app content is not hidden behind the fixed bottom
+     nav. Scoped to the app shell: marketing and auth pages have no
+     bottom nav, and padding the body there left an empty band. */
+  .app-content {
     padding-bottom: 64px;
   }
   .page-header {
@@ -943,22 +906,7 @@ a {
     margin-left: 0 !important;
   }
 
-  /* MarketingHeader's "Get Started" CTA, compacted for phone width. */
-  .hero-cta-btn {
-    padding: 12px 14px !important;
-    font-size: 13.5px !important;
-  }
 
-  /* Footer: brand+socials sits beside the 4 link columns in one row
-     at desktop width; on a phone that's 5 columns fighting for space,
-     so the brand block spans the full row on top and the link
-     columns pair up 2-per-row underneath instead. */
-  .footer-columns {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-  .footer-brand-col {
-    grid-column: 1 / -1;
-  }
 
   /* Create Campaign's two-column (form + sticky summary) layout only
      makes sense once there's room for both side by side — stack them
@@ -1092,6 +1040,37 @@ a {
     transition: none !important;
   }
   .auth-form-pane {
-    padding: 24px 20px 32px;
+    justify-content: flex-start;
+    padding: 28px 20px 36px;
+  }
+  /* the top strip logo already links home, so no separate back-button row */
+  .auth-back-link {
+    display: none;
+  }
+}
+
+/* Wallet info points: each one in its own bordered box so they read as
+   distinct items instead of floating icon + label pairs. */
+.wallet-info-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-white);
+}
+.wallet-info-box-compact {
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 132px;
+  padding: 12px 14px;
+  text-align: center;
+}
+@media (max-width: 768px) {
+  .wallet-info-box-compact {
+    flex: 1 1 100px;
+    min-width: 0;
   }
 }

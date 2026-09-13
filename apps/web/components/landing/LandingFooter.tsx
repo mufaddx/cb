@@ -3,9 +3,8 @@ import { FacebookIcon, InstagramIcon, SparkIcon, XIcon } from "../icons";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "";
 
-// Only the accounts confirmed to exist (see MarketingFooter.tsx). The
-// reference also shows LinkedIn/YouTube, but there's no live Vidlix page
-// on either, so they're left out rather than shipped as dead links.
+// Only the accounts confirmed to exist (no live Vidlix LinkedIn/YouTube
+// page, so those are left out rather than shipped as dead links).
 const SOCIAL_LINKS = [
   { label: "Instagram", href: "https://instagram.com/vidlix.in", Icon: InstagramIcon },
   { label: "Facebook", href: "https://facebook.com/vidlix.in", Icon: FacebookIcon },
@@ -53,7 +52,7 @@ const COLUMNS: Array<{ title: string; links: Array<{ href: string; label: string
 export function LandingFooter() {
   return (
     <footer className="vx-footer">
-      <div className="vx-container" style={{ position: "relative" }}>
+      <div className="vx-container">
         <div className="vx-footer-grid">
           <div className="vx-footer-brand">
             <div className="vx-footer-brand-name">
@@ -90,10 +89,6 @@ export function LandingFooter() {
               </div>
             </div>
           ))}
-        </div>
-
-        <div className="vx-script" aria-hidden="true" style={{ right: 0, bottom: 74, transform: "rotate(-10deg)" }}>
-          {"Built for\nIndian Creators"}
         </div>
 
         <div className="vx-footer-bottom">

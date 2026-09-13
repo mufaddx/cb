@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { MarketingHeader } from "../../components/MarketingHeader";
-import { MarketingFooter } from "../../components/MarketingFooter";
+import { LandingNav } from "../../components/landing/LandingNav";
+import { LandingFooter } from "../../components/landing/LandingFooter";
 
 export const metadata: Metadata = {
   title: "How It Works",
@@ -45,8 +45,8 @@ function StepList({ title, steps }: { title: string; steps: string[] }) {
 
 export default function HowItWorksPage() {
   return (
-    <main className="paper-page">
-      <MarketingHeader />
+    <main className="vx-landing">
+      <LandingNav />
       <section className="container" style={{ padding: "64px 24px 88px", maxWidth: 920 }}>
         <span className="eyebrow" style={{ marginBottom: 16 }}>How it works</span>
         <h1 style={{ marginTop: 12, maxWidth: 640 }}>Every step is real, working platform — not a mockup.</h1>
@@ -59,7 +59,7 @@ export default function HowItWorksPage() {
           <StepList title="For Creators" steps={creatorSteps} />
         </div>
       </section>
-      <MarketingFooter />
+      <LandingFooter />
     </main>
   );
 }
