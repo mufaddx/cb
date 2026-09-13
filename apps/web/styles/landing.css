@@ -1,0 +1,1766 @@
+/* ============================================================
+   VIDLIX LANDING PAGE — visual system rebuilt from the 5
+   reference screenshots.
+
+   Everything here is scoped under .vx-landing (set on the
+   homepage's outer <main>), so the shared MarketingHeader /
+   MarketingFooter / .card / .badge components pick up this
+   page's palette through the existing --color-* / --paper-*
+   token names without affecting any other marketing page or
+   the app/admin panels.
+
+   MEASUREMENTS: taken off the reference exports (~1672px wide)
+   and expressed fluidly so the same proportions hold from
+   1280 to 1920. Where a screenshot value is quoted in a
+   comment it is the raw px from that 1672-wide export.
+   ============================================================ */
+
+.vx-landing {
+  /* ---- palette (cool light mesh, not the cream paper theme) ---- */
+  --paper-bg: #fbfbfe;
+  --paper-panel: #f4f5fb;
+  --paper-surface: #ffffff;
+  --paper-elevated: #ffffff;
+  --paper-ink: #0f172a;
+  --paper-ink-secondary: #566076;
+  --paper-ink-faint: #8b93a7;
+  --paper-line: #e8e9f3;
+  --paper-line-strong: #dcdeeb;
+
+  --color-primary: #5b3df5;
+  --color-primary-hover: #4c2fe0;
+  --color-primary-active: #4025c4;
+  --color-primary-soft: #efeaff;
+
+  /* ---- gradients (sampled from the reference) ---- */
+  --vx-grad-brand: linear-gradient(96deg, #3b6ef5 0%, #6d43f0 52%, #8b3df0 100%);
+  --vx-grad-text: linear-gradient(96deg, #7c3aed 0%, #5b5bf5 48%, #2f7ff5 100%);
+  --vx-grad-ring: conic-gradient(
+    from 195deg,
+    #c4b5fd 0%,
+    #93c5fd 18%,
+    #a5f3fc 34%,
+    #ddd6fe 52%,
+    #f5d0fe 68%,
+    #bfdbfe 84%,
+    #c4b5fd 100%
+  );
+
+  /* ---- tints used by the feature cards ---- */
+  --vx-t-purple: #f3efff;
+  --vx-t-purple-fg: #7c3aed;
+  --vx-t-blue: #eaf2ff;
+  --vx-t-blue-fg: #2563eb;
+  --vx-t-green: #e8f9f1;
+  --vx-t-green-fg: #0f9d6e;
+  --vx-t-amber: #fff5e6;
+  --vx-t-amber-fg: #d97706;
+  --vx-t-pink: #ffeef5;
+  --vx-t-pink-fg: #db2777;
+
+  /* ---- geometry ---- */
+  /* Reference hero content runs 148→1524 and the format cards 107→1565
+     of a 1672 export — i.e. a ~1420px content column, wider for the
+     5-step row and the CTA panel. */
+  --vx-container: 1468px;
+  --vx-container-wide: 1580px;
+  --vx-gutter: 24px;
+  --vx-card-radius: 20px;
+  --vx-panel-radius: 30px;
+  --vx-btn-radius: 14px;
+
+  /* ---- type scale ---- */
+  --vx-h1: clamp(38px, 4.35vw, 70px);
+  --vx-h2: clamp(29px, 3.3vw, 52px);
+  --vx-h3: clamp(19px, 1.35vw, 22px);
+  --vx-body: clamp(15.5px, 1.12vw, 18px);
+  --vx-small: 14.5px;
+  --vx-badge: 12.5px;
+
+  /* ---- shadows ---- */
+  --vx-shadow-card: 0 2px 4px rgba(15, 23, 42, 0.03), 0 12px 28px rgba(38, 43, 92, 0.07);
+  --vx-shadow-float: 0 6px 14px rgba(15, 23, 42, 0.06), 0 18px 44px rgba(38, 43, 92, 0.13);
+  --vx-shadow-dash: 0 30px 70px rgba(45, 40, 110, 0.22), 0 8px 20px rgba(45, 40, 110, 0.1);
+  --vx-shadow-btn: 0 6px 18px rgba(84, 60, 240, 0.32);
+
+  position: relative;
+  isolation: isolate;
+  overflow-x: clip;
+  color: var(--paper-ink);
+  background:
+    radial-gradient(1150px 620px at 84% 4%, #dceafe 0%, rgba(220, 234, 254, 0) 62%),
+    radial-gradient(820px 560px at 4% 6%, #fbe6f8 0%, rgba(251, 230, 248, 0) 58%),
+    radial-gradient(1000px 700px at 96% 46%, #e6e2fe 0%, rgba(230, 226, 254, 0) 58%),
+    radial-gradient(900px 640px at 6% 62%, #e7edfe 0%, rgba(231, 237, 254, 0) 58%),
+    #fbfbfe;
+}
+
+/* ---------- containers & section rhythm ---------- */
+.vx-container {
+  width: 100%;
+  max-width: var(--vx-container);
+  margin: 0 auto;
+  padding-inline: var(--vx-gutter);
+}
+.vx-container-wide {
+  width: 100%;
+  max-width: var(--vx-container-wide);
+  margin: 0 auto;
+  padding-inline: var(--vx-gutter);
+}
+/* Screenshot rhythm: each section is only as tall as its content
+   plus a controlled band of padding — no 100vh, no 200px gaps. */
+.vx-section {
+  position: relative;
+  padding-block: clamp(48px, 5vw, 76px);
+}
+/* Wide enough that each reference H2 ("From brief to payout, on one
+   rail", "Built so nothing depends on trust alone") stays on ONE line
+   at desktop, as in the screenshots; the sub-copy keeps a narrower
+   measure so it still wraps to the same 2 lines. */
+.vx-section-head {
+  text-align: center;
+  max-width: 1080px;
+  margin: 0 auto clamp(32px, 3.2vw, 48px);
+}
+.vx-section-head p {
+  margin: 14px auto 0;
+  max-width: 660px;
+  font-size: var(--vx-body);
+  line-height: 1.6;
+  color: var(--paper-ink-secondary);
+}
+
+/* ---------- typography ---------- */
+.vx-landing h1,
+.vx-landing h2,
+.vx-landing h3 {
+  color: var(--paper-ink);
+}
+.vx-h1 {
+  margin: 18px 0 0;
+  font-size: var(--vx-h1);
+  font-weight: 800;
+  line-height: 1.0;
+  letter-spacing: -0.035em;
+}
+.vx-h2 {
+  margin: 16px 0 0;
+  font-size: var(--vx-h2);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.032em;
+}
+.vx-grad {
+  background-image: var(--vx-grad-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.vx-lead {
+  margin: 20px 0 0;
+  max-width: 500px;
+  font-size: var(--vx-body);
+  line-height: 1.62;
+  color: var(--paper-ink-secondary);
+}
+
+/* Section label pill — 12.5px / 700 / .09em uppercase, per spec §9 */
+.vx-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 10px rgba(38, 43, 92, 0.06);
+  font-size: var(--vx-badge);
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Handwritten annotations (Caveat) — decorative only, hidden on
+   narrow screens where they'd collide with real content. */
+.vx-script {
+  position: absolute;
+  z-index: 4;
+  font-family: var(--font-caveat), ui-rounded, cursive;
+  font-size: 22px;
+  line-height: 1.2;
+  font-weight: 600;
+  color: #7c6df0;
+  pointer-events: none;
+  white-space: pre-line;
+  opacity: 0.92;
+}
+.vx-script svg {
+  display: block;
+  overflow: visible;
+}
+
+/* ---------- buttons ---------- */
+.vx-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 54px;
+  padding: 0 28px;
+  border: 1px solid transparent;
+  border-radius: var(--vx-btn-radius);
+  font-size: 15.5px;
+  font-weight: 650;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease, opacity 0.16s ease;
+}
+.vx-btn:hover {
+  transform: translateY(-2px);
+}
+.vx-btn:active {
+  transform: translateY(0);
+}
+.vx-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+.vx-btn-primary {
+  background: var(--vx-grad-brand);
+  color: #fff;
+  box-shadow: var(--vx-shadow-btn);
+}
+.vx-btn-primary:hover {
+  box-shadow: 0 10px 26px rgba(84, 60, 240, 0.42);
+}
+.vx-btn-secondary {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: var(--paper-line-strong);
+  color: var(--paper-ink);
+  box-shadow: 0 2px 10px rgba(38, 43, 92, 0.06);
+}
+.vx-btn-secondary:hover {
+  background: #fff;
+  box-shadow: 0 8px 22px rgba(38, 43, 92, 0.12);
+}
+.vx-btn-dark {
+  background: #0b1020;
+  color: #fff;
+  box-shadow: 0 8px 22px rgba(11, 16, 32, 0.28);
+}
+.vx-btn-ghost-dark {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+.vx-btn-ghost-dark:hover {
+  background: rgba(255, 255, 255, 0.13);
+}
+/* circular arrow chip that sits inside the primary CTAs */
+.vx-btn-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  flex-shrink: 0;
+}
+.vx-btn-dark .vx-btn-arrow,
+.vx-btn-ghost-dark .vx-btn-arrow {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+/* ---------- navbar (shared MarketingHeader, restyled here) ---------- */
+.vx-landing .vx-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(252, 252, 255, 0.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(226, 228, 242, 0.7);
+}
+.vx-nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  height: 68px;
+}
+.vx-nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--paper-ink);
+  flex-shrink: 0;
+}
+.vx-nav-logo-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--vx-grad-brand);
+  box-shadow: 0 4px 12px rgba(84, 60, 240, 0.3);
+  flex-shrink: 0;
+}
+.vx-nav-logo-text {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+.vx-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+.vx-nav-link {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--paper-ink-secondary);
+  transition: color 0.15s ease;
+}
+.vx-nav-link:hover {
+  color: var(--paper-ink);
+}
+.vx-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-shrink: 0;
+}
+.vx-nav-login {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--paper-ink);
+}
+.vx-nav-cta {
+  height: 46px;
+  padding: 0 10px 0 22px;
+  border-radius: 999px;
+  font-size: 15px;
+}
+/* mobile menu toggle + drop-down panel (hidden on desktop) */
+.vx-nav-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--paper-line-strong);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--paper-ink);
+  cursor: pointer;
+}
+.vx-nav-mobile {
+  border-top: 1px solid var(--paper-line);
+  background: rgba(252, 252, 255, 0.97);
+  padding-block: 8px 14px;
+}
+.vx-nav-mobile-link {
+  display: block;
+  padding: 13px 4px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--paper-ink);
+  border-bottom: 1px solid var(--paper-line);
+}
+.vx-nav-mobile-link:last-child {
+  border-bottom: 0;
+}
+@media (min-width: 769px) {
+  .vx-nav-mobile {
+    display: none;
+  }
+}
+
+/* ============================================================
+   HERO  (screenshot 1)
+   Export: nav ends y=65, hero content 120→690, stats band 718.
+   Text column ~44%, visual column ~56% and allowed to bleed
+   right past the container so the dashboard keeps the same
+   visual weight as the reference.
+   ============================================================ */
+.vx-hero {
+  position: relative;
+  padding-block: clamp(36px, 3.6vw, 56px) clamp(40px, 3.8vw, 58px);
+}
+.vx-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
+  align-items: center;
+  gap: clamp(24px, 3vw, 56px);
+}
+.vx-hero-copy {
+  position: relative;
+  z-index: 2;
+}
+.vx-hero-cta {
+  display: flex;
+  gap: 14px;
+  margin-top: 34px;
+  flex-wrap: wrap;
+}
+/* trust row under the CTAs — 3 items with hairline dividers */
+.vx-hero-trust {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-top: 34px;
+  flex-wrap: wrap;
+}
+.vx-hero-trust-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: var(--vx-small);
+  font-weight: 500;
+  color: var(--paper-ink-secondary);
+  white-space: nowrap;
+}
+.vx-hero-trust-item + .vx-hero-trust-item {
+  padding-left: 22px;
+  border-left: 1px solid var(--paper-line-strong);
+}
+.vx-hero-trust-item svg {
+  color: var(--paper-ink-faint);
+  flex-shrink: 0;
+}
+
+/* ---- hero visual stage ---- */
+.vx-hero-visual {
+  position: relative;
+  z-index: 1;
+  /* room for the floating cards that overhang the dashboard */
+  padding: 30px 30px 34px;
+  /* the reference lets the visual run toward the viewport edge */
+  margin-right: clamp(-60px, -3vw, 0px);
+}
+
+/* Glass torus/ribbon behind the dashboard: a conic gradient ring
+   punched out with a radial mask, flattened and rotated. This is
+   the CSS stand-in for the reference's 3D glass render — same
+   hue sweep, same tilt, same soft specular feel, no WebGL. */
+.vx-ring {
+  position: absolute;
+  inset: -6% -4% -10% -8%;
+  z-index: 0;
+  border-radius: 50%;
+  background: var(--vx-grad-ring);
+  -webkit-mask: radial-gradient(closest-side, transparent 56%, #000 58%, #000 100%);
+  mask: radial-gradient(closest-side, transparent 56%, #000 58%, #000 100%);
+  transform: rotate(-16deg) scaleY(0.78);
+  filter: blur(3px) saturate(1.05);
+  opacity: 0.9;
+}
+.vx-ring-2 {
+  position: absolute;
+  right: -6%;
+  bottom: -14%;
+  width: 46%;
+  aspect-ratio: 1.6 / 1;
+  z-index: 0;
+  border-radius: 50%;
+  background: conic-gradient(from 40deg, #a5b4fc, #c7d2fe, #a5f3fc, #ddd6fe, #a5b4fc);
+  -webkit-mask: radial-gradient(closest-side, transparent 58%, #000 60%);
+  mask: radial-gradient(closest-side, transparent 58%, #000 60%);
+  transform: rotate(14deg);
+  filter: blur(2px);
+  opacity: 0.75;
+}
+
+/* ---- the dashboard mockup ---- */
+.vx-dash {
+  position: relative;
+  z-index: 2;
+  border-radius: 18px;
+  background: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: var(--vx-shadow-dash);
+  overflow: hidden;
+  transform: perspective(2400px) rotateY(-11deg) rotateX(2.5deg) rotate(0.6deg);
+  transform-origin: 60% 50%;
+}
+.vx-dash-chrome {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 14px;
+  border-bottom: 1px solid #f0f1f7;
+  background: #fcfcfe;
+}
+.vx-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.vx-dash-body {
+  display: grid;
+  grid-template-columns: 122px minmax(0, 1fr);
+  min-height: 340px;
+}
+.vx-dash-side {
+  padding: 14px 10px;
+  border-right: 1px solid #f0f1f7;
+  background: #fcfcfe;
+}
+.vx-dash-brand {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 6px 14px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.vx-dash-brand span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  background: var(--vx-grad-brand);
+  flex-shrink: 0;
+}
+.vx-dash-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.vx-dash-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #98a0b4;
+}
+.vx-dash-nav-item.is-active {
+  background: #eef0ff;
+  color: var(--color-primary);
+}
+.vx-dash-main {
+  padding: 15px 16px 18px;
+  min-width: 0;
+}
+.vx-dash-greet-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.vx-dash-greet-sm {
+  font-size: 11.5px;
+  color: #7b839a;
+  font-weight: 500;
+}
+.vx-dash-greet-lg {
+  font-size: 14px;
+  font-weight: 750;
+  letter-spacing: -0.015em;
+  margin-top: 2px;
+}
+.vx-dash-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid #eceef6;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #6b7488;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.vx-dash-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.vx-dash-stat {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 10px;
+  border: 1px solid #f0f1f7;
+  border-radius: 12px;
+  background: #fff;
+}
+.vx-dash-stat-ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  flex-shrink: 0;
+}
+.vx-dash-stat-v {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+.vx-dash-stat-l {
+  font-size: 10px;
+  color: #8b93a7;
+  font-weight: 500;
+}
+.vx-dash-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.42fr) minmax(0, 1fr);
+  gap: 10px;
+}
+.vx-dash-panel {
+  border: 1px solid #f0f1f7;
+  border-radius: 12px;
+  padding: 11px 12px;
+  background: #fff;
+  min-width: 0;
+}
+.vx-dash-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.vx-dash-panel-title {
+  font-size: 11.5px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+.vx-dash-chart {
+  position: relative;
+}
+.vx-dash-chart svg {
+  display: block;
+  width: 100%;
+  height: 92px;
+}
+.vx-dash-tip {
+  position: absolute;
+  top: 12%;
+  left: 52%;
+  padding: 3px 8px;
+  border-radius: 7px;
+  background: #101a33;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  box-shadow: 0 4px 10px rgba(16, 26, 51, 0.28);
+}
+.vx-dash-creator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.vx-dash-creator + .vx-dash-creator {
+  margin-top: 10px;
+}
+.vx-dash-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.vx-dash-creator-n {
+  font-size: 10.5px;
+  font-weight: 650;
+  line-height: 1.25;
+}
+.vx-dash-creator-m {
+  font-size: 9.5px;
+  color: #8b93a7;
+}
+
+/* ---- floating notification cards ---- */
+.vx-float {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 15px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: var(--vx-shadow-float);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  white-space: nowrap;
+}
+.vx-float-ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.vx-float-t {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.vx-float-s {
+  font-size: 11.5px;
+  color: var(--paper-ink-secondary);
+  margin-top: 1px;
+}
+/* positions traced from the export: top-right overhang, bottom-left
+   overhang, bottom-right overhang */
+.vx-float-a {
+  top: 2%;
+  right: -2%;
+}
+.vx-float-b {
+  bottom: 14%;
+  left: -7%;
+}
+.vx-float-c {
+  bottom: -1%;
+  right: 4%;
+}
+
+/* ============================================================
+   STATS BAND  (screenshot 1, below hero)
+   ============================================================ */
+.vx-statsband {
+  position: relative;
+  border-top: 1px solid rgba(226, 228, 242, 0.9);
+  border-bottom: 1px solid rgba(226, 228, 242, 0.9);
+  background: rgba(255, 255, 255, 0.55);
+}
+.vx-statsband-inner {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding-block: 26px;
+}
+.vx-statsband-item {
+  text-align: center;
+}
+.vx-statsband-item + .vx-statsband-item {
+  border-left: 1px solid var(--paper-line);
+}
+.vx-statsband-v {
+  font-size: clamp(22px, 1.9vw, 30px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+.vx-statsband-l {
+  margin-top: 3px;
+  font-size: var(--vx-small);
+  color: var(--paper-ink-secondary);
+}
+
+/* ============================================================
+   3D-ISH ICON TILES  (screenshots 2, 3, 4)
+   A chunky translucent tile: layered gradient body, bright inner
+   highlight top-left, coloured ambient shadow underneath, slight
+   rotation. Reproduces the reference's glass-icon language in
+   CSS instead of dropping in a flat square.
+   ============================================================ */
+.vx-tile {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 68px;
+  height: 68px;
+  border-radius: 20px;
+  color: #fff;
+  flex-shrink: 0;
+  transform: rotate(-4deg);
+  background-image: linear-gradient(150deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 46%),
+    linear-gradient(150deg, var(--vx-tile-a), var(--vx-tile-b));
+  box-shadow: inset 0 1.5px 1px rgba(255, 255, 255, 0.75), inset 0 -3px 8px rgba(12, 10, 45, 0.16),
+    0 12px 24px var(--vx-tile-shadow, rgba(84, 60, 240, 0.28));
+}
+.vx-tile::after {
+  content: "";
+  position: absolute;
+  inset: 5px 5px auto 5px;
+  height: 34%;
+  border-radius: 14px 14px 20px 20px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
+.vx-tile svg {
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 1px 1px rgba(12, 10, 45, 0.25));
+}
+.vx-tile-sm {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+}
+.vx-tile-purple {
+  --vx-tile-a: #a78bfa;
+  --vx-tile-b: #7c3aed;
+  --vx-tile-shadow: rgba(124, 58, 237, 0.32);
+}
+.vx-tile-blue {
+  --vx-tile-a: #7dd3fc;
+  --vx-tile-b: #2563eb;
+  --vx-tile-shadow: rgba(37, 99, 235, 0.3);
+}
+.vx-tile-green {
+  --vx-tile-a: #6ee7b7;
+  --vx-tile-b: #0f9d6e;
+  --vx-tile-shadow: rgba(15, 157, 110, 0.28);
+}
+.vx-tile-amber {
+  --vx-tile-a: #fcd34d;
+  --vx-tile-b: #ea9207;
+  --vx-tile-shadow: rgba(217, 119, 6, 0.3);
+}
+.vx-tile-pink {
+  --vx-tile-a: #f9a8d4;
+  --vx-tile-b: #db2777;
+  --vx-tile-shadow: rgba(219, 39, 119, 0.28);
+}
+/* flat-ish small square used at the top-left of the feature cards */
+.vx-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   HOW IT WORKS  (screenshot 2)
+   Export: 5 cards spanning 72→1600 with ~52px gaps and a chevron
+   sitting on the connector line between each pair.
+   ============================================================ */
+.vx-steps {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 46px;
+}
+.vx-step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 22px 20px 20px;
+  border-radius: var(--vx-card-radius);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: var(--vx-shadow-card);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+/* connector: dotted rule + chevron button, exactly as the reference.
+   Keyed off the RevealOnScroll wrapper (.vx-step-cell), since each
+   .vx-step is the only child of its own wrapper. */
+.vx-step-cell:not(:last-child) .vx-step::before {
+  content: "";
+  position: absolute;
+  top: 36%;
+  right: -46px;
+  width: 46px;
+  border-top: 2px dotted #cdd3e6;
+}
+.vx-step-cell:not(:last-child) .vx-step::after {
+  content: "";
+  position: absolute;
+  top: 36%;
+  right: -35px;
+  width: 26px;
+  height: 26px;
+  margin-top: -13px;
+  border-radius: 50%;
+  background: #fff center / 11px 11px no-repeat
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' stroke='%235b3df5' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 5 7 7-7 7'/%3E%3C/svg%3E");
+  box-shadow: 0 3px 10px rgba(38, 43, 92, 0.16);
+}
+.vx-step-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+/* reference step icons are chunky (~100px in the 1672 export) */
+.vx-step .vx-tile {
+  width: clamp(72px, 5.6vw, 94px);
+  height: clamp(72px, 5.6vw, 94px);
+  border-radius: 26px;
+}
+.vx-step .vx-tile svg {
+  width: 40%;
+  height: 40%;
+}
+.vx-step-num {
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+}
+.vx-step h3 {
+  margin: 0 0 10px;
+  font-size: clamp(19px, 1.45vw, 24px);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+.vx-step p {
+  margin: 0 0 20px;
+  font-size: clamp(14.5px, 1.05vw, 17px);
+  line-height: 1.55;
+  color: var(--paper-ink-secondary);
+}
+.vx-step-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: auto;
+  padding: 10px 14px;
+  border-radius: 11px;
+  font-size: 13px;
+  font-weight: 650;
+  transition: transform 0.16s ease, filter 0.16s ease;
+}
+.vx-step-link:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.97);
+}
+
+/* glass stat bar under the steps */
+.vx-glassbar {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: clamp(34px, 3.4vw, 52px);
+  padding: 22px 26px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: var(--vx-shadow-card);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.vx-glassbar-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.vx-glassbar-item + .vx-glassbar-item {
+  padding-left: 18px;
+  border-left: 1px solid var(--paper-line);
+}
+.vx-glassbar-v {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+.vx-glassbar-l {
+  font-size: 13.5px;
+  color: var(--paper-ink-secondary);
+}
+
+/* ============================================================
+   CAMPAIGN TYPES  (screenshot 3) — two large dominant cards
+   ============================================================ */
+.vx-formats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+}
+.vx-format {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 30px;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.66);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: var(--vx-shadow-card);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.vx-format-body {
+  position: relative;
+  z-index: 2;
+  max-width: 60%;
+}
+.vx-format h3 {
+  margin: 20px 0 10px;
+  font-size: clamp(23px, 2vw, 31px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+.vx-format p {
+  margin: 0 0 18px;
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: var(--paper-ink-secondary);
+}
+.vx-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-bottom: 24px;
+}
+.vx-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 13px 7px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--paper-line);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--paper-ink);
+  white-space: nowrap;
+}
+.vx-check span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  color: #fff;
+  flex-shrink: 0;
+}
+.vx-format-cta {
+  align-self: flex-start;
+  margin-top: auto;
+}
+
+/* --- 3D illustrations inside the format cards --- */
+.vx-illus {
+  position: absolute;
+  z-index: 1;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40%;
+  max-width: 250px;
+  aspect-ratio: 1 / 1;
+  pointer-events: none;
+}
+/* stacked video cards + play button (Clipping) */
+.vx-illus-stack i {
+  position: absolute;
+  display: block;
+  border-radius: 16px;
+  background-image: linear-gradient(150deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.05) 50%),
+    linear-gradient(150deg, #b9a3fb, #7c4ff0);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.7), 0 14px 26px rgba(108, 63, 226, 0.24);
+}
+.vx-illus-stack i:nth-child(1) {
+  inset: 16% 30% 30% 4%;
+  transform: rotate(-9deg);
+  opacity: 0.55;
+}
+.vx-illus-stack i:nth-child(2) {
+  inset: 19% 20% 26% 14%;
+  transform: rotate(-4deg);
+  opacity: 0.78;
+}
+.vx-illus-stack i:nth-child(3) {
+  inset: 22% 10% 22% 24%;
+}
+.vx-illus-play {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 56%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.24);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: inset 0 2px 3px rgba(255, 255, 255, 0.6), 0 10px 22px rgba(70, 40, 170, 0.28);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+.vx-illus-badge {
+  position: absolute;
+  z-index: 3;
+  right: 4%;
+  bottom: 16%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 27%;
+  aspect-ratio: 1;
+  border-radius: 22%;
+  color: #fff;
+  background-image: linear-gradient(150deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 50%),
+    linear-gradient(150deg, #a78bfa, #6d28d9);
+  box-shadow: inset 0 1.5px 1px rgba(255, 255, 255, 0.7), 0 10px 20px rgba(109, 40, 217, 0.3);
+}
+/* phone + step chips (Creator Content) */
+.vx-illus-phone {
+  position: absolute;
+  left: 6%;
+  top: 8%;
+  bottom: 8%;
+  width: 46%;
+  border-radius: 20px;
+  background-image: linear-gradient(155deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.12) 45%),
+    linear-gradient(155deg, #93c5fd, #6366f1);
+  box-shadow: inset 0 1.5px 1px rgba(255, 255, 255, 0.8), 0 16px 30px rgba(59, 96, 235, 0.26);
+  padding: 12%;
+}
+.vx-illus-phone i {
+  display: block;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.62);
+}
+.vx-illus-phone i:nth-child(1) {
+  height: 44%;
+  margin-bottom: 12%;
+}
+.vx-illus-phone i:nth-child(2) {
+  height: 9%;
+  margin-bottom: 8%;
+}
+.vx-illus-phone i:nth-child(3) {
+  height: 9%;
+  width: 66%;
+}
+.vx-illus-chips {
+  position: absolute;
+  right: 0;
+  top: 12%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+.vx-illus-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 6px 14px rgba(38, 43, 92, 0.12);
+  font-size: 11px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+/* ============================================================
+   WHY VIDLIX  (screenshot 4) — 4 + 2 tinted cards, shield block
+   ============================================================ */
+/* 12-column grid so row 2 matches the reference: row 1 is four equal
+   cards (3 cols each), row 2 is two noticeably wider cards plus the
+   shield block (4 cols each). Children are the RevealOnScroll wrappers. */
+.vx-why {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 22px;
+}
+.vx-why > :nth-child(-n + 4) {
+  grid-column: span 3;
+}
+.vx-why > :nth-child(5),
+.vx-why > :nth-child(6),
+.vx-why > .vx-why-aside-cell {
+  grid-column: span 4;
+}
+.vx-why-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 22px;
+  border-radius: var(--vx-card-radius);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: var(--vx-shadow-card);
+  background: var(--vx-card-bg, rgba(255, 255, 255, 0.7));
+}
+.vx-why-card h3 {
+  margin: 18px 0 8px;
+  font-size: 19px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+.vx-why-card p {
+  margin: 0 0 20px;
+  font-size: 15.5px;
+  line-height: 1.58;
+  color: var(--paper-ink-secondary);
+}
+.vx-why-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+  font-size: 13.5px;
+  font-weight: 650;
+}
+.vx-why-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 3px 10px rgba(38, 43, 92, 0.12);
+  flex-shrink: 0;
+  transition: transform 0.16s ease;
+}
+.vx-why-card:hover .vx-why-arrow {
+  transform: translateX(3px);
+}
+/* the decorative shield + caption that fills row 2 in the reference */
+.vx-why-aside {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 10px;
+}
+.vx-shield {
+  position: relative;
+  width: 132px;
+  height: 148px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  clip-path: polygon(50% 0%, 100% 16%, 100% 58%, 50% 100%, 0% 58%, 0% 16%);
+  background-image: linear-gradient(155deg, rgba(255, 255, 255, 0.65) 0%, rgba(255, 255, 255, 0.05) 45%),
+    linear-gradient(155deg, #a5b4fc 0%, #7c3aed 55%, #4f46e5 100%);
+  filter: drop-shadow(0 18px 30px rgba(90, 60, 220, 0.32));
+}
+.vx-shield::after {
+  content: "";
+  position: absolute;
+  inset: 0 52% 40% 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0));
+  clip-path: inherit;
+}
+.vx-shield-ring {
+  position: absolute;
+  width: 210px;
+  height: 96px;
+  border-radius: 50%;
+  background: conic-gradient(from 210deg, #c4b5fd, #a5f3fc, #ddd6fe, #f5d0fe, #c4b5fd);
+  -webkit-mask: radial-gradient(closest-side, transparent 62%, #000 64%);
+  mask: radial-gradient(closest-side, transparent 62%, #000 64%);
+  transform: rotate(-12deg);
+  filter: blur(1px);
+  opacity: 0.8;
+}
+.vx-why-caption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: var(--vx-shadow-card);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--paper-ink-secondary);
+  text-align: left;
+}
+
+/* ============================================================
+   FINAL CTA  (screenshot 5) — dark panel, ~95% width
+   ============================================================ */
+.vx-cta-wrap {
+  padding-block: clamp(40px, 4vw, 64px) clamp(30px, 3vw, 48px);
+}
+.vx-cta-wrap > .vx-container-wide {
+  max-width: 1640px;
+}
+.vx-cta {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--vx-panel-radius);
+  padding: clamp(44px, 5vw, 74px) clamp(24px, 4vw, 64px);
+  text-align: center;
+  background:
+    radial-gradient(120% 90% at 50% -10%, #2c1d69 0%, rgba(44, 29, 105, 0) 62%),
+    radial-gradient(70% 80% at 8% 90%, #21306e 0%, rgba(33, 48, 110, 0) 60%),
+    radial-gradient(80% 90% at 96% 30%, #3a2170 0%, rgba(58, 33, 112, 0) 62%),
+    linear-gradient(160deg, #0d1024 0%, #0a0d1e 60%, #10132a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 30px 70px rgba(18, 14, 60, 0.3);
+}
+.vx-cta-inner {
+  position: relative;
+  z-index: 2;
+  max-width: 760px;
+  margin: 0 auto;
+}
+.vx-cta .vx-badge {
+  background: rgba(124, 92, 255, 0.18);
+  border-color: rgba(167, 139, 250, 0.34);
+  color: #c9bcff;
+  box-shadow: none;
+}
+.vx-cta h2 {
+  margin: 22px 0 0;
+  font-size: var(--vx-h2);
+  font-weight: 800;
+  line-height: 1.06;
+  letter-spacing: -0.033em;
+  color: #fff;
+}
+.vx-cta-grad {
+  background-image: linear-gradient(96deg, #60a5fa 0%, #a78bfa 55%, #d8b4fe 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.vx-cta p {
+  margin: 16px auto 0;
+  max-width: 560px;
+  font-size: var(--vx-body);
+  line-height: 1.6;
+  color: rgba(226, 232, 240, 0.72);
+}
+.vx-cta-buttons {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 30px;
+}
+.vx-cta-trust {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  flex-wrap: wrap;
+  margin-top: 32px;
+}
+.vx-cta-trust-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: var(--vx-small);
+  color: rgba(226, 232, 240, 0.78);
+  white-space: nowrap;
+}
+.vx-cta-trust-item + .vx-cta-trust-item {
+  padding-left: 22px;
+  border-left: 1px solid rgba(255, 255, 255, 0.14);
+}
+/* floating glass cubes (left) + mini chart card (right) */
+.vx-cta-deco {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+}
+.vx-cube {
+  border-radius: 22%;
+  background-image: linear-gradient(150deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.04) 46%),
+    linear-gradient(150deg, rgba(147, 197, 253, 0.85), rgba(129, 90, 245, 0.85));
+  box-shadow: inset 0 2px 2px rgba(255, 255, 255, 0.55), 0 16px 34px rgba(70, 50, 190, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.92);
+}
+.vx-cta-cube-a {
+  left: 5%;
+  top: 34%;
+  width: 104px;
+  height: 104px;
+  transform: rotate(-14deg);
+}
+.vx-cta-cube-b {
+  left: 12%;
+  top: 62%;
+  width: 66px;
+  height: 66px;
+  transform: rotate(9deg);
+}
+.vx-cta-chart {
+  right: 5%;
+  top: 40%;
+  width: 190px;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 18px 40px rgba(10, 8, 40, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.vx-cta-chart svg {
+  display: block;
+  width: 100%;
+  height: 62px;
+}
+.vx-cta-chart-lbl {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 10px;
+  font-size: 11.5px;
+  font-weight: 650;
+  color: rgba(226, 232, 240, 0.85);
+}
+.vx-cta .vx-script {
+  color: #b9a9ff;
+  opacity: 0.85;
+}
+
+/* ============================================================
+   FOOTER  (screenshot 5)
+   ============================================================ */
+.vx-landing .vx-footer {
+  position: relative;
+  margin-top: 0;
+  border-top: 0;
+  background: transparent;
+}
+.vx-footer-grid {
+  display: grid;
+  grid-template-columns: 1.45fr repeat(4, 1fr);
+  gap: 30px 40px;
+  padding-block: clamp(34px, 3.4vw, 52px) 30px;
+}
+.vx-footer-brand-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.vx-footer-tag {
+  font-size: 14px;
+  color: var(--paper-ink-secondary);
+  margin: 0 0 18px;
+  max-width: 260px;
+}
+.vx-footer-socials {
+  display: flex;
+  gap: 10px;
+}
+.vx-footer-social {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--paper-line);
+  color: var(--paper-ink-secondary);
+  transition: color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
+}
+.vx-footer-social:hover {
+  color: var(--color-primary);
+  background: #fff;
+  transform: translateY(-2px);
+}
+.vx-footer-coltitle {
+  font-size: 14.5px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  margin-bottom: 14px;
+}
+.vx-footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+.vx-footer-links a {
+  font-size: 14px;
+  color: var(--paper-ink-secondary);
+  transition: color 0.15s ease;
+}
+.vx-footer-links a:hover {
+  color: var(--paper-ink);
+}
+.vx-footer-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-block: 20px 26px;
+  border-top: 1px solid var(--paper-line);
+  font-size: 13.5px;
+  color: var(--paper-ink-faint);
+}
+
+/* ============================================================
+   RESPONSIVE
+   Desktop fidelity first, then a real mobile layout (not a
+   scaled-down desktop) — per spec §23.
+   ============================================================ */
+
+/* laptops: keep the two-column hero but relax the bleed */
+@media (max-width: 1280px) {
+  .vx-landing {
+    --vx-container: 1100px;
+    --vx-container-wide: 1160px;
+  }
+  .vx-hero-visual {
+    margin-right: 0;
+  }
+  .vx-steps {
+    gap: 34px;
+  }
+  .vx-step-cell:not(:last-child) .vx-step::before {
+    right: -34px;
+    width: 34px;
+  }
+  .vx-step-cell:not(:last-child) .vx-step::after {
+    right: -29px;
+  }
+}
+
+/* small laptops / large tablets: steps 3-up, why 2-up */
+@media (max-width: 1100px) {
+  .vx-steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+  }
+  .vx-step-cell:not(:last-child) .vx-step::before,
+  .vx-step-cell:not(:last-child) .vx-step::after {
+    display: none;
+  }
+  .vx-step-top {
+    margin-bottom: 22px;
+  }
+  .vx-why {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .vx-why > :nth-child(n) {
+    grid-column: span 1;
+  }
+  .vx-why > .vx-why-aside-cell {
+    grid-column: span 2;
+  }
+  .vx-glassbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+  }
+  .vx-glassbar-item:nth-child(odd) {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+/* tablets: hero stacks, script annotations off, formats stack */
+@media (max-width: 1024px) {
+  .vx-script {
+    display: none;
+  }
+  .vx-hero-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 34px;
+  }
+  .vx-hero-copy {
+    text-align: center;
+  }
+  .vx-hero-copy .vx-lead {
+    margin-inline: auto;
+  }
+  .vx-hero-cta,
+  .vx-hero-trust {
+    justify-content: center;
+  }
+  .vx-hero-visual {
+    max-width: 620px;
+    margin-inline: auto;
+  }
+  .vx-br-lg {
+    display: none;
+  }
+  .vx-formats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .vx-format-body {
+    max-width: 100%;
+  }
+  .vx-illus {
+    display: none;
+  }
+  .vx-cta-deco {
+    display: none;
+  }
+}
+
+/* phones */
+@media (max-width: 768px) {
+  .vx-landing {
+    --vx-gutter: 18px;
+  }
+  .vx-nav-inner {
+    height: 60px;
+  }
+  .vx-nav-links,
+  .vx-nav-login {
+    display: none;
+  }
+  .vx-steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .vx-why {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .vx-statsband-inner {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 0;
+  }
+  .vx-statsband-item:nth-child(odd) {
+    border-left: 0;
+  }
+  .vx-glassbar {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .vx-glassbar-item {
+    padding-left: 0 !important;
+    border-left: 0 !important;
+  }
+  .vx-footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 26px 20px;
+  }
+  .vx-footer-brand {
+    grid-column: 1 / -1;
+  }
+  /* the dashboard keeps its detail but drops the tilt so nothing
+     is foreshortened on an already-narrow screen */
+  .vx-dash {
+    transform: none;
+  }
+  .vx-hero-visual {
+    padding: 6px 0 0;
+  }
+  .vx-float {
+    position: static;
+    width: 100%;
+    margin-top: 10px;
+    white-space: normal;
+  }
+  .vx-ring,
+  .vx-ring-2 {
+    display: none;
+  }
+  .vx-hero-trust-item + .vx-hero-trust-item,
+  .vx-cta-trust-item + .vx-cta-trust-item {
+    padding-left: 0;
+    border-left: 0;
+  }
+  .vx-hero-trust,
+  .vx-cta-trust {
+    gap: 14px 18px;
+  }
+  .vx-btn {
+    height: 50px;
+    padding: 0 20px;
+    font-size: 15px;
+  }
+  .vx-hero-cta .vx-btn {
+    flex: 1 1 auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .vx-dash-body {
+    grid-template-columns: 1fr;
+  }
+  .vx-dash-side {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    border-right: 0;
+    border-bottom: 1px solid #f0f1f7;
+    padding: 10px;
+  }
+  .vx-dash-brand {
+    display: none;
+  }
+  .vx-dash-nav {
+    flex-direction: row;
+  }
+  .vx-dash-nav-item {
+    white-space: nowrap;
+  }
+  .vx-dash-row {
+    grid-template-columns: 1fr;
+  }
+  .vx-dash-stats {
+    gap: 7px;
+  }
+  .vx-dash-stat {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 9px 8px;
+  }
+  .vx-footer-bottom {
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+/* Phone: single-column Why Vidlix grid (the shield block's column span
+   is set on its RevealOnScroll wrapper — the actual grid item) and the
+   mobile menu toggle takes over from the inline nav links. */
+@media (max-width: 768px) {
+  .vx-why > .vx-why-aside-cell {
+    grid-column: span 1;
+  }
+  .vx-nav-toggle {
+    display: inline-flex;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vx-landing * {
+    animation: none !important;
+  }
+  .vx-btn:hover,
+  .vx-why-card:hover .vx-why-arrow,
+  .vx-step-link:hover {
+    transform: none;
+  }
+}

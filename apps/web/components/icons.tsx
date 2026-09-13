@@ -433,3 +433,82 @@ export function EyeOffIcon(props: IconProps) {
     </svg>
   );
 }
+
+export function CloseIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M6 6l12 12M18 6 6 18" />
+    </svg>
+  );
+}
+
+export function ArrowRightIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 12h16" />
+      <path d="m14 6 6 6-6 6" />
+    </svg>
+  );
+}
+
+export function CheckIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="m5 12.5 4.5 4.5L19 7" />
+    </svg>
+  );
+}
+
+export function UsersIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M15.5 19.5v-1.6a3.6 3.6 0 0 0-3.6-3.6H6.1a3.6 3.6 0 0 0-3.6 3.6v1.6" />
+      <circle cx="9" cy="8" r="3.4" />
+      <path d="M21.5 19.5v-1.6a3.6 3.6 0 0 0-2.7-3.48M15.8 4.7a3.6 3.6 0 0 1 0 6.6" />
+    </svg>
+  );
+}
+
+export function ScissorsIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="6.5" cy="17.5" r="2.8" />
+      <circle cx="6.5" cy="6.5" r="2.8" />
+      <path d="M20 5 8.6 15.7M14.5 13.7 20 19M8.6 8.3l3.1 2.9" />
+    </svg>
+  );
+}
+
+export function PencilIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M16.4 3.9a2.1 2.1 0 0 1 3 3L8 18.3l-4 1 1-4Z" />
+      <path d="m14.5 5.8 3.7 3.7" />
+    </svg>
+  );
+}
+
+export function BarChartIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M5 20v-6.5M12 20V5M19 20v-9.5" />
+    </svg>
+  );
+}
+
+export function BoltIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M13.5 2.5 4 13.8h6.4L10 21.5 20 10.2h-6.5Z" />
+    </svg>
+  );
+}
+
+export function ClockIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="12" r="8.6" />
+      <path d="M12 7v5.2l3.2 2" />
+    </svg>
+  );
+}

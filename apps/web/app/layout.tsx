@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Caveat, Inter } from "next/font/google";
 import "../styles/globals.css";
 
 // Self-hosted by Next at build time (no runtime request to Google) —
 // exposed as a CSS variable so globals.css controls where it's used
 // instead of hardcoding a className on every page.
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+
+// Only used for the landing page's handwritten margin notes
+// (see .vx-script in landing.css) — nowhere in the product UI.
+const caveat = Caveat({ subsets: ["latin"], weight: ["600"], variable: "--font-caveat", display: "swap" });
 
 const SITE_URL = "https://vidlix.in";
 const DESCRIPTION =
@@ -36,7 +40,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en" className={`${inter.variable} ${caveat.variable}`}>
       <body>{children}</body>
     </html>
   );
