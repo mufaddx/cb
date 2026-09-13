@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SparkIcon } from "./icons";
+import { ArrowLeftIcon, SparkIcon } from "./icons";
 
 // Login/signup live on the app domain (see middleware.ts), so from
 // the marketing site they must be a real cross-origin link, not a
@@ -60,17 +60,34 @@ export function MarketingHeader() {
           </a>
           <a
             href={`${APP_URL}/signup`}
+            className="hero-cta-btn hero-cta-btn--primary"
             style={{
-              background: "var(--color-text)",
-              color: "var(--color-white)",
-              padding: "9px 18px",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              background: "var(--gradient-brand)",
+              color: "#fff",
+              padding: "9px 16px 9px 18px",
               borderRadius: "var(--radius-control)",
               fontWeight: 600,
               fontSize: 14,
-              transition: "background-color var(--duration-fast) ease",
             }}
           >
             Get Started
+            <span
+              aria-hidden="true"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 18,
+                height: 18,
+                borderRadius: "50%",
+                background: "rgba(255,255,255,0.25)",
+              }}
+            >
+              <ArrowLeftIcon width={10} height={10} style={{ transform: "rotate(180deg)" }} />
+            </span>
           </a>
         </div>
       </div>

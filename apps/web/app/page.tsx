@@ -2,15 +2,46 @@ import { MarketingHeader } from "../components/MarketingHeader";
 import { MarketingFooter } from "../components/MarketingFooter";
 import { RevealOnScroll } from "../components/RevealOnScroll";
 import {
+  ArrowLeftIcon,
   ChatIcon,
   CheckCircleIcon,
+  GearIcon,
   HandshakeIcon,
+  HomeIcon,
   InstagramIcon,
   LockIcon,
   MegaphoneIcon,
+  SendIcon,
+  ShieldIcon,
   TargetIcon,
+  TrendingUpIcon,
+  UserIcon,
   WalletIcon,
 } from "../components/icons";
+
+// Purely illustrative — the sidebar/nav shown in the hero mockup below,
+// not the app's real nav config (that lives in AppShell.tsx).
+const mockNav = [
+  { icon: HomeIcon, label: "Dashboard", active: true },
+  { icon: MegaphoneIcon, label: "Campaigns" },
+  { icon: UserIcon, label: "Creators" },
+  { icon: TrendingUpIcon, label: "Analytics" },
+  { icon: WalletIcon, label: "Payments" },
+  { icon: ChatIcon, label: "Messages" },
+  { icon: GearIcon, label: "Settings" },
+];
+
+const mockCreators = [
+  { name: "Ayesha K.", meta: "12 videos" },
+  { name: "Rohan M.", meta: "8 videos" },
+  { name: "Simran W.", meta: "6 videos" },
+];
+
+const trustSignals = [
+  { icon: ShieldIcon, label: "Secure Payments" },
+  { icon: UserIcon, label: "Verified Creators" },
+  { icon: TrendingUpIcon, label: "Real-time Tracking" },
+];
 
 // Signup lives on the app domain (see middleware.ts) — a plain <a>,
 // not next/link, since this page is served from the marketing domain.
@@ -146,8 +177,11 @@ export default function HomePage() {
                   href={`${APP_URL}/signup?as=brand`}
                   className="hero-cta-btn hero-cta-btn--primary"
                   style={{
-                    background: "var(--color-text)",
-                    color: "var(--color-white)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                    background: "var(--gradient-brand)",
+                    color: "#fff",
                     padding: "15px 26px",
                     borderRadius: "var(--radius-control)",
                     fontWeight: 600,
@@ -157,6 +191,7 @@ export default function HomePage() {
                   }}
                 >
                   Create a Campaign
+                  <ArrowLeftIcon width={15} height={15} style={{ transform: "rotate(180deg)" }} />
                 </a>
                 <a
                   href={`${APP_URL}/signup?as=creator`}
@@ -174,59 +209,175 @@ export default function HomePage() {
                   Join as a Creator
                 </a>
               </div>
+
+              <div className="hero-trust-row animate-fade-up" style={{ display: "flex", gap: 22, flexWrap: "wrap", marginTop: 28, animationDelay: "0.22s" }}>
+                {trustSignals.map((t) => (
+                  <div key={t.label} style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                    <t.icon width={16} height={16} style={{ color: "var(--color-text-secondary)", flexShrink: 0 }} />
+                    <span style={{ fontSize: 13, color: "var(--color-text-secondary)", fontWeight: 500, whiteSpace: "nowrap" }}>{t.label}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Purely decorative — a stylized product preview, not a real
                 screenshot, so there's nothing to keep in sync as the
-                actual dashboard changes. aria-hidden since a screen
-                reader gets nothing from a fake one. */}
+                actual dashboard changes. Names in "Top Creators" are
+                placeholder mockup content, not real people. aria-hidden
+                since a screen reader gets nothing from a fake UI. */}
             <div className="hero-visual animate-fade-up" aria-hidden="true" style={{ animationDelay: "0.24s" }}>
+              <div className="hero-visual-blob" />
+              <div className="hero-visual-blob-highlight" />
+
               <div className="hero-mock-float-card hero-mock-float-card--top">
-                <CheckCircleIcon width={15} height={15} style={{ color: "var(--color-success)", flexShrink: 0 }} />
-                Payout verified
+                <span className="icon-badge icon-badge-green" style={{ width: 26, height: 26 }}>
+                  <CheckCircleIcon width={13} height={13} />
+                </span>
+                <div>
+                  <div style={{ fontWeight: 700 }}>Payout verified</div>
+                  <div style={{ fontSize: 11, color: "var(--color-text-secondary)", fontWeight: 500 }}>Funds released securely</div>
+                </div>
               </div>
+
               <div className="hero-mock-card">
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 16 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 14 }}>
                   <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#f0645a" }} />
                   <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#f5bd4f" }} />
                   <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#61c554" }} />
-                  <span style={{ fontSize: 11.5, color: "var(--color-text-faint)", marginLeft: 8 }}>app.vidlix.in</span>
+                  <span style={{ fontSize: 11, color: "var(--color-text-faint)", marginLeft: 8 }}>app.vidlix.in</span>
                 </div>
-                <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
-                  {[
-                    { v: "₹2.4L", l: "Paid out" },
-                    { v: "1,240", l: "Creators" },
-                    { v: "98%", l: "On time" },
-                  ].map((s) => (
-                    <div key={s.l} style={{ flex: 1, background: "var(--color-bg-subtle)", borderRadius: 10, padding: "10px 8px", textAlign: "center" }}>
-                      <div style={{ fontWeight: 750, fontSize: 15, letterSpacing: "-0.02em" }}>{s.v}</div>
-                      <div style={{ fontSize: 10.5, color: "var(--color-text-secondary)" }}>{s.l}</div>
+
+                <div style={{ display: "flex", gap: 14 }}>
+                  <div className="hero-mock-sidebar">
+                    <span
+                      className="icon-badge icon-badge-purple"
+                      style={{ width: 22, height: 22, borderRadius: 6, marginBottom: 8 }}
+                    >
+                      <SendIcon width={10} height={10} />
+                    </span>
+                    {mockNav.map((item) => (
+                      <div
+                        key={item.label}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                          padding: "5px 6px",
+                          borderRadius: 6,
+                          background: item.active ? "var(--color-primary-soft)" : "transparent",
+                          color: item.active ? "var(--color-primary)" : "var(--color-text-faint)",
+                        }}
+                      >
+                        <item.icon width={10} height={10} style={{ flexShrink: 0 }} />
+                        <span style={{ fontSize: 8.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {item.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ marginBottom: 12 }}>
+                      <div style={{ fontSize: 10.5, color: "var(--color-text-secondary)", fontWeight: 500 }}>Good morning,</div>
+                      <div style={{ fontSize: 12.5, fontWeight: 700 }}>Your campaign is performing great! 🔥</div>
                     </div>
-                  ))}
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {[
-                    { tint: "purple" as const, icon: MegaphoneIcon, w: "72%" },
-                    { tint: "blue" as const, icon: InstagramIcon, w: "55%" },
-                    { tint: "green" as const, icon: HandshakeIcon, w: "64%" },
-                  ].map((row, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <span className={`icon-badge icon-badge-${row.tint}`} aria-hidden="true" style={{ width: 28, height: 28, flexShrink: 0 }}>
-                        <row.icon width={13} height={13} />
+
+                    <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                      {[
+                        { v: "₹2.4L", l: "Paid out" },
+                        { v: "1,240", l: "Creators" },
+                        { v: "98%", l: "On time" },
+                      ].map((s) => (
+                        <div key={s.l} style={{ flex: 1, background: "var(--color-bg-subtle)", borderRadius: 10, padding: "8px 6px", textAlign: "center" }}>
+                          <div style={{ fontWeight: 750, fontSize: 13, letterSpacing: "-0.02em" }}>{s.v}</div>
+                          <div style={{ fontSize: 8.5, color: "var(--color-text-secondary)" }}>{s.l}</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{ background: "var(--color-bg-subtle)", borderRadius: 10, padding: "10px 10px 6px", marginBottom: 10, position: "relative" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                        <span style={{ fontSize: 9.5, fontWeight: 700 }}>Campaign Performance</span>
+                        <span style={{ fontSize: 8, color: "var(--color-text-faint)" }}>Last 30 days</span>
+                      </div>
+                      <svg viewBox="0 0 200 56" preserveAspectRatio="none" style={{ width: "100%", height: 42, display: "block" }}>
+                        <defs>
+                          <linearGradient id="heroChartFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="var(--color-primary)" stopOpacity="0.28" />
+                            <stop offset="100%" stopColor="var(--color-primary)" stopOpacity="0" />
+                          </linearGradient>
+                        </defs>
+                        <polygon
+                          points="0,42 25,34 50,38 75,20 100,26 125,14 150,18 175,6 200,10 200,56 0,56"
+                          fill="url(#heroChartFill)"
+                        />
+                        <polyline
+                          points="0,42 25,34 50,38 75,20 100,26 125,14 150,18 175,6 200,10"
+                          fill="none"
+                          stroke="var(--color-primary)"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      <span
+                        className="badge"
+                        style={{ position: "absolute", top: 14, right: 8, background: "var(--color-success)", color: "#fff", fontSize: 9 }}
+                      >
+                        +68%
                       </span>
-                      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 5 }}>
-                        <span style={{ display: "block", height: 6, width: row.w, borderRadius: 3, background: "var(--color-border-strong)" }} />
-                        <span style={{ display: "block", height: 5, width: "40%", borderRadius: 3, background: "var(--color-border)" }} />
+                    </div>
+
+                    <div style={{ background: "var(--color-bg-subtle)", borderRadius: 10, padding: "8px 10px" }}>
+                      <div style={{ fontSize: 9.5, fontWeight: 700, marginBottom: 6 }}>Top Creators</div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                        {mockCreators.map((c) => (
+                          <div key={c.name} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            <span
+                              style={{
+                                width: 16,
+                                height: 16,
+                                borderRadius: "50%",
+                                background: "var(--gradient-brand)",
+                                color: "#fff",
+                                fontSize: 7.5,
+                                fontWeight: 700,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                flexShrink: 0,
+                              }}
+                            >
+                              {c.name.charAt(0)}
+                            </span>
+                            <span style={{ fontSize: 9, fontWeight: 600, flex: 1 }}>{c.name}</span>
+                            <span style={{ fontSize: 8, color: "var(--color-text-faint)" }}>{c.meta}</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
               </div>
-              <div className="hero-mock-float-card hero-mock-float-card--bottom">
-                <span className="icon-badge icon-badge-pink" aria-hidden="true" style={{ width: 22, height: 22 }}>
-                  <ChatIcon width={11} height={11} />
+
+              <div className="hero-mock-float-card hero-mock-float-card--middle">
+                <span className="icon-badge icon-badge-pink" style={{ width: 26, height: 26 }}>
+                  <ChatIcon width={13} height={13} />
                 </span>
-                Creator accepted offer
+                <div>
+                  <div style={{ fontWeight: 700 }}>Creator accepted offer</div>
+                  <div style={{ fontSize: 11, color: "var(--color-text-secondary)", fontWeight: 500 }}>2 minutes ago</div>
+                </div>
+              </div>
+
+              <div className="hero-mock-float-card hero-mock-float-card--bottom">
+                <span className="icon-badge icon-badge-blue" style={{ width: 26, height: 26 }}>
+                  <SendIcon width={13} height={13} />
+                </span>
+                <div>
+                  <div style={{ fontWeight: 700 }}>Content delivered</div>
+                  <div style={{ fontSize: 11, color: "var(--color-text-secondary)", fontWeight: 500 }}>Ready for review</div>
+                </div>
               </div>
             </div>
           </div>
