@@ -511,6 +511,20 @@ a {
 .admin-sidebar {
   border-right: 1px solid var(--color-border);
 }
+/* The only scrolling part of a sidebar: the nav between the fixed brand
+   row and the account footer. Still scrolls by wheel, touch and keyboard,
+   but without a visible scrollbar. */
+.sidebar-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.sidebar-scroll::-webkit-scrollbar {
+  display: none;
+}
 
 .container {
   max-width: 1160px;

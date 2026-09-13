@@ -171,7 +171,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             padding: "22px 14px",
             display: "flex",
             flexDirection: "column",
-            overflowY: "auto",
+            // The aside itself never scrolls — only the nav below does (see
+            // .sidebar-scroll), so the brand row and account footer stay put.
+            overflow: "hidden",
           }}
         >
           <div className="admin-sidebar-title shell-brand">
@@ -195,7 +197,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
           </div>
 
-          <nav className="admin-nav" style={{ display: "flex", flexDirection: "column", gap: 16, flex: 1 }}>
+          <nav className="admin-nav sidebar-scroll" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {NAV_SECTIONS.map((section) => (
               <div key={section.title}>
                 <div

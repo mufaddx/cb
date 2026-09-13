@@ -218,7 +218,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           padding: "22px 14px",
           display: "flex",
           flexDirection: "column",
-          overflowY: "auto",
+          // The aside itself never scrolls — only the nav below does (see
+          // .sidebar-scroll), so the brand row and account footer stay put.
+          overflow: "hidden",
         }}
       >
         <Link href="/dashboard" className="shell-brand">
@@ -246,7 +248,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </span>
         </Link>
 
-        <nav style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1 }}>
+        <nav className="sidebar-scroll" style={{ display: "flex", flexDirection: "column", gap: 2 }}>
           {nav.map((item) => {
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
             const Icon = item.icon;
