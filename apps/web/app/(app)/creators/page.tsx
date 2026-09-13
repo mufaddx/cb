@@ -39,6 +39,12 @@ interface FollowerRange {
   maxValue: number | null;
 }
 
+// Rotated through in order per row so a creator's several categories
+// each get a distinct color, matching the pill-badge look every other
+// "categories/tags" list in the app already uses (StatCard/EmptyState
+// icon badges) — this table cell was still plain comma-joined text.
+const CATEGORY_TINTS = ["purple", "green", "pink", "blue", "amber"] as const;
+
 const METRICS = [
   { value: "", label: "Any" },
   { value: "FOLLOWER_COUNT", label: "Followers" },
@@ -299,7 +305,19 @@ export default function TopCreatorsPage() {
                       </div>
                     </div>
                   </td>
-                  <td style={{ padding: "8px 12px" }}>{c.categories.length ? c.categories.join(", ") : "—"}</td>
+                  <td style={{ padding: "8px 12px" }}>
+                    {c.categories.length === 0 ? (
+                      "—"
+                    ) : (
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                        {c.categories.map((cat, i) => (
+                          <span key={cat} className={`icon-badge icon-badge-${CATEGORY_TINTS[i % CATEGORY_TINTS.length]}`} style={{ width: "auto", height: "auto", padding: "3px 10px", borderRadius: 999, fontSize: 12, fontWeight: 600 }}>
+                            {cat}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </td>
                   <td style={{ padding: "8px 12px" }}>{c.followers != null ? c.followers.toLocaleString("en-IN") : "—"}</td>
                   <td style={{ padding: "8px 12px" }}>{c.avgReach != null ? c.avgReach.toLocaleString("en-IN") : "—"}</td>
                   <td style={{ padding: "8px 12px" }}>{Number(c.qualityScore).toFixed(1)}</td>
@@ -327,6 +345,12 @@ export default function TopCreatorsPage() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {creators && creators.length > 0 && (
+        <p className="helper-text" style={{ marginTop: 12 }}>
+          Showing {creators.length} of {creators.length} creator{creators.length === 1 ? "" : "s"}
+        </p>
       )}
 
       {showBuy && (
