@@ -413,6 +413,9 @@ export function AppShell({ children }: { children: ReactNode }) {
               <MenuIcon width={20} height={20} />
             </button>
 
+            {isLoggedIn && pageTitle && (
+              <span style={{ fontWeight: 700, fontSize: 15, flexShrink: 0, whiteSpace: "nowrap" }}>{pageTitle}</span>
+            )}
             {isLoggedIn ? (
               <div ref={searchBoxRef} className="desktop-only" style={{ position: "relative", maxWidth: 420, width: "100%" }}>
                 <SearchIcon

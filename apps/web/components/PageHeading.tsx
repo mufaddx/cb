@@ -8,25 +8,20 @@ interface PageHeadingProps {
   action?: ReactNode;
 }
 
-/** The icon + title + description row every Creator panel page opens
- * with (Instagram, Offers, My Deals, Messages, Wallet, Profile,
- * Settings) — pulled into one component instead of six near-identical
- * copies. `action` is whatever sits on the right (a "last synced"
- * timestamp + refresh button, a date badge, nothing). */
-export function PageHeading({ icon: Icon, tint, title, description, action }: PageHeadingProps) {
+/** Used to open every Creator/Brand panel page (Instagram, Offers, My
+ * Deals, Messages, Wallet, Profile, Settings, ...). The page's identity
+ * (icon/title/description) now comes from the unified header instead —
+ * AppShell already shows the current page's nav label there, so
+ * repeating it again at the top of the content area just duplicated
+ * it. `title`/`description`/`icon`/`tint` stay in the props (so no
+ * caller needs touching) but are intentionally unused here now;
+ * `action` — the one thing each caller actually needed rendered
+ * (Campaigns' "+ Create Campaign", Instagram's refresh control) —
+ * still renders, right-aligned, so nothing on the right is lost. */
+export function PageHeading({ action }: PageHeadingProps) {
+  if (!action) return null;
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, marginBottom: 24, flexWrap: "wrap" }}>
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
-        <span className={`icon-badge icon-badge-${tint}`} aria-hidden="true" style={{ marginTop: 2 }}>
-          <Icon width={19} height={19} />
-        </span>
-        <div>
-          <h1 style={{ margin: 0 }}>{title}</h1>
-          <p className="helper-text" style={{ marginTop: 4, fontSize: 14 }}>
-            {description}
-          </p>
-        </div>
-      </div>
+    <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 20 }}>
       {action}
     </div>
   );
