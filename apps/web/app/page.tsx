@@ -368,7 +368,6 @@ export default function HomePage() {
           {/* Decorative product preview — not a real screenshot. */}
           <div className="vx-hero-visual animate-fade-up" aria-hidden="true" style={{ animationDelay: "0.2s" }}>
             <div className="vx-ring" />
-            <div className="vx-ring-2" />
 
             <div className="vx-script" style={{ left: "-4%", top: "-2%", transform: "rotate(-10deg)" }}>
               {"More Creators\nBigger Stories"}
@@ -376,7 +375,7 @@ export default function HomePage() {
                 <CurvedArrow />
               </span>
             </div>
-            <div className="vx-script" style={{ right: "-3%", top: "34%", transform: "rotate(-12deg)" }}>
+            <div className="vx-script vx-script-edge" style={{ right: "-10%", top: "30%", transform: "rotate(-12deg)" }}>
               {"Ideas\nCreators\nGrowth"}
             </div>
 

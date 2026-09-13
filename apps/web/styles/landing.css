@@ -70,7 +70,7 @@
   --vx-btn-radius: 14px;
 
   /* ---- type scale ---- */
-  --vx-h1: clamp(38px, 4.35vw, 70px);
+  --vx-h1: clamp(38px, 4.05vw, 70px);
   --vx-h2: clamp(29px, 3.3vw, 52px);
   --vx-h3: clamp(19px, 1.35vw, 22px);
   --vx-body: clamp(15.5px, 1.12vw, 18px);
@@ -98,13 +98,13 @@
 /* ---------- containers & section rhythm ---------- */
 .vx-container {
   width: 100%;
-  max-width: var(--vx-container);
+  max-width: min(var(--vx-container), calc(84vw + 2 * var(--vx-gutter)));
   margin: 0 auto;
   padding-inline: var(--vx-gutter);
 }
 .vx-container-wide {
   width: 100%;
-  max-width: var(--vx-container-wide);
+  max-width: min(var(--vx-container-wide), calc(92vw + 2 * var(--vx-gutter)));
   margin: 0 auto;
   padding-inline: var(--vx-gutter);
 }
@@ -143,6 +143,12 @@
   font-weight: 800;
   line-height: 1.0;
   letter-spacing: -0.035em;
+}
+@media (min-width: 1025px) {
+  /* keep "Turn your / campaign into / creator-powered / reach." on exactly 4 lines */
+  .vx-h1 {
+    white-space: nowrap;
+  }
 }
 .vx-h2 {
   margin: 16px 0 0;
@@ -391,11 +397,11 @@
    ============================================================ */
 .vx-hero {
   position: relative;
-  padding-block: clamp(36px, 3.6vw, 56px) clamp(40px, 3.8vw, 58px);
+  padding-block: clamp(26px, 2.8vw, 46px) clamp(36px, 3.4vw, 54px);
 }
 .vx-hero-grid {
   display: grid;
-  grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   align-items: center;
   gap: clamp(24px, 3vw, 56px);
 }
@@ -441,8 +447,6 @@
   z-index: 1;
   /* room for the floating cards that overhang the dashboard */
   padding: 30px 30px 34px;
-  /* the reference lets the visual run toward the viewport edge */
-  margin-right: clamp(-60px, -3vw, 0px);
 }
 
 /* Glass torus/ribbon behind the dashboard: a conic gradient ring
@@ -451,30 +455,28 @@
    hue sweep, same tilt, same soft specular feel, no WebGL. */
 .vx-ring {
   position: absolute;
-  inset: -6% -4% -10% -8%;
   z-index: 0;
+  top: 50%;
+  left: 50%;
+  width: 124%;
+  aspect-ratio: 1.45 / 1;
+  transform: translate(-50%, -50%) rotate(-14deg);
   border-radius: 50%;
   background: var(--vx-grad-ring);
-  -webkit-mask: radial-gradient(closest-side, transparent 56%, #000 58%, #000 100%);
-  mask: radial-gradient(closest-side, transparent 56%, #000 58%, #000 100%);
-  transform: rotate(-16deg) scaleY(0.78);
-  filter: blur(3px) saturate(1.05);
-  opacity: 0.9;
+  /* a band, not a disc: the hole is larger than the dashboard's
+     half-height, so the ribbon shows above, below and around it */
+  -webkit-mask: radial-gradient(closest-side, transparent 67%, #000 70%, #000 96%, transparent 100%);
+  mask: radial-gradient(closest-side, transparent 67%, #000 70%, #000 96%, transparent 100%);
+  filter: saturate(1.2);
 }
-.vx-ring-2 {
+/* glass shading on the band: bright specular top-left, soft rim light
+   bottom-right (masked to the band by the parent) */
+.vx-ring::after {
+  content: "";
   position: absolute;
-  right: -6%;
-  bottom: -14%;
-  width: 46%;
-  aspect-ratio: 1.6 / 1;
-  z-index: 0;
+  inset: 0;
   border-radius: 50%;
-  background: conic-gradient(from 40deg, #a5b4fc, #c7d2fe, #a5f3fc, #ddd6fe, #a5b4fc);
-  -webkit-mask: radial-gradient(closest-side, transparent 58%, #000 60%);
-  mask: radial-gradient(closest-side, transparent 58%, #000 60%);
-  transform: rotate(14deg);
-  filter: blur(2px);
-  opacity: 0.75;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0) 38%, rgba(255, 255, 255, 0) 62%, rgba(255, 255, 255, 0.45) 100%);
 }
 
 /* ---- the dashboard mockup ---- */
@@ -506,7 +508,7 @@
 .vx-dash-body {
   display: grid;
   grid-template-columns: 122px minmax(0, 1fr);
-  min-height: 340px;
+  min-height: 372px;
 }
 .vx-dash-side {
   padding: 14px 10px;
@@ -651,7 +653,7 @@
 .vx-dash-chart svg {
   display: block;
   width: 100%;
-  height: 92px;
+  height: 112px;
 }
 .vx-dash-tip {
   position: absolute;
@@ -733,16 +735,16 @@
 /* positions traced from the export: top-right overhang, bottom-left
    overhang, bottom-right overhang */
 .vx-float-a {
-  top: 2%;
-  right: -2%;
+  top: 0;
+  right: -3%;
 }
 .vx-float-b {
-  bottom: 14%;
-  left: -7%;
+  bottom: 3%;
+  left: -6%;
 }
 .vx-float-c {
-  bottom: -1%;
-  right: 4%;
+  bottom: -3%;
+  right: 2%;
 }
 
 /* ============================================================
@@ -1311,7 +1313,7 @@
   padding-block: clamp(40px, 4vw, 64px) clamp(30px, 3vw, 48px);
 }
 .vx-cta-wrap > .vx-container-wide {
-  max-width: 1640px;
+  max-width: min(1640px, calc(95vw + 2 * var(--vx-gutter)));
 }
 .vx-cta {
   position: relative;
@@ -1535,13 +1537,6 @@
 
 /* laptops: keep the two-column hero but relax the bleed */
 @media (max-width: 1280px) {
-  .vx-landing {
-    --vx-container: 1100px;
-    --vx-container-wide: 1160px;
-  }
-  .vx-hero-visual {
-    margin-right: 0;
-  }
   .vx-steps {
     gap: 34px;
   }
@@ -1583,6 +1578,12 @@
   .vx-glassbar-item:nth-child(odd) {
     padding-left: 0;
     border-left: 0;
+  }
+}
+
+@media (max-width: 1199px) {
+  .vx-script-edge {
+    display: none;
   }
 }
 
@@ -1680,8 +1681,7 @@
     margin-top: 10px;
     white-space: normal;
   }
-  .vx-ring,
-  .vx-ring-2 {
+  .vx-ring {
     display: none;
   }
   .vx-hero-trust-item + .vx-hero-trust-item,
@@ -1751,6 +1751,81 @@
   }
   .vx-nav-toggle {
     display: inline-flex;
+  }
+}
+
+/* Dashboard mockup labels are single-line in the reference at every
+   size — truncate instead of wrapping when the visual column narrows. */
+.vx-dash-greet-lg,
+.vx-dash-panel-title,
+.vx-dash-creator-n,
+.vx-dash-creator-m,
+.vx-dash-stat-l {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Laptop widths (1025–1440): the copy column is ~460–560px, so the hero
+   trust row and the mockup are tightened to keep the reference's
+   one-line trust row and uncluttered dashboard. Bounded below at 1025px
+   so the stacked tablet/phone layouts above are untouched. */
+@media (min-width: 1025px) and (max-width: 1440px) {
+  .vx-hero-trust {
+    gap: 12px;
+    flex-wrap: nowrap;
+  }
+  .vx-hero-trust-item {
+    gap: 7px;
+    font-size: 13px;
+  }
+  .vx-hero-trust-item + .vx-hero-trust-item {
+    padding-left: 12px;
+  }
+  .vx-hero-trust-item svg {
+    width: 16px;
+    height: 16px;
+  }
+  .vx-dash-body {
+    grid-template-columns: 102px minmax(0, 1fr);
+  }
+  .vx-dash-nav-item {
+    gap: 6px;
+    padding: 7px 6px;
+    font-size: 10.5px;
+  }
+  .vx-dash-main {
+    padding: 13px 12px 16px;
+  }
+  .vx-dash-greet-lg {
+    font-size: 12.5px;
+  }
+  .vx-dash-stats {
+    gap: 7px;
+  }
+  .vx-dash-stat {
+    gap: 7px;
+    padding: 9px 8px;
+  }
+  .vx-dash-stat-ico {
+    width: 26px;
+    height: 26px;
+  }
+  .vx-dash-stat-v {
+    font-size: 13.5px;
+  }
+  .vx-dash-row {
+    gap: 8px;
+  }
+  .vx-dash-panel {
+    padding: 10px;
+  }
+  .vx-dash-panel-title {
+    font-size: 10.5px;
+  }
+  .vx-dash-avatar {
+    width: 22px;
+    height: 22px;
   }
 }
 
