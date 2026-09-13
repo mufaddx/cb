@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { apiFetch, ApiClientError } from "@/lib/apiClient";
 import { Button } from "@/components/Button";
 import { PageHeading } from "@/components/PageHeading";
-import { SearchIcon, SendIcon, ChatIcon } from "@/components/icons";
+import { ArrowLeftIcon, SearchIcon, SendIcon, ChatIcon } from "@/components/icons";
 
 interface Conversation {
   id: string;
@@ -51,7 +51,13 @@ function MessagesContent() {
     apiFetch<Conversation[]>("/api/conversations")
       .then((list) => {
         setConversations(list);
-        setActiveId((prev) => prev ?? list[0]?.id ?? null);
+        // On a phone only one pane shows at a time (see .chat-grid),
+        // so auto-opening the first conversation would skip straight
+        // past the list with no way back — only desktop (both panes
+        // already visible) auto-selects one. A conversation requested
+        // via ?id= still opens on either size, since that's explicit.
+        const isDesktop = typeof window !== "undefined" && window.matchMedia("(min-width: 769px)").matches;
+        setActiveId((prev) => prev ?? (isDesktop ? list[0]?.id ?? null : null));
       })
       .catch((err) => setError(err instanceof ApiClientError ? err.message : "Failed to load conversations."));
   }
@@ -97,6 +103,12 @@ function MessagesContent() {
     const other = accountType === "BRAND" ? c.creator.displayName : c.brand.companyName;
     return other.toLowerCase().includes(convSearch.trim().toLowerCase());
   });
+  const activeConversation = conversations?.find((c) => c.id === activeId) ?? null;
+  const activeOther = activeConversation
+    ? accountType === "BRAND"
+      ? activeConversation.creator.displayName
+      : activeConversation.brand.companyName
+    : null;
 
   return (
     <main style={{ padding: 32 }}>
@@ -108,8 +120,8 @@ function MessagesContent() {
           description="Connect, collaborate and grow with brands and creators."
         />
       )}
-      <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: 20, minHeight: "calc(100vh - 180px)" }}>
-      <div className="card" style={{ padding: 0, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+      <div className={`chat-grid${activeId ? " chat-has-active" : ""}`} style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: 20, minHeight: "calc(100vh - 180px)" }}>
+      <div className="card chat-list-pane" style={{ padding: 0, overflow: "hidden", display: "flex", flexDirection: "column" }}>
         <div style={{ padding: "14px 16px", fontWeight: 700, fontSize: 14 }}>Conversations</div>
         {isLoggedIn && conversations && conversations.length > 0 && (
           <div style={{ padding: "0 12px 10px", position: "relative" }}>
@@ -185,11 +197,31 @@ function MessagesContent() {
         </div>
       </div>
 
-      <div className="card" style={{ display: "flex", flexDirection: "column", padding: 0 }}>
+      <div className="card chat-thread-pane" style={{ display: "flex", flexDirection: "column", padding: 0 }}>
         {!activeId ? (
           <p className="helper-text" style={{ padding: 16 }}>Select a conversation.</p>
         ) : (
           <>
+            <button
+              type="button"
+              className="mobile-only"
+              onClick={() => setActiveId(null)}
+              style={{
+                alignItems: "center",
+                gap: 8,
+                border: "none",
+                borderBottom: "1px solid var(--color-border)",
+                background: "none",
+                padding: "12px 16px",
+                fontSize: 13.5,
+                fontWeight: 600,
+                cursor: "pointer",
+                textAlign: "left",
+              }}
+            >
+              <ArrowLeftIcon width={16} height={16} style={{ flexShrink: 0 }} />
+              {activeOther}
+            </button>
             <div style={{ flex: 1, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
               {!messages ? (
                 <p className="helper-text">Loading…</p>

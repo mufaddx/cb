@@ -274,7 +274,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
             <NotificationBell />
           </div>
-          <div style={{ padding: "32px" }}>{children}</div>
+          <div className="admin-page-body" style={{ padding: "32px" }}>{children}</div>
         </main>
       </div>
     </ConfirmProvider>

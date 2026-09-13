@@ -158,7 +158,7 @@ export default function ProfilePage() {
         description="Manage your profile information and show your best self to brands and creators."
       />
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 24, alignItems: "start" }}>
+      <div className="sidebar-grid" style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 24, alignItems: "start" }}>
         <div>
           <div style={{ display: "flex", gap: 4, marginBottom: 20, borderBottom: "1px solid var(--color-border)" }}>
             {TABS.map((t) => (

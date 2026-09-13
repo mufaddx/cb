@@ -438,7 +438,7 @@ export default function CreateCampaignPage() {
             <p className="error-text">No active rate card for this combination yet — try the other metric.</p>
           ) : (
             <>
-              <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 80px 32px", gap: 8, margin: "4px 0 6px", padding: "0 2px" }}>
+              <div className="desktop-only" style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 80px 32px", gap: 8, margin: "4px 0 6px", padding: "0 2px" }}>
                 <span className="helper-text" style={{ fontSize: 11.5, textTransform: "uppercase", letterSpacing: "0.04em" }}>Range</span>
                 <span className="helper-text" style={{ fontSize: 11.5, textTransform: "uppercase", letterSpacing: "0.04em" }}>Payout ₹</span>
                 <span className="helper-text" style={{ fontSize: 11.5, textTransform: "uppercase", letterSpacing: "0.04em" }}>Qty</span>
@@ -449,6 +449,7 @@ export default function CreateCampaignPage() {
                 return (
                   <div
                     key={i}
+                    className="form-row-grid"
                     style={{
                       display: "grid",
                       gridTemplateColumns: "1.4fr 1fr 80px 32px",
@@ -468,6 +469,7 @@ export default function CreateCampaignPage() {
                     <input
                       className="input"
                       type="number"
+                      placeholder="Payout ₹"
                       min={slab ? Number(slab.payoutAmount) : 0}
                       value={r.payoutAmount}
                       onChange={(e) => updateRange(i, "payoutAmount", e.target.value)}
@@ -476,6 +478,7 @@ export default function CreateCampaignPage() {
                     <input
                       className="input"
                       type="number"
+                      placeholder="Qty"
                       min={1}
                       value={r.quantity}
                       onChange={(e) => updateRange(i, "quantity", e.target.value)}

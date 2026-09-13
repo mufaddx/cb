@@ -804,8 +804,11 @@ a {
   .container {
     padding: 0 16px;
   }
+  /* !important: plenty of pages set a bigger padding (28px, etc.)
+     inline on top of the .card class for desktop breathing room — on
+     an already-narrow phone that's width better spent on content. */
   .card {
-    padding: 16px;
+    padding: 16px !important;
     border-radius: 12px;
   }
   .desktop-only {
@@ -927,6 +930,57 @@ a {
      on a phone. */
   .wallet-grid {
     grid-template-columns: 1fr !important;
+  }
+
+  /* Every app/admin page's own <main>/content wrapper uses a flat 32px
+     (app pages) — the admin equivalent is .admin-page-body, see
+     admin/layout.tsx — of padding, sized for desktop. Halved on a
+     phone so content isn't fighting the screen edge for space. */
+  .app-content > main,
+  .admin-page-body {
+    padding: 16px !important;
+  }
+
+  /* Any page/section pairing a main column with a fixed-width side
+     column (Profile's preview+tips rail, etc.) — the fixed column has
+     no room to exist once the viewport is phone-width, so stack it
+     below the main column instead. */
+  .sidebar-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Dense form rows sized for desktop (a rate-card row's
+     range/payout/qty/remove columns, "Add a product"'s
+     name/sku/price/inventory columns) — the fixed-width columns leave
+     almost nothing for the flexible ones on a phone, so stack every
+     field on its own line instead of cramming them sideways. */
+  .form-row-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Messages / admin Support: a fixed-width conversation list beside
+     the open thread only fits once there's room for both. On a phone,
+     show one pane at a time full-width — the list by default, the
+     thread (with its own back button) once a conversation is picked —
+     instead of squeezing both into slivers. */
+  .chat-grid {
+    grid-template-columns: 1fr !important;
+    min-height: 0 !important;
+  }
+  .chat-grid .chat-list-pane {
+    display: flex !important;
+  }
+  .chat-grid .chat-thread-pane {
+    display: none !important;
+  }
+  .chat-grid.chat-has-active .chat-list-pane {
+    display: none !important;
+  }
+  .chat-grid.chat-has-active .chat-thread-pane {
+    display: flex !important;
+  }
+  .chat-thread-pane {
+    min-height: calc(100vh - 180px);
   }
 
   /* Auth forms (login/signup/forgot/reset/verify): full screen instead

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "../../../components/Button";
+import { ArrowLeftIcon } from "../../../components/icons";
 import { apiFetch, ApiClientError } from "../../../lib/apiClient";
 
 interface Ticket {
@@ -92,8 +93,8 @@ export default function AdminSupportPage() {
   if (!tickets) return <p>Loading…</p>;
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: 20, minHeight: "calc(100vh - 180px)" }}>
-      <div className="card" style={{ padding: 0, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+    <div className={`chat-grid${activeId ? " chat-has-active" : ""}`} style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: 20, minHeight: "calc(100vh - 180px)" }}>
+      <div className="card chat-list-pane" style={{ padding: 0, overflow: "hidden", display: "flex", flexDirection: "column" }}>
         <div style={{ padding: "14px 16px", fontWeight: 700, fontSize: 14 }}>Tickets ({tickets.length})</div>
         <div style={{ overflowY: "auto", flex: 1 }}>
           {tickets.length === 0 ? (
@@ -125,13 +126,33 @@ export default function AdminSupportPage() {
         </div>
       </div>
 
-      <div className="card" style={{ display: "flex", flexDirection: "column", padding: 0 }}>
+      <div className="card chat-thread-pane" style={{ display: "flex", flexDirection: "column", padding: 0 }}>
         {!activeId ? (
           <p className="helper-text" style={{ padding: 16 }}>Select a ticket.</p>
         ) : !ticket ? (
           <p className="helper-text" style={{ padding: 16 }}>Loading…</p>
         ) : (
           <>
+            <button
+              type="button"
+              className="mobile-only"
+              onClick={() => setActiveId(null)}
+              style={{
+                alignItems: "center",
+                gap: 8,
+                border: "none",
+                borderBottom: "1px solid var(--color-border)",
+                background: "none",
+                padding: "12px 16px",
+                fontSize: 13.5,
+                fontWeight: 600,
+                cursor: "pointer",
+                textAlign: "left",
+              }}
+            >
+              <ArrowLeftIcon width={16} height={16} style={{ flexShrink: 0 }} />
+              Back to tickets
+            </button>
             <div style={{ padding: "14px 16px", borderBottom: "1px solid var(--color-border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
               <div>
                 <div style={{ fontWeight: 700 }}>{ticket.subject}</div>

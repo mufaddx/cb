@@ -71,7 +71,7 @@ export default function ProductsPage() {
         <div className="card" style={{ marginBottom: 24 }}>
           <h3>Add a product</h3>
           <form onSubmit={createProduct}>
-            <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 8, marginBottom: 16 }}>
+            <div className="form-row-grid" style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 8, marginBottom: 16 }}>
               <input className="input" placeholder="Name" required value={name} onChange={(e) => setName(e.target.value)} />
               <input className="input" placeholder="SKU" value={sku} onChange={(e) => setSku(e.target.value)} />
               <input className="input" type="number" placeholder="Price ₹" value={price} onChange={(e) => setPrice(e.target.value)} />
