@@ -187,6 +187,33 @@ body {
   background-repeat: repeat;
 }
 
+/* Panel identity: each panel gets its own accent, applied once on the
+   outer .app-shell/.admin-shell wrapper (see AppShell.tsx /
+   admin/layout.tsx) — every component that reads --color-primary* for
+   an active nav item, a primary button, a focus ring, a badge, a
+   spinner, etc. automatically follows, with zero per-component
+   changes, the same token-shadowing trick .paper-page uses above.
+   The neutral/white paper foundation (--paper-*) is unaffected — only
+   the accent moves. */
+.panel-creator {
+  --color-primary: #7c3aed;
+  --color-primary-hover: #6d28d9;
+  --color-primary-active: #5b21b6;
+  --color-primary-soft: #f1edfe;
+}
+.panel-brand {
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-active: #1e40af;
+  --color-primary-soft: #e8f1fe;
+}
+.panel-admin {
+  --color-primary: #334155;
+  --color-primary-hover: #1e293b;
+  --color-primary-active: #0f172a;
+  --color-primary-soft: #f1f5f9;
+}
+
 /* The paper canvas, same as body — auth pages (login/signup/forgot/
    reset/verify) and the landing page's hero both use this class
    instead of each sitting on a flat, ungrained color the way an

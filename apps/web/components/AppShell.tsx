@@ -203,7 +203,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <PageHeaderExtraContext.Provider value={setHeaderExtra}>
-    <div className="app-shell" style={{ display: "flex", minHeight: "100vh" }}>
+    <div className={`app-shell${accountType ? ` panel-${accountType.toLowerCase()}` : ""}`} style={{ display: "flex", minHeight: "100vh" }}>
       <aside
         className={`app-sidebar paper-panel${drawerOpen ? " is-open" : ""}`}
         style={{

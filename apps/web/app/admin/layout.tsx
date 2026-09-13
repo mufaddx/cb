@@ -126,7 +126,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <ConfirmProvider>
-      <div className="admin-shell" style={{ display: "flex", minHeight: "100vh" }}>
+      <div className="admin-shell panel-admin" style={{ display: "flex", minHeight: "100vh" }}>
         {drawerOpen && (
           <div
             className="mobile-only"
