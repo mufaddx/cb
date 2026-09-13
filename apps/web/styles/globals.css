@@ -33,8 +33,8 @@
   --paper-ink: #18181b;
   --paper-ink-secondary: #6b7280;
   --paper-ink-faint: #9ca3af;
-  --paper-line: #dcdce1;
-  --paper-line-strong: #c7c7cf;
+  --paper-line: #d5d5db;
+  --paper-line-strong: #9d9da8;
 
   --color-bg: var(--paper-bg);
   --color-bg-subtle: var(--paper-panel);
