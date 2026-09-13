@@ -1,7 +1,16 @@
 import { MarketingHeader } from "../components/MarketingHeader";
 import { MarketingFooter } from "../components/MarketingFooter";
 import { RevealOnScroll } from "../components/RevealOnScroll";
-import { ChatIcon, HandshakeIcon, InstagramIcon, LockIcon, MegaphoneIcon, TargetIcon, WalletIcon } from "../components/icons";
+import {
+  ChatIcon,
+  CheckCircleIcon,
+  HandshakeIcon,
+  InstagramIcon,
+  LockIcon,
+  MegaphoneIcon,
+  TargetIcon,
+  WalletIcon,
+} from "../components/icons";
 
 // Signup lives on the app domain (see middleware.ts) — a plain <a>,
 // not next/link, since this page is served from the marketing domain.
@@ -96,53 +105,130 @@ export default function HomePage() {
             filter: "blur(50px)",
           }}
         />
-        <div className="container" style={{ position: "relative", padding: "76px 24px 0", textAlign: "center" }}>
-          <div className="animate-fade-up" style={{ display: "flex", justifyContent: "center" }}>
-            <span className="eyebrow">Built for Indian creator campaigns</span>
-          </div>
-          <h1 className="animate-fade-up" style={{ maxWidth: 860, margin: "18px auto 14px", animationDelay: "0.06s" }}>
-            Turn your campaign into <span style={{ backgroundImage: "var(--gradient-brand)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>creator-powered reach</span>.
-          </h1>
-          <p
-            className="animate-fade-up"
-            style={{ maxWidth: 600, margin: "0 auto 30px", color: "var(--color-text-secondary)", fontSize: 17.5, animationDelay: "0.12s" }}
-          >
-            Brands launch clipping and creator content campaigns — including product reviews. Creators accept, deliver,
-            and get paid — with verification and retention tracked end to end.
-          </p>
-          <div className="hero-cta animate-fade-up" style={{ display: "flex", gap: 14, justifyContent: "center", animationDelay: "0.18s" }}>
-            <a
-              href={`${APP_URL}/signup?as=brand`}
-              className="hero-cta-btn"
-              style={{
-                background: "var(--color-text)",
-                color: "var(--color-white)",
-                padding: "15px 26px",
-                borderRadius: "var(--radius-control)",
-                fontWeight: 600,
-                fontSize: 15.5,
-                boxShadow: "var(--shadow-lg)",
-                transition: "transform var(--duration-fast) ease",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Create a Campaign
-            </a>
-            <a
-              href={`${APP_URL}/signup?as=creator`}
-              className="hero-cta-btn"
-              style={{
-                background: "var(--color-white)",
-                border: "1px solid var(--color-border-strong)",
-                padding: "15px 26px",
-                borderRadius: "var(--radius-control)",
-                fontWeight: 600,
-                fontSize: 15.5,
-                whiteSpace: "nowrap",
-              }}
-            >
-              Join as a Creator
-            </a>
+        <div
+          className="animate-float"
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            bottom: "-140px",
+            left: "-120px",
+            width: 320,
+            height: 320,
+            borderRadius: "50%",
+            background: "linear-gradient(135deg, #7c3aed, #06b6d4)",
+            opacity: 0.12,
+            filter: "blur(60px)",
+            animationDelay: "-3s",
+          }}
+        />
+        <div className="container" style={{ position: "relative", padding: "76px 24px 0" }}>
+          <div className="hero-grid">
+            <div className="hero-copy">
+              <div className="hero-eyebrow-row animate-fade-up" style={{ display: "flex", justifyContent: "flex-start" }}>
+                <span className="eyebrow">Built for Indian creator campaigns</span>
+              </div>
+              <h1 className="animate-fade-up" style={{ maxWidth: 560, margin: "18px 0 14px", animationDelay: "0.06s" }}>
+                Turn your campaign into{" "}
+                <span style={{ backgroundImage: "var(--gradient-brand)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>
+                  creator-powered reach
+                </span>
+                .
+              </h1>
+              <p
+                className="animate-fade-up"
+                style={{ maxWidth: 520, margin: "0 0 30px", color: "var(--color-text-secondary)", fontSize: 17.5, animationDelay: "0.12s" }}
+              >
+                Brands launch clipping and creator content campaigns — including product reviews. Creators accept, deliver,
+                and get paid — with verification and retention tracked end to end.
+              </p>
+              <div className="hero-cta animate-fade-up" style={{ display: "flex", gap: 14, animationDelay: "0.18s" }}>
+                <a
+                  href={`${APP_URL}/signup?as=brand`}
+                  className="hero-cta-btn hero-cta-btn--primary"
+                  style={{
+                    background: "var(--color-text)",
+                    color: "var(--color-white)",
+                    padding: "15px 26px",
+                    borderRadius: "var(--radius-control)",
+                    fontWeight: 600,
+                    fontSize: 15.5,
+                    boxShadow: "var(--shadow-lg)",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Create a Campaign
+                </a>
+                <a
+                  href={`${APP_URL}/signup?as=creator`}
+                  className="hero-cta-btn hero-cta-btn--secondary"
+                  style={{
+                    background: "var(--color-white)",
+                    border: "1px solid var(--color-border-strong)",
+                    padding: "15px 26px",
+                    borderRadius: "var(--radius-control)",
+                    fontWeight: 600,
+                    fontSize: 15.5,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Join as a Creator
+                </a>
+              </div>
+            </div>
+
+            {/* Purely decorative — a stylized product preview, not a real
+                screenshot, so there's nothing to keep in sync as the
+                actual dashboard changes. aria-hidden since a screen
+                reader gets nothing from a fake one. */}
+            <div className="hero-visual animate-fade-up" aria-hidden="true" style={{ animationDelay: "0.24s" }}>
+              <div className="hero-mock-float-card hero-mock-float-card--top">
+                <CheckCircleIcon width={15} height={15} style={{ color: "var(--color-success)", flexShrink: 0 }} />
+                Payout verified
+              </div>
+              <div className="hero-mock-card">
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 16 }}>
+                  <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#f0645a" }} />
+                  <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#f5bd4f" }} />
+                  <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#61c554" }} />
+                  <span style={{ fontSize: 11.5, color: "var(--color-text-faint)", marginLeft: 8 }}>app.vidlix.in</span>
+                </div>
+                <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
+                  {[
+                    { v: "₹2.4L", l: "Paid out" },
+                    { v: "1,240", l: "Creators" },
+                    { v: "98%", l: "On time" },
+                  ].map((s) => (
+                    <div key={s.l} style={{ flex: 1, background: "var(--color-bg-subtle)", borderRadius: 10, padding: "10px 8px", textAlign: "center" }}>
+                      <div style={{ fontWeight: 750, fontSize: 15, letterSpacing: "-0.02em" }}>{s.v}</div>
+                      <div style={{ fontSize: 10.5, color: "var(--color-text-secondary)" }}>{s.l}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {[
+                    { tint: "purple" as const, icon: MegaphoneIcon, w: "72%" },
+                    { tint: "blue" as const, icon: InstagramIcon, w: "55%" },
+                    { tint: "green" as const, icon: HandshakeIcon, w: "64%" },
+                  ].map((row, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <span className={`icon-badge icon-badge-${row.tint}`} aria-hidden="true" style={{ width: 28, height: 28, flexShrink: 0 }}>
+                        <row.icon width={13} height={13} />
+                      </span>
+                      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 5 }}>
+                        <span style={{ display: "block", height: 6, width: row.w, borderRadius: 3, background: "var(--color-border-strong)" }} />
+                        <span style={{ display: "block", height: 5, width: "40%", borderRadius: 3, background: "var(--color-border)" }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="hero-mock-float-card hero-mock-float-card--bottom">
+                <span className="icon-badge icon-badge-pink" aria-hidden="true" style={{ width: 22, height: 22 }}>
+                  <ChatIcon width={11} height={11} />
+                </span>
+                Creator accepted offer
+              </div>
+            </div>
           </div>
         </div>
 
@@ -313,6 +399,7 @@ export default function HomePage() {
               <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
                 <a
                   href={`${APP_URL}/signup?as=brand`}
+                  className="cta-btn cta-btn--light"
                   style={{
                     background: "#fff",
                     color: "var(--color-dark)",
@@ -326,6 +413,7 @@ export default function HomePage() {
                 </a>
                 <a
                   href={`${APP_URL}/signup?as=creator`}
+                  className="cta-btn cta-btn--dark"
                   style={{
                     background: "rgba(255,255,255,0.08)",
                     border: "1px solid rgba(255,255,255,0.25)",

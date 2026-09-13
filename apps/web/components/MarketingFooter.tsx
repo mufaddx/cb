@@ -91,6 +91,7 @@ export function MarketingFooter() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={label}
+                    className="footer-social-link"
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
@@ -114,11 +115,11 @@ export function MarketingFooter() {
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {col.links.map((l) =>
                   l.external ? (
-                    <a key={l.label} href={l.href} style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>
+                    <a key={l.label} href={l.href} className="footer-link" style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>
                       {l.label}
                     </a>
                   ) : (
-                    <Link key={l.href} href={l.href} style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>
+                    <Link key={l.href} href={l.href} className="footer-link" style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>
                       {l.label}
                     </Link>
                   )
