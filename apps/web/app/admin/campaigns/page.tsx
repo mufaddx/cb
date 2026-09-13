@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 import { Button } from "../../../components/Button";
 import { PageLoader } from "../../../components/PageLoader";
+import { AdminEmpty, AdminIntro, Avatar, DemoBanner, DemoTag, StatusBadge, formatDate, formatINR, humanize } from "../../../components/admin/AdminUI";
+import { MegaphoneIcon } from "../../../components/icons";
 import { apiFetch, ApiClientError } from "../../../lib/apiClient";
+import { DEMO_LIVE_CAMPAIGNS, DEMO_REVIEW_CAMPAIGNS, isDemoId, withDemo } from "../../../lib/adminDemo";
 import { useConfirm } from "../../../lib/useConfirm";
 
 interface ReviewCampaign {
@@ -46,8 +49,8 @@ function slabLabel(s: TargetingSlab): string {
 }
 
 const TABS = [
-  { key: "review", label: "Pending Review" },
-  { key: "live", label: "Live Campaigns" },
+  { key: "review", label: "Waiting for review" },
+  { key: "live", label: "Live campaigns" },
 ] as const;
 type TabKey = (typeof TABS)[number]["key"];
 
@@ -57,18 +60,27 @@ export default function CampaignReviewsPage() {
   const [queue, setQueue] = useState<ReviewCampaign[] | null>(null);
   const [live, setLive] = useState<LiveCampaign[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState(false);
   const [actingOn, setActingOn] = useState<string | null>(null);
   const [matchResults, setMatchResults] = useState<Record<string, MatchingResult>>({});
 
   function loadQueue() {
     apiFetch<ReviewCampaign[]>("/api/campaigns/review-queue")
       .then(setQueue)
-      .catch((err) => setError(err instanceof ApiClientError ? err.message : "Failed to load the queue."));
+      .catch((err) => {
+        setError(err instanceof ApiClientError ? err.message : "Failed to load the queue.");
+        setLoadError(true);
+        setQueue([]);
+      });
   }
   function loadLive() {
     apiFetch<LiveCampaign[]>("/api/campaigns/live")
       .then(setLive)
-      .catch((err) => setError(err instanceof ApiClientError ? err.message : "Failed to load live campaigns."));
+      .catch((err) => {
+        setError(err instanceof ApiClientError ? err.message : "Failed to load live campaigns.");
+        setLoadError(true);
+        setLive([]);
+      });
   }
   useEffect(() => {
     loadQueue();
@@ -139,106 +151,124 @@ export default function CampaignReviewsPage() {
     }
   }
 
-  if (!queue || !live) return <PageLoader />;
+  const review = withDemo(queue, DEMO_REVIEW_CAMPAIGNS, { allow: !loadError });
+  const liveList = withDemo(live, DEMO_LIVE_CAMPAIGNS, { allow: !loadError });
+  if (!review.items || !liveList.items) return <PageLoader />;
+
+  const counts = { review: review.isDemo ? 0 : review.items.length, live: liveList.isDemo ? 0 : liveList.items.length };
+  const showDemo = tab === "review" ? review.isDemo : liveList.isDemo;
 
   return (
-    <div>
-      <div style={{ display: "flex", gap: 4, marginBottom: 20, borderBottom: "1px solid var(--color-border)" }}>
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            style={{
-              background: "none",
-              border: "none",
-              borderBottom: tab === t.key ? "2px solid var(--color-primary)" : "2px solid transparent",
-              padding: "10px 14px",
-              marginBottom: -1,
-              fontSize: 13.5,
-              fontWeight: tab === t.key ? 700 : 500,
-              color: tab === t.key ? "var(--color-primary)" : "var(--color-text-secondary)",
-              cursor: "pointer",
-            }}
-          >
-            {t.label} ({t.key === "review" ? queue.length : live.length})
-          </button>
-        ))}
+    <div className="adm-stack">
+      <AdminIntro icon={MegaphoneIcon} tint="purple">
+        Approve or reject the campaigns brands submit. Once a campaign is paid and live, run matching here to send offers to
+        eligible creators.
+      </AdminIntro>
+
+      <div className="adm-toolbar">
+        <div className="adm-tabs" role="tablist" aria-label="Campaign lists">
+          {TABS.map((t) => (
+            <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} className={`adm-tab${tab === t.key ? " is-active" : ""}`} onClick={() => setTab(t.key)}>
+              {t.label}
+              <span className="adm-tab-count">{counts[t.key]}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
-      {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
+      <DemoBanner show={showDemo} />
+      {error && <p className="error-text">{error}</p>}
 
       {tab === "review" &&
-        (queue.length === 0 ? (
-          <div className="card">No campaigns awaiting review.</div>
+        (review.items.length === 0 ? (
+          <AdminEmpty icon={MegaphoneIcon} title="No campaigns waiting for review" text="When a brand submits a campaign, it appears here for approval." />
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {queue.map((c) => (
-              <div key={c.id} className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{c.code} · {c.type}</div>
-                  <div style={{ fontWeight: 600 }}>{c.title}</div>
-                  <div style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>{c.brand.companyName}</div>
-                </div>
-                <div style={{ textAlign: "right", display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
-                  <div style={{ fontWeight: 600 }}>₹{c.pricingSnapshots[0]?.totalAmount ?? "—"}</div>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <Button loading={actingOn === c.id} onClick={() => approve(c.id, c.title)}>
-                      Approve
-                    </Button>
-                    <Button variant="danger" loading={actingOn === c.id} onClick={() => reject(c.id, c.title)}>
+          <div className="adm-list">
+            {review.items.map((c) => {
+              const demo = isDemoId(c.id);
+              return (
+                <div key={c.id} className={`adm-row${demo ? " is-demo" : ""}`}>
+                  <div className="adm-row-main">
+                    <Avatar name={c.brand.companyName} square />
+                    <div style={{ minWidth: 0 }}>
+                      <div className="adm-row-meta">
+                        <StatusBadge status="UNDER_REVIEW" label="Awaiting review" />
+                        <span className="adm-chip">{humanize(c.type)}</span>
+                        {demo && <DemoTag />}
+                      </div>
+                      <div className="adm-row-title">{c.title}</div>
+                      <div className="adm-row-sub">
+                        {c.brand.companyName} · {c.code} · Submitted {formatDate(c.submittedAt)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="adm-row-side">
+                    <span className="adm-amount">{c.pricingSnapshots[0] ? formatINR(c.pricingSnapshots[0].totalAmount) : "—"}</span>
+                    <Button variant="danger" disabled={demo} loading={actingOn === c.id} onClick={() => reject(c.id, c.title)}>
                       Reject
+                    </Button>
+                    <Button disabled={demo} loading={actingOn === c.id} onClick={() => approve(c.id, c.title)}>
+                      Approve
                     </Button>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ))}
 
       {tab === "live" &&
-        (live.length === 0 ? (
-          <div className="card">No live campaigns right now.</div>
+        (liveList.items.length === 0 ? (
+          <AdminEmpty icon={MegaphoneIcon} title="No live campaigns right now" text="Paid campaigns show up here, ready for creator matching." />
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {live.map((c) => {
+          <div className="adm-list">
+            {liveList.items.map((c) => {
+              const demo = isDemoId(c.id);
               const totalQuantity = c.targetingSlabs.reduce((s, sl) => s + sl.quantity, 0);
               const totalReserved = c.targetingSlabs.reduce((s, sl) => s + sl.reserved, 0);
               const fullyMatched = totalQuantity > 0 && totalReserved >= totalQuantity;
               const result = matchResults[c.id];
               return (
-                <div key={c.id} className="card">
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
-                    <div>
-                      <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{c.code} · {c.type} · {c.status}</div>
-                      <div style={{ fontWeight: 600 }}>{c.title}</div>
-                      <div style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>{c.brand.companyName}</div>
-                    </div>
-                    <div style={{ textAlign: "right" }}>
-                      <div style={{ fontWeight: 600, marginBottom: 8, color: fullyMatched ? "var(--color-success)" : "var(--color-text)" }}>
-                        {totalReserved}/{totalQuantity} matched
+                <div key={c.id} className={`adm-row${demo ? " is-demo" : ""}`}>
+                  <div className="adm-row-main" style={{ alignItems: "flex-start" }}>
+                    <Avatar name={c.brand.companyName} square />
+                    <div style={{ minWidth: 0 }}>
+                      <div className="adm-row-meta">
+                        <StatusBadge status={c.status} />
+                        <span className="adm-chip">{humanize(c.type)}</span>
+                        {demo && <DemoTag />}
                       </div>
-                      <Button loading={actingOn === c.id} disabled={fullyMatched} onClick={() => runMatching(c.id, c.title)}>
-                        {fullyMatched ? "Fully matched" : "Run Matching"}
-                      </Button>
+                      <div className="adm-row-title">{c.title}</div>
+                      <div className="adm-row-sub">
+                        {c.brand.companyName} · {c.code} · Live since {formatDate(c.liveAt)}
+                      </div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+                        {c.targetingSlabs.map((s) => (
+                          <span key={s.id} className="adm-chip">
+                            Band {slabLabel(s)}: {s.reserved}/{s.quantity} matched
+                          </span>
+                        ))}
+                      </div>
+                      {result && (
+                        <p className="adm-row-note">
+                          Last run: {result.offersCreated} offer{result.offersCreated === 1 ? "" : "s"} sent —{" "}
+                          {result.perSlab.map((p) => `${p.matched}/${p.requested} matched`).join(", ")}
+                          {result.perSlab.some((p) => p.stillShort > 0) && " (some bands are still short on eligible creators)."}
+                        </p>
+                      )}
                     </div>
                   </div>
-
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
-                    {c.targetingSlabs.map((s) => (
-                      <span key={s.id} className="badge">
-                        {slabLabel(s)}: {s.reserved}/{s.quantity}
-                      </span>
-                    ))}
-                  </div>
-
-                  {result && (
-                    <div className="helper-text" style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--color-border)" }}>
-                      Last run: {result.offersCreated} offer{result.offersCreated === 1 ? "" : "s"} sent —{" "}
-                      {result.perSlab.map((p) => `${p.matched}/${p.requested} matched`).join(", ")}
-                      {result.perSlab.some((p) => p.stillShort > 0) &&
-                        " (some slabs are still short on eligible creators)."}
+                  <div className="adm-row-side">
+                    <div style={{ textAlign: "right" }}>
+                      <div className="adm-amount" style={{ color: fullyMatched ? "var(--color-success)" : undefined }}>
+                        {totalReserved}/{totalQuantity}
+                      </div>
+                      <div className="helper-text" style={{ marginTop: 0 }}>creators matched</div>
                     </div>
-                  )}
+                    <Button disabled={demo || fullyMatched} loading={actingOn === c.id} onClick={() => runMatching(c.id, c.title)}>
+                      {fullyMatched ? "Fully matched" : "Run matching"}
+                    </Button>
+                  </div>
                 </div>
               );
             })}

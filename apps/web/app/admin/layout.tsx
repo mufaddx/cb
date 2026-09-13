@@ -1,54 +1,76 @@
 "use client";
 
+import type { SVGProps } from "react";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch, ApiClientError, clearTokens } from "../../lib/apiClient";
 import { ConfirmProvider } from "../../lib/useConfirm";
-import { LogOutIcon, MenuIcon, SparkIcon } from "../../components/icons";
+import {
+  AlertTriangleIcon,
+  BuildingIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  CreditCardIcon,
+  FileTextIcon,
+  HomeIcon,
+  IdCardIcon,
+  LifeBuoyIcon,
+  LogOutIcon,
+  MegaphoneIcon,
+  MenuIcon,
+  ScaleIcon,
+  SparkIcon,
+  TagIcon,
+  UsersIcon,
+  WalletIcon,
+} from "../../components/icons";
 import { NotificationBell } from "../../components/NotificationBell";
 import { PageLoader } from "../../components/PageLoader";
+import "../../styles/admin.css";
 
 const ADMIN_ROLES = ["SUPER_ADMIN", "OPERATIONS_ADMIN", "FINANCE_ADMIN", "KYC_ADMIN", "CONTENT_REVIEWER", "SUPPORT_ADMIN"];
 
-const NAV_SECTIONS: Array<{ title: string; items: Array<{ href: string; label: string }> }> = [
+type NavIcon = (props: SVGProps<SVGSVGElement>) => JSX.Element;
+
+// One Dashboard replaces the old separate "Operations Center" and
+// "Analytics" pages: every queue count and money/platform number now
+// lives on /admin, each box linking to the page that handles it.
+const NAV_SECTIONS: Array<{ title: string; items: Array<{ href: string; label: string; icon: NavIcon }> }> = [
   {
     title: "Overview",
-    items: [
-      { href: "/admin", label: "Operations Center" },
-      { href: "/admin/analytics", label: "Analytics" },
-    ],
+    items: [{ href: "/admin", label: "Dashboard", icon: HomeIcon }],
   },
   {
     title: "Campaigns",
     items: [
-      { href: "/admin/campaigns", label: "Campaign Reviews" },
-      { href: "/admin/verification", label: "Content Verification" },
-      { href: "/admin/content", label: "Creator Content Review" },
-      { href: "/admin/retention", label: "Retention" },
+      { href: "/admin/campaigns", label: "Campaign Reviews", icon: MegaphoneIcon },
+      { href: "/admin/content", label: "Content Review", icon: FileTextIcon },
+      { href: "/admin/verification", label: "Post Verification", icon: CheckCircleIcon },
+      { href: "/admin/retention", label: "Retention Checks", icon: ClockIcon },
     ],
   },
   {
     title: "People",
     items: [
-      { href: "/admin/creators", label: "Creators" },
-      { href: "/admin/brands", label: "Brands" },
-      { href: "/admin/kyc", label: "KYC" },
+      { href: "/admin/creators", label: "Creators", icon: UsersIcon },
+      { href: "/admin/brands", label: "Brands", icon: BuildingIcon },
+      { href: "/admin/kyc", label: "KYC Reviews", icon: IdCardIcon },
     ],
   },
   {
     title: "Money & Trust",
     items: [
-      { href: "/admin/withdrawals", label: "Withdrawals" },
-      { href: "/admin/payments", label: "Payments & Refunds" },
-      { href: "/admin/disputes", label: "Disputes" },
-      { href: "/admin/fraud", label: "Fraud & Risk" },
-      { href: "/admin/pricing", label: "Pricing & Fees" },
+      { href: "/admin/withdrawals", label: "Withdrawals", icon: WalletIcon },
+      { href: "/admin/payments", label: "Payments & Refunds", icon: CreditCardIcon },
+      { href: "/admin/disputes", label: "Disputes", icon: ScaleIcon },
+      { href: "/admin/fraud", label: "Fraud & Risk", icon: AlertTriangleIcon },
+      { href: "/admin/pricing", label: "Pricing & Fees", icon: TagIcon },
     ],
   },
   {
     title: "Support",
-    items: [{ href: "/admin/support", label: "Support Tickets" }],
+    items: [{ href: "/admin/support", label: "Support Tickets", icon: LifeBuoyIcon }],
   },
 ];
 
@@ -107,7 +129,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <main style={{ padding: 48, maxWidth: 480 }}>
         <h1 style={{ fontSize: 22 }}>Admin access required</h1>
         <p className="helper-text" style={{ marginBottom: 20 }}>
-          Log in with an admin account to view the Operations Center.
+          Log in with an admin account to open the admin dashboard.
         </p>
         <Link href="/login" style={{ color: "var(--color-primary)", fontWeight: 600 }}>
           Go to login →
@@ -122,7 +144,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         .map((r) => r.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()))
         .join(", ") ?? "";
 
-  const pageTitle = NAV_SECTIONS.flatMap((s) => s.items).find((item) => pathname === item.href)?.label ?? "Operations Center";
+  const pageTitle = NAV_SECTIONS.flatMap((s) => s.items).find((item) => pathname === item.href)?.label ?? "Dashboard";
 
   return (
     <ConfirmProvider>
@@ -195,7 +217,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       <Link
                         key={item.href}
                         href={item.href}
+                        aria-current={active ? "page" : undefined}
                         style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
                           padding: "9px 12px",
                           borderRadius: 8,
                           fontSize: 13.5,
@@ -206,6 +232,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                           transition: "background-color var(--duration-fast) ease, color var(--duration-fast) ease",
                         }}
                       >
+                        <item.icon width={16} height={16} style={{ flexShrink: 0, opacity: active ? 1 : 0.8 }} />
                         {item.label}
                       </Link>
                     );

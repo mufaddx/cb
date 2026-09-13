@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "../../../components/Button";
-import { ArrowLeftIcon } from "../../../components/icons";
+import { PageLoader } from "../../../components/PageLoader";
+import { AdminIntro, DemoBanner, DemoTag, StatusBadge, formatDate } from "../../../components/admin/AdminUI";
+import { ArrowLeftIcon, LifeBuoyIcon } from "../../../components/icons";
 import { apiFetch, ApiClientError } from "../../../lib/apiClient";
+import { DEMO_TICKETS, DEMO_TICKET_MESSAGES, isDemoId, withDemo } from "../../../lib/adminDemo";
 
 interface Ticket {
   id: string;
@@ -40,16 +43,27 @@ export default function AdminSupportPage() {
   const [sending, setSending] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState(false);
 
   function loadQueue() {
     apiFetch<Ticket[]>("/api/support/tickets/queue")
       .then(setTickets)
-      .catch((err) => setError(err instanceof ApiClientError ? err.message : "Failed to load tickets."));
+      .catch((err) => {
+        setError(err instanceof ApiClientError ? err.message : "Failed to load tickets.");
+        setLoadError(true);
+        setTickets([]);
+      });
   }
   useEffect(loadQueue, []);
 
   function loadTicket() {
     if (!activeId) return;
+    if (isDemoId(activeId)) {
+      // Demo tickets never hit the API — their thread comes from the demo file.
+      const demo = DEMO_TICKETS.find((t) => t.id === activeId);
+      setTicket(demo ? { ...demo, messages: DEMO_TICKET_MESSAGES[activeId] ?? [] } : null);
+      return;
+    }
     apiFetch<TicketDetail>(`/api/support/tickets/${activeId}/admin`).then(setTicket).catch(() => setTicket(null));
   }
   useEffect(() => {
@@ -60,7 +74,7 @@ export default function AdminSupportPage() {
 
   async function reply(e: React.FormEvent) {
     e.preventDefault();
-    if (!activeId || !draft.trim()) return;
+    if (!activeId || !draft.trim() || isDemoId(activeId)) return;
     setSending(true);
     setError(null);
     try {
@@ -76,7 +90,7 @@ export default function AdminSupportPage() {
   }
 
   async function changeStatus(status: string) {
-    if (!activeId) return;
+    if (!activeId || isDemoId(activeId)) return;
     setUpdatingStatus(true);
     try {
       await apiFetch(`/api/support/tickets/${activeId}/status`, { method: "PATCH", body: { status } });
@@ -89,118 +103,165 @@ export default function AdminSupportPage() {
     }
   }
 
-  if (error && !tickets) return <p className="error-text">{error}</p>;
-  if (!tickets) return <p>Loading…</p>;
+  const { items, isDemo } = withDemo(tickets, DEMO_TICKETS, { allow: !loadError });
+  if (!items) return <PageLoader />;
+
+  const openCount = isDemo ? 0 : items.filter((t) => t.status === "OPEN" || t.status === "IN_PROGRESS").length;
+  const demoActive = activeId ? isDemoId(activeId) : false;
 
   return (
-    <div className={`chat-grid${activeId ? " chat-has-active" : ""}`} style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: 20, minHeight: "calc(100vh - 180px)" }}>
-      <div className="card chat-list-pane" style={{ padding: 0, overflow: "hidden", display: "flex", flexDirection: "column" }}>
-        <div style={{ padding: "14px 16px", fontWeight: 700, fontSize: 14 }}>Tickets ({tickets.length})</div>
-        <div style={{ overflowY: "auto", flex: 1 }}>
-          {tickets.length === 0 ? (
-            <p className="helper-text" style={{ padding: 16 }}>No tickets yet.</p>
+    <div className="adm-stack">
+      <AdminIntro icon={LifeBuoyIcon} tint="blue" meta={<span className="adm-chip">{openCount} open</span>}>
+        Questions and problems brands and creators raise from their Help &amp; Support page. Open a ticket to read the
+        conversation, reply, and update its status.
+      </AdminIntro>
+      <DemoBanner show={isDemo} />
+      {error && <p className="error-text">{error}</p>}
+
+      <div
+        className={`chat-grid${activeId ? " chat-has-active" : ""}`}
+        style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: 16, minHeight: "max(460px, calc(100vh - 320px))" }}
+      >
+        <div className="adm-panel chat-list-pane" style={{ display: "flex", flexDirection: "column" }}>
+          <div className="adm-panel-head">
+            <h3>Tickets</h3>
+            <span className="adm-chip">{isDemo ? 0 : items.length}</span>
+          </div>
+          <div style={{ overflowY: "auto", flex: 1 }}>
+            {items.length === 0 ? (
+              <p className="adm-panel-empty">No tickets yet. New tickets from brands and creators appear here.</p>
+            ) : (
+              items.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setActiveId(t.id)}
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    textAlign: "left",
+                    background: activeId === t.id ? "var(--color-primary-soft)" : "transparent",
+                    border: "none",
+                    borderBottom: "1px solid var(--color-border)",
+                    padding: "12px 16px",
+                    cursor: "pointer",
+                    font: "inherit",
+                    color: "var(--color-text)",
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                    <span style={{ fontWeight: 650, fontSize: 14 }}>{t.subject}</span>
+                    <StatusBadge status={t.status} label={STATUS_LABEL[t.status]} />
+                  </div>
+                  <div className="helper-text" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6, marginTop: 4 }}>
+                    <span>{t.user?.name ?? t.user?.email ?? "—"}</span>
+                    <span>· {t._count.messages} msg</span>
+                    <span>· {formatDate(t.updatedAt)}</span>
+                    {isDemoId(t.id) && <DemoTag />}
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="adm-panel chat-thread-pane" style={{ display: "flex", flexDirection: "column" }}>
+          {!activeId ? (
+            <p className="adm-panel-empty" style={{ margin: "auto", textAlign: "center" }}>
+              Select a ticket to read and reply.
+            </p>
+          ) : !ticket ? (
+            <p className="adm-panel-empty">Loading…</p>
           ) : (
-            tickets.map((t) => (
+            <>
               <button
-                key={t.id}
-                onClick={() => setActiveId(t.id)}
+                type="button"
+                className="mobile-only"
+                onClick={() => setActiveId(null)}
                 style={{
-                  display: "block",
-                  width: "100%",
-                  textAlign: "left",
-                  background: activeId === t.id ? "var(--color-primary-soft)" : "transparent",
+                  alignItems: "center",
+                  gap: 8,
                   border: "none",
                   borderBottom: "1px solid var(--color-border)",
+                  background: "none",
                   padding: "12px 16px",
+                  fontSize: 13.5,
+                  fontWeight: 600,
                   cursor: "pointer",
+                  textAlign: "left",
                 }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-                  <span style={{ fontWeight: 600, fontSize: 13.5 }}>{t.subject}</span>
-                  <span className="badge">{STATUS_LABEL[t.status] ?? t.status}</span>
-                </div>
-                <div className="helper-text">{t.user?.email ?? "—"} · {t._count.messages} msg</div>
+                <ArrowLeftIcon width={16} height={16} style={{ flexShrink: 0 }} />
+                Back to tickets
               </button>
-            ))
+              <div className="adm-panel-head" style={{ flexWrap: "wrap" }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+                    <h3>{ticket.subject}</h3>
+                    {demoActive && <DemoTag />}
+                  </div>
+                  <div className="helper-text" style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
+                    <span>{ticket.user?.email ?? "—"}</span>
+                    <StatusBadge status={ticket.priority} label={`${ticket.priority.charAt(0)}${ticket.priority.slice(1).toLowerCase()} priority`} />
+                  </div>
+                </div>
+                <select
+                  className="input"
+                  value={ticket.status}
+                  onChange={(e) => changeStatus(e.target.value)}
+                  disabled={updatingStatus || demoActive}
+                  aria-label="Ticket status"
+                  style={{ width: "auto", minWidth: 150 }}
+                >
+                  {STATUS_OPTIONS.map((s) => (
+                    <option key={s} value={s}>
+                      {STATUS_LABEL[s]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div style={{ flex: 1, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+                {ticket.messages.map((m) => {
+                  const fromAdmin = m.senderRole === "ADMIN";
+                  return (
+                    <div key={m.id} style={{ alignSelf: fromAdmin ? "flex-end" : "flex-start", maxWidth: "75%" }}>
+                      <div
+                        style={{
+                          background: fromAdmin ? "var(--color-primary)" : "var(--color-bg-subtle)",
+                          color: fromAdmin ? "#fff" : "var(--color-text)",
+                          border: fromAdmin ? "none" : "1px solid var(--color-border)",
+                          padding: "9px 13px",
+                          borderRadius: 12,
+                          fontSize: 13.5,
+                          whiteSpace: "pre-wrap",
+                        }}
+                      >
+                        {m.body}
+                      </div>
+                      <div className="helper-text" style={{ fontSize: 11, marginTop: 3, textAlign: fromAdmin ? "right" : "left" }}>
+                        {fromAdmin ? "Support" : "User"} · {new Date(m.createdAt).toLocaleString("en-IN")}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <form onSubmit={reply} style={{ display: "flex", gap: 8, padding: 12, borderTop: "1px solid var(--color-border)" }}>
+                <input
+                  className="input"
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  placeholder={demoActive ? "Demo ticket — replies are disabled" : "Write a reply…"}
+                  disabled={demoActive}
+                  aria-label="Reply"
+                  style={{ flex: 1 }}
+                />
+                <Button type="submit" loading={sending} disabled={demoActive || !draft.trim()}>
+                  Send
+                </Button>
+              </form>
+            </>
           )}
         </div>
-      </div>
-
-      <div className="card chat-thread-pane" style={{ display: "flex", flexDirection: "column", padding: 0 }}>
-        {!activeId ? (
-          <p className="helper-text" style={{ padding: 16 }}>Select a ticket.</p>
-        ) : !ticket ? (
-          <p className="helper-text" style={{ padding: 16 }}>Loading…</p>
-        ) : (
-          <>
-            <button
-              type="button"
-              className="mobile-only"
-              onClick={() => setActiveId(null)}
-              style={{
-                alignItems: "center",
-                gap: 8,
-                border: "none",
-                borderBottom: "1px solid var(--color-border)",
-                background: "none",
-                padding: "12px 16px",
-                fontSize: 13.5,
-                fontWeight: 600,
-                cursor: "pointer",
-                textAlign: "left",
-              }}
-            >
-              <ArrowLeftIcon width={16} height={16} style={{ flexShrink: 0 }} />
-              Back to tickets
-            </button>
-            <div style={{ padding: "14px 16px", borderBottom: "1px solid var(--color-border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
-              <div>
-                <div style={{ fontWeight: 700 }}>{ticket.subject}</div>
-                <div className="helper-text">{ticket.user?.email ?? "—"} · Priority: {ticket.priority}</div>
-              </div>
-              <select
-                className="input"
-                value={ticket.status}
-                onChange={(e) => changeStatus(e.target.value)}
-                disabled={updatingStatus}
-                style={{ width: "auto", minWidth: 140 }}
-              >
-                {STATUS_OPTIONS.map((s) => (
-                  <option key={s} value={s}>{STATUS_LABEL[s]}</option>
-                ))}
-              </select>
-            </div>
-            <div style={{ flex: 1, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
-              {ticket.messages.map((m) => {
-                const fromAdmin = m.senderRole === "ADMIN";
-                return (
-                  <div key={m.id} style={{ alignSelf: fromAdmin ? "flex-end" : "flex-start", maxWidth: "70%" }}>
-                    <div
-                      style={{
-                        background: fromAdmin ? "var(--color-primary)" : "var(--color-bg-subtle)",
-                        color: fromAdmin ? "#fff" : "var(--color-text)",
-                        padding: "8px 12px",
-                        borderRadius: 12,
-                        fontSize: 13.5,
-                        whiteSpace: "pre-wrap",
-                      }}
-                    >
-                      {m.body}
-                    </div>
-                    <div className="helper-text" style={{ fontSize: 11, marginTop: 2, textAlign: fromAdmin ? "right" : "left" }}>
-                      {fromAdmin ? "Support" : "User"} · {new Date(m.createdAt).toLocaleString()}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            {error && <p className="error-text" style={{ padding: "0 16px" }}>{error}</p>}
-            <form onSubmit={reply} style={{ display: "flex", gap: 8, padding: 12, borderTop: "1px solid var(--color-border)" }}>
-              <input className="input" value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Reply…" style={{ flex: 1 }} />
-              <Button type="submit" loading={sending}>Send</Button>
-            </form>
-          </>
-        )}
       </div>
     </div>
   );

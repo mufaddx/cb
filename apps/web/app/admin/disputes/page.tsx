@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 import { Button } from "../../../components/Button";
 import { PageLoader } from "../../../components/PageLoader";
+import { AdminEmpty, AdminIntro, DemoBanner, DemoTag, IconAvatar, StatusBadge, formatDate, humanize } from "../../../components/admin/AdminUI";
+import { ScaleIcon } from "../../../components/icons";
 import { apiFetch, ApiClientError } from "../../../lib/apiClient";
+import { DEMO_DISPUTES, isDemoId, withDemo } from "../../../lib/adminDemo";
 import { useConfirm } from "../../../lib/useConfirm";
 
 interface DisputeItem {
@@ -20,12 +23,17 @@ export default function DisputesQueuePage() {
   const confirm = useConfirm();
   const [queue, setQueue] = useState<DisputeItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState(false);
   const [actingOn, setActingOn] = useState<string | null>(null);
 
   function load() {
     apiFetch<DisputeItem[]>("/api/disputes/queue")
       .then(setQueue)
-      .catch((err) => setError(err instanceof ApiClientError ? err.message : "Failed to load the queue."));
+      .catch((err) => {
+        setError(err instanceof ApiClientError ? err.message : "Failed to load the queue.");
+        setLoadError(true);
+        setQueue([]);
+      });
   }
   useEffect(load, []);
 
@@ -71,38 +79,52 @@ export default function DisputesQueuePage() {
     }
   }
 
-  if (!queue) return <PageLoader />;
+  const { items, isDemo } = withDemo(queue, DEMO_DISPUTES, { allow: !loadError });
+  if (!items) return <PageLoader />;
 
   return (
-    <div>
-      {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
+    <div className="adm-stack">
+      <AdminIntro icon={ScaleIcon} tint="purple" meta={<span className="adm-chip">{isDemo ? 0 : items.length} open</span>}>
+        Disagreements between a brand and a creator on a campaign. Ask for evidence if you need more detail, then record a
+        decision to resolve it. Refunds, if any, are issued from Payments &amp; Refunds.
+      </AdminIntro>
+      <DemoBanner show={isDemo} />
+      {error && <p className="error-text">{error}</p>}
 
-      {queue.length === 0 ? (
-        <div className="card">No open disputes.</div>
+      {items.length === 0 ? (
+        <AdminEmpty icon={ScaleIcon} title="No open disputes" text="When a brand or creator raises a dispute on a campaign, it appears here." />
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {queue.map((item) => (
-            <div key={item.id} className="card">
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <div>
-                  <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>
-                    {item.campaign.code} · {item.type} · {item.status}
+        <div className="adm-list">
+          {items.map((item) => {
+            const demo = isDemoId(item.id);
+            return (
+              <div key={item.id} className={`adm-row${demo ? " is-demo" : ""}`}>
+                <div className="adm-row-main" style={{ alignItems: "flex-start" }}>
+                  <IconAvatar icon={ScaleIcon} tint="purple" />
+                  <div style={{ minWidth: 0 }}>
+                    <div className="adm-row-meta">
+                      <StatusBadge status={item.status} />
+                      <span className="adm-chip">{humanize(item.type)}</span>
+                      {demo && <DemoTag />}
+                    </div>
+                    <div className="adm-row-title">{item.reason}</div>
+                    <div className="adm-row-sub">
+                      {item.campaign.title} · {item.campaign.code} · Raised {formatDate(item.createdAt)}
+                    </div>
+                    <p className="adm-row-note">{item.description}</p>
                   </div>
-                  <div style={{ fontWeight: 600 }}>{item.campaign.title}</div>
-                  <div style={{ fontSize: 13, margin: "4px 0" }}>{item.reason}</div>
-                  <p className="helper-text" style={{ maxWidth: 480 }}>{item.description}</p>
                 </div>
-                <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
-                  <Button variant="secondary" loading={actingOn === item.id} onClick={() => requestEvidence(item.id)}>
-                    Request Evidence
+                <div className="adm-row-side">
+                  <Button variant="secondary" disabled={demo} loading={actingOn === item.id} onClick={() => requestEvidence(item.id)}>
+                    Request evidence
                   </Button>
-                  <Button loading={actingOn === item.id} onClick={() => decide(item.id)}>
-                    Decide
+                  <Button disabled={demo} loading={actingOn === item.id} onClick={() => decide(item.id)}>
+                    Record decision
                   </Button>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

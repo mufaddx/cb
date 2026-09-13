@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 import { Button } from "../../../components/Button";
 import { PageLoader } from "../../../components/PageLoader";
+import { AdminEmpty, AdminIntro, Avatar, DemoBanner, DemoTag, StatusBadge } from "../../../components/admin/AdminUI";
+import { FileTextIcon } from "../../../components/icons";
 import { apiFetch, ApiClientError } from "../../../lib/apiClient";
+import { DEMO_CONTENT, isDemoId, withDemo } from "../../../lib/adminDemo";
 import { useConfirm } from "../../../lib/useConfirm";
 
 interface ContentItem {
@@ -17,12 +20,17 @@ export default function ContentReviewQueuePage() {
   const confirm = useConfirm();
   const [queue, setQueue] = useState<ContentItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState(false);
   const [actingOn, setActingOn] = useState<string | null>(null);
 
   function load() {
     apiFetch<ContentItem[]>("/api/content/queue")
       .then(setQueue)
-      .catch((err) => setError(err instanceof ApiClientError ? err.message : "Failed to load the queue."));
+      .catch((err) => {
+        setError(err instanceof ApiClientError ? err.message : "Failed to load the queue.");
+        setLoadError(true);
+        setQueue([]);
+      });
   }
   useEffect(load, []);
 
@@ -65,34 +73,50 @@ export default function ContentReviewQueuePage() {
     }
   }
 
-  if (!queue) return <PageLoader />;
+  const { items, isDemo } = withDemo(queue, DEMO_CONTENT, { allow: !loadError });
+  if (!items) return <PageLoader />;
 
   return (
-    <div>
-      {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
+    <div className="adm-stack">
+      <AdminIntro icon={FileTextIcon} tint="pink" meta={<span className="adm-chip">{isDemo ? 0 : items.length} waiting</span>}>
+        Videos creators made for Creator Content campaigns, before they post. Approve them, send them back with feedback for a
+        revision, or reject them.
+      </AdminIntro>
+      <DemoBanner show={isDemo} />
+      {error && <p className="error-text">{error}</p>}
 
-      {queue.length === 0 ? (
-        <div className="card">Nothing awaiting content review.</div>
+      {items.length === 0 ? (
+        <AdminEmpty icon={FileTextIcon} title="Nothing awaiting content review" text="Creator submissions for Creator Content campaigns appear here." />
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {queue.map((item) => {
+        <div className="adm-list">
+          {items.map((item) => {
+            const demo = isDemoId(item.id);
             const latest = item.contentSubmissions[0];
             return (
-              <div key={item.id} className="card" style={{ display: "flex", justifyContent: "space-between" }}>
-                <div>
-                  <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{item.campaign.code} · v{latest?.version}</div>
-                  <div style={{ fontWeight: 600 }}>{item.campaign.title}</div>
-                  <div style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>@{item.creator.displayName}</div>
+              <div key={item.id} className={`adm-row${demo ? " is-demo" : ""}`}>
+                <div className="adm-row-main">
+                  <Avatar name={item.creator.displayName} />
+                  <div style={{ minWidth: 0 }}>
+                    <div className="adm-row-meta">
+                      <StatusBadge status="SUBMITTED" label="Awaiting review" />
+                      {latest && <span className="adm-chip">Version {latest.version}</span>}
+                      {demo && <DemoTag />}
+                    </div>
+                    <div className="adm-row-title">{item.campaign.title}</div>
+                    <div className="adm-row-sub">
+                      @{item.creator.displayName} · {item.campaign.code}
+                    </div>
+                  </div>
                 </div>
-                <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
-                  <Button loading={actingOn === item.id} onClick={() => decide(item.id, "APPROVE")}>
-                    Approve
-                  </Button>
-                  <Button variant="secondary" loading={actingOn === item.id} onClick={() => decide(item.id, "REVISION")}>
-                    Request Revision
-                  </Button>
-                  <Button variant="danger" loading={actingOn === item.id} onClick={() => decide(item.id, "REJECT")}>
+                <div className="adm-row-side">
+                  <Button variant="danger" disabled={demo} loading={actingOn === item.id} onClick={() => decide(item.id, "REJECT")}>
                     Reject
+                  </Button>
+                  <Button variant="secondary" disabled={demo} loading={actingOn === item.id} onClick={() => decide(item.id, "REVISION")}>
+                    Ask for revision
+                  </Button>
+                  <Button disabled={demo} loading={actingOn === item.id} onClick={() => decide(item.id, "APPROVE")}>
+                    Approve
                   </Button>
                 </div>
               </div>

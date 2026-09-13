@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 import { Button } from "../../../components/Button";
 import { PageLoader } from "../../../components/PageLoader";
+import { AdminEmpty, AdminIntro, DemoBanner, DemoTag, IconAvatar, StatusBadge, formatDate, humanize } from "../../../components/admin/AdminUI";
+import { AlertTriangleIcon } from "../../../components/icons";
 import { apiFetch, ApiClientError } from "../../../lib/apiClient";
+import { DEMO_FRAUD, isDemoId, withDemo } from "../../../lib/adminDemo";
 import { useConfirm } from "../../../lib/useConfirm";
 
 interface FraudItem {
@@ -16,6 +19,11 @@ interface FraudItem {
   createdAt: string;
 }
 
+function riskBadge(score: number) {
+  const status = score >= 70 ? "HIGH" : score >= 40 ? "MEDIUM" : "LOW";
+  return <StatusBadge status={status} label={`Risk ${score} · ${status.toLowerCase()}`} />;
+}
+
 export default function FraudQueuePage() {
   const confirm = useConfirm();
   const [queue, setQueue] = useState<FraudItem[] | null>(null);
@@ -25,7 +33,10 @@ export default function FraudQueuePage() {
   function load() {
     apiFetch<FraudItem[]>("/api/fraud/queue")
       .then(setQueue)
-      .catch((err) => setError(err instanceof ApiClientError ? err.message : "Failed to load the queue."));
+      .catch((err) => {
+        setError(err instanceof ApiClientError ? err.message : "Failed to load the queue.");
+        setQueue([]);
+      });
   }
   useEffect(load, []);
 
@@ -56,33 +67,51 @@ export default function FraudQueuePage() {
     }
   }
 
-  if (!queue) return <PageLoader />;
+  const { items, isDemo } = withDemo(queue, DEMO_FRAUD, { allow: !error });
+  if (!items) return <PageLoader />;
 
   return (
-    <div>
-      {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
+    <div className="adm-stack">
+      <AdminIntro icon={AlertTriangleIcon} tint="amber" meta={<span className="adm-chip">{isDemo ? 0 : items.length} open flags</span>}>
+        Accounts our risk checks flagged as suspicious (sudden follower spikes, shared UPI IDs and similar). Clear a false
+        alarm, or restrict the account so it stops getting new campaigns.
+      </AdminIntro>
+      <DemoBanner show={isDemo} />
+      {error && <p className="error-text">{error}</p>}
 
-      {queue.length === 0 ? (
-        <div className="card">No open fraud flags.</div>
+      {items.length === 0 ? (
+        <AdminEmpty icon={AlertTriangleIcon} title="No open fraud flags" text="Suspicious activity detected by risk checks will show up here for review." />
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {queue.map((item) => (
-            <div key={item.id} className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{item.entityType} · {item.entityId}</div>
-                <div style={{ fontWeight: 600 }}>{item.flagType}</div>
-                <div style={{ fontSize: 13, color: "var(--color-warning)" }}>Risk score: {item.riskScore}</div>
+        <div className="adm-list">
+          {items.map((item) => {
+            const demo = isDemoId(item.id);
+            return (
+              <div key={item.id} className={`adm-row${demo ? " is-demo" : ""}`}>
+                <div className="adm-row-main">
+                  <IconAvatar icon={AlertTriangleIcon} tint="amber" />
+                  <div style={{ minWidth: 0 }}>
+                    <div className="adm-row-meta">
+                      {riskBadge(Number(item.riskScore))}
+                      <StatusBadge status={item.status} />
+                      {demo && <DemoTag />}
+                    </div>
+                    <div className="adm-row-title">{humanize(item.flagType)}</div>
+                    <div className="adm-row-sub">
+                      {humanize(item.entityType)} · ID {item.entityId} · Flagged {formatDate(item.createdAt)}
+                    </div>
+                  </div>
+                </div>
+                <div className="adm-row-side">
+                  <Button variant="secondary" disabled={demo} loading={actingOn === item.id} onClick={() => review(item.id, "CLEARED")}>
+                    Clear flag
+                  </Button>
+                  <Button variant="danger" disabled={demo} loading={actingOn === item.id} onClick={() => review(item.id, "RESTRICTED")}>
+                    Restrict account
+                  </Button>
+                </div>
               </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <Button variant="secondary" loading={actingOn === item.id} onClick={() => review(item.id, "CLEARED")}>
-                  Clear
-                </Button>
-                <Button variant="danger" loading={actingOn === item.id} onClick={() => review(item.id, "RESTRICTED")}>
-                  Restrict
-                </Button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

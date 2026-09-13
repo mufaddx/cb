@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 import { Button } from "../../../components/Button";
 import { PageLoader } from "../../../components/PageLoader";
+import { AdminEmpty, AdminIntro, Avatar, DemoBanner, DemoTag, StatusBadge, formatDate, formatINR } from "../../../components/admin/AdminUI";
+import { CreditCardIcon } from "../../../components/icons";
 import { apiFetch, ApiClientError } from "../../../lib/apiClient";
+import { DEMO_PAYMENTS, isDemoId, withDemo } from "../../../lib/adminDemo";
 import { useConfirm } from "../../../lib/useConfirm";
 
 interface PaymentItem {
@@ -27,13 +30,18 @@ export default function PaymentsPage() {
   const confirm = useConfirm();
   const [payments, setPayments] = useState<PaymentItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState(false);
   const [actingOn, setActingOn] = useState<string | null>(null);
   const [refundAmounts, setRefundAmounts] = useState<Record<string, string>>({});
 
   function load() {
     apiFetch<PaymentItem[]>("/api/payments/admin")
       .then(setPayments)
-      .catch((err) => setError(err instanceof ApiClientError ? err.message : "Failed to load payments."));
+      .catch((err) => {
+        setError(err instanceof ApiClientError ? err.message : "Failed to load payments.");
+        setLoadError(true);
+        setPayments([]);
+      });
   }
   useEffect(load, []);
 
@@ -69,64 +77,106 @@ export default function PaymentsPage() {
     }
   }
 
-  if (!payments) return <PageLoader />;
+  const { items, isDemo } = withDemo(payments, DEMO_PAYMENTS, { allow: !loadError });
+  if (!items) return <PageLoader />;
+
+  const collected = isDemo ? 0 : items.filter((p) => p.status === "PAID" || p.status === "PARTIALLY_REFUNDED").reduce((s, p) => s + Number(p.amount), 0);
 
   return (
-    <div>
-      {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
+    <div className="adm-stack">
+      <AdminIntro
+        icon={CreditCardIcon}
+        tint="blue"
+        meta={
+          <>
+            <span className="adm-chip">{isDemo ? 0 : items.length} payments</span>
+            <span className="adm-chip">{formatINR(collected)} collected</span>
+          </>
+        }
+      >
+        Every payment brands have made (campaign payments and wallet top-ups). Campaign payments can be fully or partly
+        refunded from here.
+      </AdminIntro>
+      <DemoBanner show={isDemo} />
+      {error && <p className="error-text">{error}</p>}
 
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
-          <thead>
-            <tr style={{ textAlign: "left", borderBottom: "1px solid var(--color-border)" }}>
-              <th style={{ padding: "8px 12px" }}>Campaign</th>
-              <th style={{ padding: "8px 12px" }}>Brand</th>
-              <th style={{ padding: "8px 12px" }}>Amount</th>
-              <th style={{ padding: "8px 12px" }}>Status</th>
-              <th style={{ padding: "8px 12px" }}>Refunded</th>
-              <th style={{ padding: "8px 12px" }}>Refund</th>
-            </tr>
-          </thead>
-          <tbody>
-            {payments.map((p) => {
-              const refunded = p.refunds.filter((r) => r.status === "COMPLETED").reduce((s, r) => s + Number(r.amount), 0);
-              const remaining = Number(p.amount) - refunded;
-              const canRefund = p.campaign !== null && (p.status === "PAID" || p.status === "PARTIALLY_REFUNDED") && remaining > 0;
-              return (
-                <tr key={p.id} style={{ borderBottom: "1px solid var(--color-border)" }}>
-                  <td style={{ padding: "8px 12px" }}>
-                    {p.campaign ? (
-                      <>{p.campaign.code}<div className="helper-text">{p.campaign.title}</div></>
-                    ) : (
-                      <span className="badge">{NON_CAMPAIGN_PURPOSE_LABEL[p.purpose] ?? p.purpose}</span>
-                    )}
-                  </td>
-                  <td style={{ padding: "8px 12px" }}>{p.brand.companyName}</td>
-                  <td style={{ padding: "8px 12px" }}>₹{p.amount}</td>
-                  <td style={{ padding: "8px 12px" }}>{p.status}</td>
-                  <td style={{ padding: "8px 12px" }}>{refunded > 0 ? `₹${refunded.toFixed(2)}` : "—"}</td>
-                  <td style={{ padding: "8px 12px" }}>
-                    {canRefund && (
-                      <div style={{ display: "flex", gap: 6 }}>
-                        <input
-                          className="input"
-                          placeholder={`max ${remaining.toFixed(2)}`}
-                          style={{ width: 100, padding: "6px 8px" }}
-                          value={refundAmounts[p.id] ?? ""}
-                          onChange={(e) => setRefundAmounts((prev) => ({ ...prev, [p.id]: e.target.value }))}
-                        />
-                        <Button variant="danger" loading={actingOn === p.id} onClick={() => refund(p.id, remaining)}>
-                          Refund
-                        </Button>
-                      </div>
-                    )}
-                  </td>
+      {items.length === 0 ? (
+        <AdminEmpty icon={CreditCardIcon} title="No payments yet" text="Brand payments appear here as soon as they are confirmed by the payment provider." />
+      ) : (
+        <div className="adm-table-wrap">
+          <div className="adm-table-scroll">
+            <table className="adm-table">
+              <thead>
+                <tr>
+                  <th>Paid for</th>
+                  <th>Brand</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Refunded</th>
+                  <th>Date</th>
+                  <th>Refund</th>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+              </thead>
+              <tbody>
+                {items.map((p) => {
+                  const demo = isDemoId(p.id);
+                  const refunded = p.refunds.filter((r) => r.status === "COMPLETED").reduce((s, r) => s + Number(r.amount), 0);
+                  const remaining = Number(p.amount) - refunded;
+                  const canRefund = p.campaign !== null && (p.status === "PAID" || p.status === "PARTIALLY_REFUNDED") && remaining > 0;
+                  return (
+                    <tr key={p.id}>
+                      <td>
+                        {p.campaign ? (
+                          <div>
+                            <div style={{ fontWeight: 650, display: "flex", alignItems: "center", gap: 8 }}>
+                              {p.campaign.title} {demo && <DemoTag />}
+                            </div>
+                            <div className="helper-text" style={{ marginTop: 1 }}>{p.campaign.code}</div>
+                          </div>
+                        ) : (
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                            <span className="adm-chip">{NON_CAMPAIGN_PURPOSE_LABEL[p.purpose] ?? p.purpose}</span>
+                            {demo && <DemoTag />}
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        <div className="adm-cell-person" style={{ minWidth: 160 }}>
+                          <Avatar name={p.brand.companyName} square />
+                          <span>{p.brand.companyName}</span>
+                        </div>
+                      </td>
+                      <td style={{ fontWeight: 700, whiteSpace: "nowrap" }}>{formatINR(p.amount)}</td>
+                      <td><StatusBadge status={p.status} /></td>
+                      <td style={{ whiteSpace: "nowrap" }}>{refunded > 0 ? formatINR(refunded) : "—"}</td>
+                      <td className="helper-text" style={{ whiteSpace: "nowrap" }}>{formatDate(p.createdAt)}</td>
+                      <td>
+                        {canRefund ? (
+                          <div style={{ display: "flex", gap: 6 }}>
+                            <input
+                              className="input"
+                              placeholder={`max ${remaining.toFixed(2)}`}
+                              style={{ width: 110, padding: "7px 10px" }}
+                              value={refundAmounts[p.id] ?? ""}
+                              disabled={demo}
+                              onChange={(e) => setRefundAmounts((prev) => ({ ...prev, [p.id]: e.target.value }))}
+                            />
+                            <Button variant="danger" disabled={demo} loading={actingOn === p.id} onClick={() => refund(p.id, remaining)}>
+                              Refund
+                            </Button>
+                          </div>
+                        ) : (
+                          <span className="helper-text">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

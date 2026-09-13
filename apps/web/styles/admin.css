@@ -1,0 +1,508 @@
+/* ============================================================
+   Admin console UI kit — shared by every /admin page (imported once in
+   app/admin/layout.tsx). Reads the global --color-* tokens, so the
+   admin panel's slate accent (.panel-admin) applies automatically.
+   ============================================================ */
+
+.adm-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* One-line "what is this page for" strip at the top of each page. */
+.adm-intro {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-white);
+}
+.adm-intro p {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+.adm-intro-meta {
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+  margin-left: auto;
+}
+.adm-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-subtle);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+/* Demo mode */
+.adm-demo-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px dashed #d9a441;
+  border-radius: var(--radius-control);
+  background: #fff8e8;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: #7a5200;
+}
+.adm-demo-banner strong {
+  color: #5c3d00;
+}
+.adm-demo-tag {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid #f0d49a;
+  background: #fff1d6;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #8a5a00;
+}
+
+/* Status badges — text + color, never color alone */
+.adm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.adm-badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.adm-badge-amber {
+  background: #fef6e7;
+  border-color: #f7dfb0;
+  color: #b45309;
+}
+.adm-badge-green {
+  background: #ecfdf3;
+  border-color: #bfe8cf;
+  color: #15803d;
+}
+.adm-badge-red {
+  background: #fef2f2;
+  border-color: #f5c9c9;
+  color: #b91c1c;
+}
+.adm-badge-blue {
+  background: #eef4ff;
+  border-color: #cddcfb;
+  color: #1d4ed8;
+}
+.adm-badge-gray {
+  background: var(--color-bg-subtle);
+  border-color: var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+/* Queue rows */
+.adm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.adm-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 16px 18px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-card);
+  background: var(--color-white);
+}
+.adm-row.is-demo {
+  border-style: dashed;
+}
+.adm-row-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1 1 320px;
+  min-width: 0;
+}
+.adm-row-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 5px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+.adm-row-title {
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--color-text);
+}
+.adm-row-sub {
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+.adm-row-note {
+  margin: 8px 0 0;
+  max-width: 620px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+.adm-row-side {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-left: auto;
+}
+.adm-amount {
+  font-size: 18px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+}
+.adm-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: 14px;
+  font-weight: 700;
+}
+.adm-avatar-square {
+  border-radius: 12px;
+}
+
+.adm-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 40px 20px;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-card);
+  background: var(--color-white);
+  text-align: center;
+}
+.adm-empty strong {
+  font-size: 15px;
+  color: var(--color-text);
+}
+.adm-empty p {
+  margin: 0;
+  max-width: 440px;
+  font-size: 13.5px;
+  color: var(--color-text-secondary);
+}
+
+/* Toolbars, search, tabs */
+.adm-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.adm-search {
+  position: relative;
+  flex: 0 1 360px;
+  min-width: 220px;
+}
+.adm-search svg {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  color: var(--color-text-faint);
+  pointer-events: none;
+}
+.adm-search .input {
+  padding-left: 38px;
+}
+.adm-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  padding: 3px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-bg-subtle);
+}
+.adm-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+.adm-tab.is-active {
+  background: var(--color-white);
+  color: var(--color-text);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1);
+}
+.adm-tab-count {
+  padding: 1px 7px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-bg-subtle);
+  font-size: 11.5px;
+}
+
+/* Tables */
+.adm-table-wrap {
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-card);
+  background: var(--color-white);
+}
+.adm-table-scroll {
+  overflow-x: auto;
+}
+.adm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.adm-table th {
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-subtle);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+}
+.adm-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+.adm-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.adm-table tbody tr:hover td {
+  background: var(--color-bg-subtle);
+}
+.adm-cell-person {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 200px;
+}
+
+/* Section headings + panels (dashboard) */
+.adm-section-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin: 0 0 12px;
+}
+.adm-section-title h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.adm-section-title span {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+/* Fixed column counts so a section never ends in a lone orphan card:
+   4-card sections are 4 across, the 9-card "Needs your action" 3 × 3. */
+.adm-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+.adm-kpis.adm-kpis-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.adm-kpi {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 16px 18px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-card);
+  background: var(--color-white);
+  color: var(--color-text);
+  text-decoration: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+.adm-kpi:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
+}
+.adm-kpi:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+.adm-kpi.is-attention {
+  box-shadow: inset 3px 0 0 #d97706;
+}
+/* wraps rather than overlapping when the label and the Sample tag
+   don't both fit on one line */
+.adm-kpi-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+}
+.adm-kpi-label {
+  font-size: 13.5px;
+  font-weight: 650;
+}
+.adm-kpi-value {
+  font-size: 28px;
+  font-weight: 750;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+.adm-kpi-desc {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--color-text-secondary);
+}
+.adm-kpi-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+.adm-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.adm-panel {
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-card);
+  background: var(--color-white);
+}
+.adm-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--color-border);
+}
+.adm-panel-head h3 {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 700;
+}
+.adm-panel-head a {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+.adm-panel-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--color-border);
+}
+.adm-panel-row:last-child {
+  border-bottom: 0;
+}
+.adm-panel-empty {
+  margin: 0;
+  padding: 22px 18px;
+  font-size: 13.5px;
+  color: var(--color-text-secondary);
+}
+
+/* laptops / tablets: two across */
+@media (max-width: 1100px) {
+  .adm-kpis,
+  .adm-kpis.adm-kpis-3,
+  .adm-grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .adm-intro {
+    flex-wrap: wrap;
+  }
+  .adm-intro-meta {
+    flex-wrap: wrap;
+    margin-left: 0;
+  }
+  .adm-row {
+    padding: 14px;
+  }
+  .adm-row-side {
+    width: 100%;
+    margin-left: 0;
+  }
+  .adm-grid-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .adm-kpi-value {
+    font-size: 24px;
+  }
+}
+
+/* phones: one card per row so label, Sample tag and description all fit */
+@media (max-width: 560px) {
+  .adm-kpis,
+  .adm-kpis.adm-kpis-3 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

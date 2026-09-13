@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { PageLoader } from "../../../components/PageLoader";
+import { AdminEmpty, AdminIntro, Avatar, DemoBanner, DemoTag, StatusBadge } from "../../../components/admin/AdminUI";
+import { SearchIcon, UsersIcon } from "../../../components/icons";
 import { apiFetch, ApiClientError } from "../../../lib/apiClient";
+import { DEMO_CREATORS, isDemoId, withDemo } from "../../../lib/adminDemo";
 
 interface CreatorRow {
   id: string;
@@ -16,63 +19,111 @@ interface CreatorRow {
   instagramAccount: { username: string; status: string } | null;
 }
 
+function riskTone(score: number) {
+  return score >= 70 ? "var(--color-danger)" : score >= 40 ? "#b45309" : "var(--color-success)";
+}
+
 export default function AdminCreatorsPage() {
   const [creators, setCreators] = useState<CreatorRow[] | null>(null);
   const [q, setQ] = useState("");
+  const [activeQuery, setActiveQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  function load(query?: string) {
+  function load(query = "") {
+    setActiveQuery(query);
     apiFetch<CreatorRow[]>(`/api/admin/creators${query ? `?q=${encodeURIComponent(query)}` : ""}`)
       .then(setCreators)
-      .catch((err) => setError(err instanceof ApiClientError ? err.message : "Failed to load creators."));
+      .catch((err) => {
+        setError(err instanceof ApiClientError ? err.message : "Failed to load creators.");
+        setCreators([]);
+      });
   }
   useEffect(() => load(), []);
 
+  const { items, isDemo } = withDemo(creators, DEMO_CREATORS, { allow: !activeQuery && !error });
+
   return (
-    <div>
-      {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
+    <div className="adm-stack">
+      <AdminIntro icon={UsersIcon} tint="purple" meta={items && <span className="adm-chip">{isDemo ? 0 : items.length} creators</span>}>
+        Every creator on Vidlix with their Instagram connection, KYC status and performance: quality score, how often they
+        finish deals, and a risk score (higher is riskier).
+      </AdminIntro>
 
-      <input
-        className="input"
-        placeholder="Search by name…"
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && load(q)}
-        style={{ marginBottom: 16, maxWidth: 320 }}
-      />
+      <div className="adm-toolbar">
+        <div className="adm-search">
+          <SearchIcon width={16} height={16} />
+          <input
+            className="input"
+            placeholder="Search by name and press Enter"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && load(q.trim())}
+            aria-label="Search creators"
+          />
+        </div>
+        {activeQuery && (
+          <button type="button" className="adm-chip" style={{ cursor: "pointer" }} onClick={() => { setQ(""); load(); }}>
+            Clear search “{activeQuery}” ✕
+          </button>
+        )}
+      </div>
 
-      {!creators ? (
+      <DemoBanner show={isDemo} />
+      {error && <p className="error-text">{error}</p>}
+
+      {!items ? (
         <PageLoader />
+      ) : items.length === 0 ? (
+        <AdminEmpty icon={UsersIcon} title={activeQuery ? "No creators match your search" : "No creators yet"} text={activeQuery ? "Try a different name." : "Creators appear here as soon as they sign up."} />
       ) : (
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
-            <thead>
-              <tr style={{ textAlign: "left", borderBottom: "1px solid var(--color-border)" }}>
-                <th style={{ padding: "8px 12px" }}>Name</th>
-                <th style={{ padding: "8px 12px" }}>Instagram</th>
-                <th style={{ padding: "8px 12px" }}>Availability</th>
-                <th style={{ padding: "8px 12px" }}>KYC</th>
-                <th style={{ padding: "8px 12px" }}>Quality</th>
-                <th style={{ padding: "8px 12px" }}>Completion</th>
-                <th style={{ padding: "8px 12px" }}>Risk</th>
-              </tr>
-            </thead>
-            <tbody>
-              {creators.map((c) => (
-                <tr key={c.id} style={{ borderBottom: "1px solid var(--color-border)" }}>
-                  <td style={{ padding: "8px 12px" }}>{c.fullName}<div className="helper-text">@{c.displayName}</div></td>
-                  <td style={{ padding: "8px 12px" }}>
-                    {c.instagramAccount ? `@${c.instagramAccount.username} (${c.instagramAccount.status})` : "Not connected"}
-                  </td>
-                  <td style={{ padding: "8px 12px" }}>{c.availability}</td>
-                  <td style={{ padding: "8px 12px" }}>{c.kycStatus}</td>
-                  <td style={{ padding: "8px 12px" }}>{c.qualityScore}</td>
-                  <td style={{ padding: "8px 12px" }}>{c.completionRate}%</td>
-                  <td style={{ padding: "8px 12px" }}>{c.riskScore}</td>
+        <div className="adm-table-wrap">
+          <div className="adm-table-scroll">
+            <table className="adm-table">
+              <thead>
+                <tr>
+                  <th>Creator</th>
+                  <th>Instagram</th>
+                  <th>Availability</th>
+                  <th>KYC</th>
+                  <th>Quality</th>
+                  <th>Completion</th>
+                  <th>Risk</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {items.map((c) => (
+                  <tr key={c.id}>
+                    <td>
+                      <div className="adm-cell-person">
+                        <Avatar name={c.fullName} />
+                        <div>
+                          <div style={{ fontWeight: 650, display: "flex", alignItems: "center", gap: 8 }}>
+                            {c.fullName} {isDemoId(c.id) && <DemoTag />}
+                          </div>
+                          <div className="helper-text" style={{ marginTop: 1 }}>@{c.displayName}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      {c.instagramAccount ? (
+                        <div>
+                          <div style={{ fontSize: 13.5 }}>@{c.instagramAccount.username}</div>
+                          <StatusBadge status={c.instagramAccount.status} />
+                        </div>
+                      ) : (
+                        <StatusBadge status="NOT_CONNECTED" label="Not connected" />
+                      )}
+                    </td>
+                    <td><StatusBadge status={c.availability} /></td>
+                    <td><StatusBadge status={c.kycStatus} /></td>
+                    <td style={{ fontWeight: 650 }}>{c.qualityScore}</td>
+                    <td style={{ fontWeight: 650 }}>{c.completionRate}%</td>
+                    <td style={{ fontWeight: 700, color: riskTone(Number(c.riskScore)) }}>{c.riskScore}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

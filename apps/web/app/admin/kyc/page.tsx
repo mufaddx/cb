@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 import { Button } from "../../../components/Button";
 import { PageLoader } from "../../../components/PageLoader";
+import { AdminEmpty, AdminIntro, Avatar, DemoBanner, DemoTag, StatusBadge, formatDate, humanize } from "../../../components/admin/AdminUI";
+import { IdCardIcon } from "../../../components/icons";
 import { apiFetch, ApiClientError } from "../../../lib/apiClient";
+import { DEMO_KYC, isDemoId, withDemo } from "../../../lib/adminDemo";
 import { useConfirm } from "../../../lib/useConfirm";
 
 interface KycItem {
@@ -23,7 +26,10 @@ export default function KycQueuePage() {
   function load() {
     apiFetch<KycItem[]>("/api/kyc/queue")
       .then(setQueue)
-      .catch((err) => setError(err instanceof ApiClientError ? err.message : "Failed to load the queue."));
+      .catch((err) => {
+        setError(err instanceof ApiClientError ? err.message : "Failed to load the queue.");
+        setQueue([]);
+      });
   }
   useEffect(load, []);
 
@@ -57,38 +63,53 @@ export default function KycQueuePage() {
     }
   }
 
-  if (!queue) return <PageLoader />;
+  const { items, isDemo } = withDemo(queue, DEMO_KYC, { allow: !error });
+  if (!items) return <PageLoader />;
 
   return (
-    <div>
-      {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
+    <div className="adm-stack">
+      <AdminIntro icon={IdCardIcon} tint="blue" meta={<span className="adm-chip">{isDemo ? 0 : items.length} pending</span>}>
+        Check the identity documents creators upload. A creator must be KYC-verified before they can withdraw their earnings.
+      </AdminIntro>
+      <DemoBanner show={isDemo} />
+      {error && <p className="error-text">{error}</p>}
 
-      {queue.length === 0 ? (
-        <div className="card">No KYC submissions pending.</div>
+      {items.length === 0 ? (
+        <AdminEmpty icon={IdCardIcon} title="No KYC submissions pending" text="New identity documents from creators will appear here for review." />
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {queue.map((item) => (
-            <div key={item.id} className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{item.documentType}</div>
-                <div style={{ fontWeight: 600 }}>{item.creator.fullName} (@{item.creator.displayName})</div>
-                <div style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>
-                  Submitted {new Date(item.submittedAt).toLocaleDateString()}
+        <div className="adm-list">
+          {items.map((item) => {
+            const demo = isDemoId(item.id);
+            return (
+              <div key={item.id} className={`adm-row${demo ? " is-demo" : ""}`}>
+                <div className="adm-row-main">
+                  <Avatar name={item.creator.fullName} />
+                  <div style={{ minWidth: 0 }}>
+                    <div className="adm-row-meta">
+                      <StatusBadge status={item.status} label="Awaiting review" />
+                      <span className="adm-chip">{humanize(item.documentType)}</span>
+                      {demo && <DemoTag />}
+                    </div>
+                    <div className="adm-row-title">{item.creator.fullName}</div>
+                    <div className="adm-row-sub">
+                      @{item.creator.displayName} · Submitted {formatDate(item.submittedAt)}
+                    </div>
+                  </div>
+                </div>
+                <div className="adm-row-side">
+                  <Button variant="secondary" disabled={demo} loading={actingOn === item.id} onClick={() => decide(item.id, "RESUBMISSION_REQUIRED")}>
+                    Ask to resubmit
+                  </Button>
+                  <Button variant="danger" disabled={demo} loading={actingOn === item.id} onClick={() => decide(item.id, "REJECTED")}>
+                    Reject
+                  </Button>
+                  <Button disabled={demo} loading={actingOn === item.id} onClick={() => decide(item.id, "VERIFIED")}>
+                    Verify
+                  </Button>
                 </div>
               </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <Button loading={actingOn === item.id} onClick={() => decide(item.id, "VERIFIED")}>
-                  Verify
-                </Button>
-                <Button variant="secondary" loading={actingOn === item.id} onClick={() => decide(item.id, "RESUBMISSION_REQUIRED")}>
-                  Request Resubmission
-                </Button>
-                <Button variant="danger" loading={actingOn === item.id} onClick={() => decide(item.id, "REJECTED")}>
-                  Reject
-                </Button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

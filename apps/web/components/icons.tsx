@@ -504,6 +504,65 @@ export function BoltIcon(props: IconProps) {
   );
 }
 
+export function BuildingIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4.5 21V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v16" />
+      <path d="M14.5 9h4a1 1 0 0 1 1 1v11" />
+      <path d="M3 21h18" />
+      <path d="M8 8h3M8 12h3M8 16h3" />
+    </svg>
+  );
+}
+
+export function IdCardIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <circle cx="9" cy="11" r="2.2" />
+      <path d="M5.8 16.2a3.6 3.6 0 0 1 6.4 0" />
+      <path d="M14.5 10h4M14.5 13.5h3" />
+    </svg>
+  );
+}
+
+export function AlertTriangleIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M10.3 4.2 2.6 17.5a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0Z" />
+      <path d="M12 9.5v4.2M12 17h.01" />
+    </svg>
+  );
+}
+
+export function ScaleIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M12 4v16M7.5 20h9M5 7h14" />
+      <path d="m5 7-2.8 6a2.8 2.8 0 0 0 5.6 0Z" />
+      <path d="m19 7-2.8 6a2.8 2.8 0 0 0 5.6 0Z" />
+    </svg>
+  );
+}
+
+export function TagIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M3.5 12.3V4.5a1 1 0 0 1 1-1h7.8l8.2 8.2a1 1 0 0 1 0 1.4l-7.8 7.8a1 1 0 0 1-1.4 0Z" />
+      <circle cx="8" cy="8" r="1.4" />
+    </svg>
+  );
+}
+
+export function CreditCardIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="2.5" y="5" width="19" height="14" rx="2" />
+      <path d="M2.5 10h19M6.5 15h3" />
+    </svg>
+  );
+}
+
 export function ClockIcon(props: IconProps) {
   return (
     <svg {...base} {...props}>

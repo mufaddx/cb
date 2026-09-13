@@ -4,7 +4,10 @@ import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { Button } from "../../../components/Button";
 import { PageLoader } from "../../../components/PageLoader";
+import { AdminEmpty, AdminIntro, Avatar, DemoBanner, DemoTag, StatusBadge, formatDate, formatINR } from "../../../components/admin/AdminUI";
+import { WalletIcon } from "../../../components/icons";
 import { apiFetch, ApiClientError } from "../../../lib/apiClient";
+import { DEMO_WITHDRAWALS, isDemoId, withDemo } from "../../../lib/adminDemo";
 import { useConfirm } from "../../../lib/useConfirm";
 
 interface WithdrawalItem {
@@ -68,7 +71,7 @@ function PayoutModal({
       onClick={onClose}
     >
       <div className="card" style={{ maxWidth: 380, width: "100%", textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
-        <h3 style={{ margin: "0 0 4px" }}>Pay ₹{item.amount} via UPI</h3>
+        <h3 style={{ margin: "0 0 4px" }}>Pay {formatINR(item.amount)} via UPI</h3>
         <p className="helper-text" style={{ marginBottom: 16 }}>
           {item.creator.fullName} (@{item.creator.displayName}) · {item.upiId}
         </p>
@@ -102,11 +105,7 @@ function PayoutModal({
           <Button variant="secondary" onClick={onClose} disabled={submitting}>
             Cancel
           </Button>
-          <Button
-            loading={submitting}
-            disabled={referenceNumber.trim().length < 3}
-            onClick={() => onSubmit(referenceNumber.trim())}
-          >
+          <Button loading={submitting} disabled={referenceNumber.trim().length < 3} onClick={() => onSubmit(referenceNumber.trim())}>
             Confirm paid
           </Button>
         </div>
@@ -125,16 +124,17 @@ export default function WithdrawalsQueuePage() {
   function load() {
     apiFetch<WithdrawalItem[]>("/api/withdrawals/queue")
       .then(setQueue)
-      .catch((err) => setError(err instanceof ApiClientError ? err.message : "Failed to load the queue."));
+      .catch((err) => {
+        setError(err instanceof ApiClientError ? err.message : "Failed to load the queue.");
+        setQueue([]);
+      });
   }
   useEffect(load, []);
 
-  // "Approve" now moves straight into the payout step — approving a
-  // withdrawal always means paying it out next, so a click here
-  // immediately opens the UPI QR/reference modal instead of leaving
-  // the admin to separately remember to come back and mark it paid.
+  // "Approve" moves straight into the payout step — approving a
+  // withdrawal always means paying it out next.
   async function approve(item: WithdrawalItem) {
-    const confirmed = await confirm({ title: "Approve this withdrawal?", description: `You'll pay ₹${item.amount} to ${item.upiId} next.` });
+    const confirmed = await confirm({ title: "Approve this withdrawal?", description: `You'll pay ${formatINR(item.amount)} to ${item.upiId} next.` });
     if (!confirmed) return;
 
     setActingOn(item.id);
@@ -189,57 +189,77 @@ export default function WithdrawalsQueuePage() {
     }
   }
 
-  if (!queue) return <PageLoader />;
+  const { items, isDemo } = withDemo(queue, DEMO_WITHDRAWALS, { allow: !error });
+  if (!items) return <PageLoader />;
+
+  const totalPending = isDemo ? 0 : items.reduce((s, w) => s + Number(w.amount), 0);
 
   return (
-    <div>
-      {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
+    <div className="adm-stack">
+      <AdminIntro
+        icon={WalletIcon}
+        tint="green"
+        meta={
+          <>
+            <span className="adm-chip">{isDemo ? 0 : items.length} requests</span>
+            <span className="adm-chip">{formatINR(totalPending)} pending</span>
+          </>
+        }
+      >
+        Creators ask to withdraw their earnings here. Approve a request, pay it by scanning the UPI QR, then enter the UTR
+        number to mark it paid.
+      </AdminIntro>
+      <DemoBanner show={isDemo} />
+      {error && <p className="error-text">{error}</p>}
 
-      {queue.length === 0 ? (
-        <div className="card">No withdrawals pending.</div>
+      {items.length === 0 ? (
+        <AdminEmpty icon={WalletIcon} title="No withdrawals pending" text="When a creator requests a payout, it shows up here for approval and payment." />
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {queue.map((item) => (
-            <div key={item.id} className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>
-                  KYC: {item.creator.kycStatus} · {item.status}
+        <div className="adm-list">
+          {items.map((item) => {
+            const demo = isDemoId(item.id);
+            return (
+              <div key={item.id} className={`adm-row${demo ? " is-demo" : ""}`}>
+                <div className="adm-row-main">
+                  <Avatar name={item.creator.fullName} />
+                  <div style={{ minWidth: 0 }}>
+                    <div className="adm-row-meta">
+                      <StatusBadge status={item.status} label={item.status === "APPROVED" ? "Approved · awaiting payment" : undefined} />
+                      <StatusBadge status={item.creator.kycStatus} label={`KYC ${item.creator.kycStatus.toLowerCase().replace(/_/g, " ")}`} />
+                      {demo && <DemoTag />}
+                    </div>
+                    <div className="adm-row-title">{item.creator.fullName}</div>
+                    <div className="adm-row-sub">
+                      @{item.creator.displayName} · UPI {item.upiId} · Requested {formatDate(item.requestedAt)}
+                    </div>
+                  </div>
                 </div>
-                <div style={{ fontWeight: 600 }}>{item.creator.fullName} (@{item.creator.displayName})</div>
-                <div style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>{item.upiId}</div>
-              </div>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontWeight: 700, marginBottom: 8 }}>₹{item.amount}</div>
-                <div style={{ display: "flex", gap: 8 }}>
+                <div className="adm-row-side">
+                  <span className="adm-amount">{formatINR(item.amount)}</span>
                   {item.status === "REQUESTED" && (
                     <>
-                      <Button loading={actingOn === item.id} onClick={() => approve(item)}>
-                        Approve
-                      </Button>
-                      <Button variant="danger" loading={actingOn === item.id} onClick={() => reject(item.id)}>
+                      <Button variant="danger" disabled={demo} loading={actingOn === item.id} onClick={() => reject(item.id)}>
                         Reject
+                      </Button>
+                      <Button disabled={demo} loading={actingOn === item.id} onClick={() => approve(item)}>
+                        Approve
                       </Button>
                     </>
                   )}
                   {item.status === "APPROVED" && (
-                    <Button loading={actingOn === item.id} onClick={() => setPayoutTarget(item)}>
+                    <Button disabled={demo} loading={actingOn === item.id} onClick={() => setPayoutTarget(item)}>
                       Pay via UPI
                     </Button>
                   )}
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
       {payoutTarget && (
-        <PayoutModal
-          item={payoutTarget}
-          submitting={actingOn === payoutTarget.id}
-          onClose={() => setPayoutTarget(null)}
-          onSubmit={confirmPaid}
-        />
+        <PayoutModal item={payoutTarget} submitting={actingOn === payoutTarget.id} onClose={() => setPayoutTarget(null)} onSubmit={confirmPaid} />
       )}
     </div>
   );

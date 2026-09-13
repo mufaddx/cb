@@ -2,7 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "../../../components/Button";
+import { PageLoader } from "../../../components/PageLoader";
+import { AdminEmpty, AdminIntro, DemoBanner, DemoTag } from "../../../components/admin/AdminUI";
+import { TagIcon } from "../../../components/icons";
 import { apiFetch, ApiClientError } from "../../../lib/apiClient";
+import { DEMO_SLABS, DEMO_TAX_RULES, withDemo } from "../../../lib/adminDemo";
 
 interface Slab {
   id: string;
@@ -34,7 +38,7 @@ function fmtRange(min: number, max: number | null, metric: string) {
   return max ? `${f(min)}–${f(max)} ${unit}` : `${f(min)}+ ${unit}`;
 }
 
-function SlabRow({ slab, onSaved }: { slab: Slab; onSaved: (s: Slab) => void }) {
+function SlabRow({ slab, demo, onSaved }: { slab: Slab; demo: boolean; onSaved: (s: Slab) => void }) {
   const [payout, setPayout] = useState(slab.payoutAmount);
   const [fee, setFee] = useState(slab.feeAmount);
   const [active, setActive] = useState(slab.active);
@@ -58,21 +62,19 @@ function SlabRow({ slab, onSaved }: { slab: Slab; onSaved: (s: Slab) => void }) 
   }
 
   return (
-    <tr style={{ borderBottom: "1px solid var(--color-border)", opacity: active ? 1 : 0.5 }}>
-      <td style={{ padding: "8px 10px", whiteSpace: "nowrap" }}>{fmtRange(slab.minValue, slab.maxValue, slab.metric)}</td>
-      <td style={{ padding: "8px 10px" }}>
-        <input className="input" type="number" value={payout} onChange={(e) => setPayout(e.target.value)} style={{ width: 100, padding: "6px 10px" }} />
+    <tr style={{ opacity: active ? 1 : 0.5 }}>
+      <td style={{ whiteSpace: "nowrap", fontWeight: 600 }}>{fmtRange(slab.minValue, slab.maxValue, slab.metric)}</td>
+      <td>
+        <input className="input" type="number" value={payout} disabled={demo} onChange={(e) => setPayout(e.target.value)} style={{ width: 110, padding: "7px 10px" }} aria-label="Creator payout" />
       </td>
-      <td style={{ padding: "8px 10px" }}>
-        <input className="input" type="number" value={fee} onChange={(e) => setFee(e.target.value)} style={{ width: 90, padding: "6px 10px" }} />
+      <td>
+        <input className="input" type="number" value={fee} disabled={demo} onChange={(e) => setFee(e.target.value)} style={{ width: 100, padding: "7px 10px" }} aria-label="Platform fee" />
       </td>
-      <td style={{ padding: "8px 10px", fontSize: 12.5, color: "var(--color-text-secondary)" }}>{takePct}%</td>
-      <td style={{ padding: "8px 10px" }}>
-        <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
+      <td className="helper-text">{takePct}%</td>
+      <td>
+        <input type="checkbox" checked={active} disabled={demo} onChange={(e) => setActive(e.target.checked)} aria-label="Active" />
       </td>
-      <td style={{ padding: "8px 10px" }}>
-        {dirty && <Button type="button" loading={saving} onClick={save}>Save</Button>}
-      </td>
+      <td>{demo ? <DemoTag /> : dirty && <Button type="button" loading={saving} onClick={save}>Save</Button>}</td>
     </tr>
   );
 }
@@ -116,14 +118,14 @@ function NewSlabForm({ campaignType, metric, onCreated }: { campaignType: string
 
   if (!open) {
     return (
-      <button type="button" onClick={() => setOpen(true)} style={{ background: "none", border: "none", color: "var(--color-primary)", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: "8px 0 0" }}>
+      <button type="button" onClick={() => setOpen(true)} style={{ background: "none", border: "none", color: "var(--color-primary)", fontSize: 13.5, fontWeight: 600, cursor: "pointer", padding: "12px 16px" }}>
         + Add band
       </button>
     );
   }
 
   return (
-    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 8, background: "var(--color-bg-subtle)", borderRadius: "var(--radius-control)", padding: 10 }}>
+    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", margin: 12, background: "var(--color-bg-subtle)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-control)", padding: 10 }}>
       <input className="input" placeholder="Min" type="number" value={minValue} onChange={(e) => setMinValue(e.target.value)} style={{ width: 90, background: "var(--color-white)" }} />
       <input className="input" placeholder="Max (blank = ∞)" type="number" value={maxValue} onChange={(e) => setMaxValue(e.target.value)} style={{ width: 130, background: "var(--color-white)" }} />
       <input className="input" placeholder="Payout ₹" type="number" value={payoutAmount} onChange={(e) => setPayoutAmount(e.target.value)} style={{ width: 100, background: "var(--color-white)" }} />
@@ -135,7 +137,7 @@ function NewSlabForm({ campaignType, metric, onCreated }: { campaignType: string
   );
 }
 
-function TaxRuleRow({ rule, onSaved }: { rule: TaxRule; onSaved: (r: TaxRule) => void }) {
+function TaxRuleRow({ rule, demo, onSaved }: { rule: TaxRule; demo: boolean; onSaved: (r: TaxRule) => void }) {
   const [rate, setRate] = useState(rule.rate);
   const [active, setActive] = useState(rule.active);
   const [saving, setSaving] = useState(false);
@@ -155,19 +157,17 @@ function TaxRuleRow({ rule, onSaved }: { rule: TaxRule; onSaved: (r: TaxRule) =>
   }
 
   return (
-    <tr style={{ borderBottom: "1px solid var(--color-border)", opacity: active ? 1 : 0.5 }}>
-      <td style={{ padding: "8px 10px" }}>{rule.taxType}</td>
-      <td style={{ padding: "8px 10px" }}>{rule.applicableParty === "BRAND" ? "Brand" : "Creator"}</td>
-      <td style={{ padding: "8px 10px" }}>{rule.transactionType.replace(/_/g, " ")}</td>
-      <td style={{ padding: "8px 10px" }}>
-        <input className="input" type="number" step="0.1" value={rate} onChange={(e) => setRate(e.target.value)} style={{ width: 80, padding: "6px 10px" }} />%
+    <tr style={{ opacity: active ? 1 : 0.5 }}>
+      <td style={{ fontWeight: 600 }}>{rule.taxType}</td>
+      <td>{rule.applicableParty === "BRAND" ? "Brand" : "Creator"}</td>
+      <td>{rule.transactionType.replace(/_/g, " ").toLowerCase()}</td>
+      <td style={{ whiteSpace: "nowrap" }}>
+        <input className="input" type="number" step="0.1" value={rate} disabled={demo} onChange={(e) => setRate(e.target.value)} style={{ width: 80, padding: "7px 10px" }} aria-label="Rate" /> %
       </td>
-      <td style={{ padding: "8px 10px" }}>
-        <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
+      <td>
+        <input type="checkbox" checked={active} disabled={demo} onChange={(e) => setActive(e.target.checked)} aria-label="Active" />
       </td>
-      <td style={{ padding: "8px 10px" }}>
-        {dirty && <Button type="button" loading={saving} onClick={save}>Save</Button>}
-      </td>
+      <td>{demo ? <DemoTag /> : dirty && <Button type="button" loading={saving} onClick={save}>Save</Button>}</td>
     </tr>
   );
 }
@@ -178,14 +178,22 @@ export default function AdminPricingPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    apiFetch<Slab[]>("/api/admin/pricing-slabs").then(setSlabs).catch((err) => setError(err instanceof ApiClientError ? err.message : "Failed to load."));
+    apiFetch<Slab[]>("/api/admin/pricing-slabs")
+      .then(setSlabs)
+      .catch((err) => {
+        setError(err instanceof ApiClientError ? err.message : "Failed to load.");
+        setSlabs([]);
+      });
     apiFetch<TaxRule[]>("/api/admin/tax-rules").then(setTaxRules).catch(() => setTaxRules([]));
   }, []);
 
+  const slabView = withDemo(slabs, DEMO_SLABS, { allow: !error });
+  const taxView = withDemo(taxRules, DEMO_TAX_RULES, { allow: !error });
+
   const groups = useMemo(() => {
-    if (!slabs) return [];
+    if (!slabView.items) return [];
     const map = new Map<string, Slab[]>();
-    for (const s of slabs) {
+    for (const s of slabView.items) {
       const key = `${s.campaignType}|${s.metric}`;
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(s);
@@ -193,10 +201,10 @@ export default function AdminPricingPage() {
     return Array.from(map.entries())
       .map(([key, rows]) => {
         const [campaignType, metric] = key.split("|");
-        return { campaignType, metric, rows: rows.sort((a, b) => a.minValue - b.minValue) };
+        return { campaignType, metric, rows: [...rows].sort((a, b) => a.minValue - b.minValue) };
       })
       .sort((a, b) => a.campaignType.localeCompare(b.campaignType) || a.metric.localeCompare(b.metric));
-  }, [slabs]);
+  }, [slabView.items]);
 
   function updateSlab(updated: Slab) {
     setSlabs((prev) => prev?.map((s) => (s.id === updated.id ? updated : s)) ?? null);
@@ -208,68 +216,77 @@ export default function AdminPricingPage() {
     setTaxRules((prev) => prev?.map((r) => (r.id === updated.id ? updated : r)) ?? null);
   }
 
-  if (error) return <p className="error-text">{error}</p>;
+  if (!slabView.items || !taxView.items) return <PageLoader />;
 
   return (
-    <div>
-      {!slabs ? (
-        <p className="helper-text">Loading…</p>
+    <div className="adm-stack">
+      <AdminIntro icon={TagIcon} tint="amber">
+        The rate card: how much a creator is paid and what fee Vidlix keeps for each follower or reach band, per campaign
+        type. Brands see these prices when they create a campaign. Tax rules are added on top of the platform fee.
+      </AdminIntro>
+      <DemoBanner show={slabView.isDemo || taxView.isDemo} />
+      {error && <p className="error-text">{error}</p>}
+
+      {groups.length === 0 ? (
+        <AdminEmpty icon={TagIcon} title="No rate card bands yet" text="Pricing bands define creator payout and platform fee by follower or reach range." />
       ) : (
         groups.map((g) => (
-          <div key={`${g.campaignType}|${g.metric}`} className="card" style={{ marginBottom: 16, padding: 20 }}>
-            <h3 style={{ fontSize: 14.5, margin: "0 0 12px" }}>
-              {TYPE_LABEL[g.campaignType] ?? g.campaignType} · {METRIC_LABEL[g.metric] ?? g.metric}
-            </h3>
-            <div className="table-scroll">
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13.5 }}>
+          <div key={`${g.campaignType}|${g.metric}`} className="adm-panel">
+            <div className="adm-panel-head">
+              <h3>
+                {TYPE_LABEL[g.campaignType] ?? g.campaignType} · priced by {(METRIC_LABEL[g.metric] ?? g.metric).toLowerCase()}
+              </h3>
+              <span className="adm-chip">
+                {g.rows.length} band{g.rows.length === 1 ? "" : "s"}
+              </span>
+            </div>
+            <div className="adm-table-scroll">
+              <table className="adm-table">
                 <thead>
-                  <tr style={{ textAlign: "left", borderBottom: "1px solid var(--color-border)" }}>
-                    <th style={{ padding: "8px 10px" }}>Range</th>
-                    <th style={{ padding: "8px 10px" }}>Creator payout ₹</th>
-                    <th style={{ padding: "8px 10px" }}>Platform fee ₹</th>
-                    <th style={{ padding: "8px 10px" }}>Take %</th>
-                    <th style={{ padding: "8px 10px" }}>Active</th>
-                    <th style={{ padding: "8px 10px" }} />
+                  <tr>
+                    <th>Range</th>
+                    <th>Creator payout ₹</th>
+                    <th>Platform fee ₹</th>
+                    <th>Vidlix take</th>
+                    <th>Active</th>
+                    <th />
                   </tr>
                 </thead>
                 <tbody>
                   {g.rows.map((s) => (
-                    <SlabRow key={s.id} slab={s} onSaved={updateSlab} />
+                    <SlabRow key={s.id} slab={s} demo={slabView.isDemo} onSaved={updateSlab} />
                   ))}
                 </tbody>
               </table>
             </div>
-            <NewSlabForm campaignType={g.campaignType} metric={g.metric} onCreated={addSlab} />
+            {!slabView.isDemo && <NewSlabForm campaignType={g.campaignType} metric={g.metric} onCreated={addSlab} />}
           </div>
         ))
       )}
 
-      <div className="card" style={{ padding: 20 }}>
-        <h3 style={{ fontSize: 14.5, margin: "0 0 4px" }}>Tax &amp; fee rules</h3>
-        <p className="helper-text" style={{ marginBottom: 12 }}>
-          Applied as a percentage on top of the platform fee above (GST today; a Brand or Creator-side rule can be
-          added the same way).
-        </p>
-        {!taxRules ? (
-          <p className="helper-text">Loading…</p>
-        ) : taxRules.length === 0 ? (
-          <p className="helper-text">No tax/fee rules yet.</p>
+      <div className="adm-panel">
+        <div className="adm-panel-head">
+          <h3>Tax &amp; fee rules</h3>
+          <span className="helper-text" style={{ margin: 0 }}>Applied as a percentage on top of the platform fee</span>
+        </div>
+        {taxView.items.length === 0 ? (
+          <p className="adm-panel-empty">No tax or fee rules yet.</p>
         ) : (
-          <div className="table-scroll">
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13.5 }}>
+          <div className="adm-table-scroll">
+            <table className="adm-table">
               <thead>
-                <tr style={{ textAlign: "left", borderBottom: "1px solid var(--color-border)" }}>
-                  <th style={{ padding: "8px 10px" }}>Type</th>
-                  <th style={{ padding: "8px 10px" }}>Applies to</th>
-                  <th style={{ padding: "8px 10px" }}>Transaction</th>
-                  <th style={{ padding: "8px 10px" }}>Rate</th>
-                  <th style={{ padding: "8px 10px" }}>Active</th>
-                  <th style={{ padding: "8px 10px" }} />
+                <tr>
+                  <th>Type</th>
+                  <th>Applies to</th>
+                  <th>Charged on</th>
+                  <th>Rate</th>
+                  <th>Active</th>
+                  <th />
                 </tr>
               </thead>
               <tbody>
-                {taxRules.map((r) => (
-                  <TaxRuleRow key={r.id} rule={r} onSaved={updateTaxRule} />
+                {taxView.items.map((r) => (
+                  <TaxRuleRow key={r.id} rule={r} demo={taxView.isDemo} onSaved={updateTaxRule} />
                 ))}
               </tbody>
             </table>

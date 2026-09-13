@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 import { Button } from "../../../components/Button";
 import { PageLoader } from "../../../components/PageLoader";
+import { AdminEmpty, AdminIntro, Avatar, DemoBanner, DemoTag, StatusBadge, formatDate } from "../../../components/admin/AdminUI";
+import { ClockIcon } from "../../../components/icons";
 import { apiFetch, ApiClientError } from "../../../lib/apiClient";
+import { DEMO_RETENTION, isDemoId, withDemo } from "../../../lib/adminDemo";
 
 interface RetentionItem {
   id: string;
@@ -20,6 +23,7 @@ function daysRemaining(until: string | null): number {
 export default function RetentionQueuePage() {
   const [queue, setQueue] = useState<RetentionItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState(false);
   const [actingOn, setActingOn] = useState<string | null>(null);
   const [runningAll, setRunningAll] = useState(false);
   const [lastRun, setLastRun] = useState<string | null>(null);
@@ -27,7 +31,11 @@ export default function RetentionQueuePage() {
   function load() {
     apiFetch<RetentionItem[]>("/api/retention/queue")
       .then(setQueue)
-      .catch((err) => setError(err instanceof ApiClientError ? err.message : "Failed to load the queue."));
+      .catch((err) => {
+        setError(err instanceof ApiClientError ? err.message : "Failed to load the queue.");
+        setLoadError(true);
+        setQueue([]);
+      });
   }
   useEffect(load, []);
 
@@ -59,37 +67,57 @@ export default function RetentionQueuePage() {
     }
   }
 
-  if (!queue) return <PageLoader />;
+  const { items, isDemo } = withDemo(queue, DEMO_RETENTION, { allow: !loadError });
+  if (!items) return <PageLoader />;
 
   return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 20 }}>
-        <Button variant="secondary" loading={runningAll} onClick={runDue}>
-          Run Due Checks Now
-        </Button>
-      </div>
-      {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
-      {lastRun && <p className="helper-text" style={{ marginBottom: 16 }}>{lastRun}</p>}
+    <div className="adm-stack">
+      <AdminIntro
+        icon={ClockIcon}
+        tint="amber"
+        meta={
+          <Button variant="secondary" loading={runningAll} onClick={runDue}>
+            Run due checks now
+          </Button>
+        }
+      >
+        Some campaigns require a post to stay live for a set number of days before the creator is paid. Checks run
+        automatically; you can also check one now or run every check that is due.
+      </AdminIntro>
+      <DemoBanner show={isDemo} />
+      {error && <p className="error-text">{error}</p>}
+      {lastRun && <p className="helper-text" style={{ margin: 0 }}>{lastRun}</p>}
 
-      {queue.length === 0 ? (
-        <div className="card">No assignments currently in retention.</div>
+      {items.length === 0 ? (
+        <AdminEmpty icon={ClockIcon} title="No posts currently in retention" text="Approved posts that must stay live before payout appear here until their period ends." />
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {queue.map((item) => {
+        <div className="adm-list">
+          {items.map((item) => {
+            const demo = isDemoId(item.id);
             const remaining = daysRemaining(item.retentionRequiredUntil);
             return (
-              <div key={item.id} className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{item.campaign.code}</div>
-                  <div style={{ fontWeight: 600 }}>{item.campaign.title}</div>
-                  <div style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>@{item.creator.displayName}</div>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: 13, marginBottom: 8, color: remaining <= 0 ? "var(--color-success)" : "var(--color-text-secondary)" }}>
-                    {remaining <= 0 ? "Due now" : `${remaining} day(s) remaining`}
+              <div key={item.id} className={`adm-row${demo ? " is-demo" : ""}`}>
+                <div className="adm-row-main">
+                  <Avatar name={item.creator.displayName} />
+                  <div style={{ minWidth: 0 }}>
+                    <div className="adm-row-meta">
+                      {remaining <= 0 ? (
+                        <StatusBadge status="COMPLETED" label="Due now" />
+                      ) : (
+                        <StatusBadge status="IN_PROGRESS" label={`${remaining} day${remaining === 1 ? "" : "s"} left`} />
+                      )}
+                      <span className="adm-chip">{item.campaign.retentionDays}-day retention</span>
+                      {demo && <DemoTag />}
+                    </div>
+                    <div className="adm-row-title">{item.campaign.title}</div>
+                    <div className="adm-row-sub">
+                      @{item.creator.displayName} · {item.campaign.code} · Must stay live until {formatDate(item.retentionRequiredUntil)}
+                    </div>
                   </div>
-                  <Button loading={actingOn === item.id} onClick={() => checkOne(item.id)}>
-                    Check Now
+                </div>
+                <div className="adm-row-side">
+                  <Button disabled={demo} loading={actingOn === item.id} onClick={() => checkOne(item.id)}>
+                    Check now
                   </Button>
                 </div>
               </div>
