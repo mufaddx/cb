@@ -38,6 +38,15 @@ router.get(
   asyncHandler(controller.getLiveCampaignsHandler)
 );
 
+// Every campaign, any status — see listAllCampaignsForAdmin's comment
+// for why this exists (review-queue + live between them still leave
+// most of a campaign's lifecycle with no list an admin can find it on).
+router.get(
+  "/all",
+  requirePermission(Permission.CAMPAIGN_READ_ALL),
+  asyncHandler(controller.getAllCampaignsHandler)
+);
+
 router.get(
   "/:id",
   requireAnyPermission(Permission.CAMPAIGN_READ_OWN, Permission.CAMPAIGN_READ_ALL),

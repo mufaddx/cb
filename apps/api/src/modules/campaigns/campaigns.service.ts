@@ -266,12 +266,15 @@ export async function getCampaignForAdmin(prisma: PrismaClient, campaignId: stri
 export async function getCampaignSourceAssetKey(
   prisma: PrismaClient,
   campaignId: string,
-  auth: { brandId?: string; creatorId?: string }
+  auth: { brandId?: string; creatorId?: string; isAdmin?: boolean }
 ): Promise<string> {
   const campaign = await prisma.campaign.findUnique({ where: { id: campaignId } });
   if (!campaign) throw new NotFoundError("Campaign not found");
 
-  if (auth.brandId) {
+  if (auth.isAdmin) {
+    // An admin reviewing/approving any campaign needs to see its
+    // source video regardless of brand ownership or assignment.
+  } else if (auth.brandId) {
     if (campaign.brandId !== auth.brandId) throw new UnauthorizedError();
   } else if (auth.creatorId) {
     const assignment = await prisma.campaignAssignment.findFirst({
@@ -303,6 +306,27 @@ export async function listCampaignReviewQueue(prisma: PrismaClient) {
  * Without this list existing anywhere, a campaign could sit fully
  * paid and LIVE forever with zero creators ever offered it, because
  * there was previously no way for an admin to even find it. */
+/**
+ * Every campaign regardless of status — an admin who approves a
+ * campaign (UNDER_REVIEW -> APPROVED -> PAYMENT_PENDING in one step)
+ * had no way to find it again afterward: review-queue only shows
+ * SUBMITTED/UNDER_REVIEW, live-queue only shows LIVE/MATCHING, so
+ * everything in between (APPROVED, PAYMENT_PENDING, PAID,
+ * IN_PROGRESS, CONTENT_REVIEW, VERIFICATION, COMPLETED, CANCELLED,
+ * DISPUTED, REFUNDED, REJECTED) was simply invisible. This is the
+ * "nothing should disappear" catch-all list.
+ */
+export async function listAllCampaignsForAdmin(prisma: PrismaClient) {
+  return prisma.campaign.findMany({
+    include: {
+      brand: true,
+      pricingSnapshots: { orderBy: { createdAt: "desc" }, take: 1 },
+      payments: { orderBy: { createdAt: "desc" }, take: 1 },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
 export async function listLiveCampaignsForAdmin(prisma: PrismaClient) {
   return prisma.campaign.findMany({
     where: { status: { in: [PrismaCampaignStatus.LIVE, PrismaCampaignStatus.MATCHING] } },

@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { prisma } from "@antigravity/db";
+import { Permission, anyRoleHasPermission } from "@antigravity/shared";
 import { sendSuccess } from "../../lib/apiResponse";
 import { UnauthorizedError, ValidationError } from "../../lib/errors";
 import * as campaignsService from "./campaigns.service";
@@ -58,6 +59,11 @@ export async function getLiveCampaignsHandler(_req: Request, res: Response) {
   sendSuccess(res, campaigns);
 }
 
+export async function getAllCampaignsHandler(_req: Request, res: Response) {
+  const campaigns = await campaignsService.listAllCampaignsForAdmin(prisma);
+  sendSuccess(res, campaigns);
+}
+
 export async function getCampaignOffersHandler(req: Request, res: Response) {
   const brandId = requireBrandId(req);
   // Ownership check happens inside — reuses the same guard as
@@ -72,9 +78,15 @@ export async function getCampaignOffersHandler(req: Request, res: Response) {
 }
 
 export async function getCampaignSourceAssetHandler(req: Request, res: Response) {
+  // An admin reviewing the campaign (CAMPAIGN_REVIEW) needs to actually
+  // watch the source video before approving/rejecting it — this used
+  // to reject that caller outright, since it only recognized "owning
+  // brand" or "assigned creator".
+  const isAdmin = anyRoleHasPermission(req.auth!.roles, Permission.CAMPAIGN_REVIEW);
   const key = await campaignsService.getCampaignSourceAssetKey(prisma, req.params.id, {
     brandId: req.auth?.brandId,
     creatorId: req.auth?.creatorId,
+    isAdmin,
   });
   const url = await getStorageProvider().getSignedDownloadUrl(key);
   sendSuccess(res, { url });

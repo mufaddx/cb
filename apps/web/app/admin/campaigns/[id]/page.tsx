@@ -71,6 +71,8 @@ export default function AdminCampaignDetailPage() {
   const [campaign, setCampaign] = useState<CampaignDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [sourceVideoUrl, setSourceVideoUrl] = useState<string | null>(null);
+  const [sourceVideoError, setSourceVideoError] = useState<string | null>(null);
 
   function load() {
     apiFetch<CampaignDetail>(`/api/campaigns/${id}`)
@@ -78,6 +80,16 @@ export default function AdminCampaignDetailPage() {
       .catch((err) => setError(err instanceof ApiClientError ? err.message : "Failed to load this campaign."));
   }
   useEffect(load, [id]);
+
+  // Clipping campaigns carry the brand's source video as briefJson's
+  // sourceAssetKey — an admin reviewing/approving needs to actually
+  // watch it, not just see that a key exists.
+  useEffect(() => {
+    if (campaign?.type !== "CLIPPING") return;
+    apiFetch<{ url: string }>(`/api/campaigns/${id}/source-asset`)
+      .then((r) => setSourceVideoUrl(r.url))
+      .catch((err) => setSourceVideoError(err instanceof ApiClientError ? err.message : "Couldn't load the source video."));
+  }, [campaign?.type, id]);
 
   async function approve() {
     if (!campaign) return;
@@ -167,6 +179,19 @@ export default function AdminCampaignDetailPage() {
 
       <div className="adm-detail-grid">
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          {campaign.type === "CLIPPING" && (
+            <div className="adm-panel" style={{ padding: 20 }}>
+              <div className="adm-field-label" style={{ marginBottom: 10 }}>Source video</div>
+              {sourceVideoUrl ? (
+                <video src={sourceVideoUrl} controls className="adm-doc-preview" style={{ maxHeight: 480 }} />
+              ) : sourceVideoError ? (
+                <div className="adm-doc-fallback">{sourceVideoError}</div>
+              ) : (
+                <div className="adm-doc-fallback">Loading video…</div>
+              )}
+            </div>
+          )}
+
           <div className="adm-panel" style={{ padding: 20 }}>
             <FieldList>
               <Field label="Platform" value={humanize(campaign.platform)} />

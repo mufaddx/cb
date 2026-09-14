@@ -43,6 +43,17 @@ interface MatchingResult {
   offersCreated: number;
   perSlab: Array<{ slabId: string; requested: number; matched: number; stillShort: number }>;
 }
+interface AnyCampaign {
+  id: string;
+  code: string;
+  title: string;
+  type: string;
+  status: string;
+  createdAt: string;
+  brand: { companyName: string };
+  pricingSnapshots: Array<{ totalAmount: string }>;
+  payments: Array<{ status: string }>;
+}
 
 function slabLabel(s: TargetingSlab): string {
   const min = s.minValue.toLocaleString("en-IN");
@@ -52,6 +63,7 @@ function slabLabel(s: TargetingSlab): string {
 const TABS = [
   { key: "review", label: "Waiting for review" },
   { key: "live", label: "Live campaigns" },
+  { key: "all", label: "All campaigns" },
 ] as const;
 type TabKey = (typeof TABS)[number]["key"];
 
@@ -60,6 +72,7 @@ export default function CampaignReviewsPage() {
   const [tab, setTab] = useState<TabKey>("review");
   const [queue, setQueue] = useState<ReviewCampaign[] | null>(null);
   const [live, setLive] = useState<LiveCampaign[] | null>(null);
+  const [all, setAll] = useState<AnyCampaign[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [actingOn, setActingOn] = useState<string | null>(null);
@@ -83,9 +96,19 @@ export default function CampaignReviewsPage() {
         setLive([]);
       });
   }
+  function loadAll() {
+    apiFetch<AnyCampaign[]>("/api/campaigns/all")
+      .then(setAll)
+      .catch((err) => {
+        setError(err instanceof ApiClientError ? err.message : "Failed to load campaigns.");
+        setLoadError(true);
+        setAll([]);
+      });
+  }
   useEffect(() => {
     loadQueue();
     loadLive();
+    loadAll();
   }, []);
 
   async function approve(id: string, title: string) {
@@ -100,6 +123,7 @@ export default function CampaignReviewsPage() {
     try {
       await apiFetch(`/api/campaigns/${id}/approve`, { method: "POST" });
       loadQueue();
+      loadAll();
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : "Something went wrong.");
     } finally {
@@ -125,6 +149,7 @@ export default function CampaignReviewsPage() {
     try {
       await apiFetch(`/api/campaigns/${id}/reject`, { method: "POST", body: { reason } });
       loadQueue();
+      loadAll();
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : "Something went wrong.");
     } finally {
@@ -154,10 +179,10 @@ export default function CampaignReviewsPage() {
 
   const review = withDemo(queue, DEMO_REVIEW_CAMPAIGNS, { allow: !loadError });
   const liveList = withDemo(live, DEMO_LIVE_CAMPAIGNS, { allow: !loadError });
-  if (!review.items || !liveList.items) return <PageLoader />;
+  if (!review.items || !liveList.items || !all) return <PageLoader />;
 
-  const counts = { review: review.isDemo ? 0 : review.items.length, live: liveList.isDemo ? 0 : liveList.items.length };
-  const showDemo = tab === "review" ? review.isDemo : liveList.isDemo;
+  const counts = { review: review.isDemo ? 0 : review.items.length, live: liveList.isDemo ? 0 : liveList.items.length, all: all.length };
+  const showDemo = tab === "review" ? review.isDemo : tab === "live" ? liveList.isDemo : false;
 
   return (
     <div className="adm-stack">
@@ -275,6 +300,45 @@ export default function CampaignReviewsPage() {
                 </div>
               );
             })}
+          </div>
+        ))}
+
+      {tab === "all" &&
+        (all.length === 0 ? (
+          <AdminEmpty icon={MegaphoneIcon} title="No campaigns yet" text="Every campaign a brand creates shows up here, whatever its status." />
+        ) : (
+          <div className="adm-table-wrap">
+            <div className="adm-table-scroll">
+              <table className="adm-table">
+                <thead>
+                  <tr>
+                    <th>Campaign</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Payment</th>
+                    <th>Value</th>
+                    <th>Created</th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  {all.map((c) => (
+                    <tr key={c.id}>
+                      <td>
+                        <div style={{ fontWeight: 650 }}>{c.title}</div>
+                        <div className="helper-text" style={{ marginTop: 1 }}>{c.brand.companyName} · {c.code}</div>
+                      </td>
+                      <td>{humanize(c.type)}</td>
+                      <td><StatusBadge status={c.status} /></td>
+                      <td>{c.payments[0] ? <StatusBadge status={c.payments[0].status} /> : <span className="helper-text">—</span>}</td>
+                      <td style={{ fontWeight: 650, whiteSpace: "nowrap" }}>{c.pricingSnapshots[0] ? formatINR(c.pricingSnapshots[0].totalAmount) : "—"}</td>
+                      <td className="helper-text" style={{ whiteSpace: "nowrap" }}>{formatDate(c.createdAt)}</td>
+                      <td><Link href={`/admin/campaigns/${c.id}`} className="adm-view-link">View →</Link></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         ))}
     </div>
