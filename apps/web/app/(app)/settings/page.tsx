@@ -7,13 +7,10 @@ import { PageLoader } from "@/components/PageLoader";
 import { PasswordField } from "@/components/PasswordField";
 import { SupportTicketModal } from "@/components/SupportTicketModal";
 import {
-  BellIcon,
   ChatIcon,
   GearIcon,
   InstagramIcon,
   LifeBuoyIcon,
-  LinkIcon,
-  PaletteIcon,
   ShieldIcon,
   TrashIcon,
   UserIcon,
@@ -24,12 +21,13 @@ import { useConfirm } from "@/lib/useConfirm";
 const MARKETING_URL = process.env.NEXT_PUBLIC_MARKETING_URL || "https://vidlix.in";
 const SUPPORT_EMAIL = "support@vidlix.in";
 
+// Just two tabs — every option here does something real. (Notifications,
+// Privacy and Appearance used to be their own tabs with nothing behind
+// them but a "coming soon" note; Connected Apps — Instagram — is real,
+// but it's account-level, so it now lives inside Account instead of
+// getting its own tab for one toggle.)
 const TABS = [
   { key: "account", label: "Account", icon: UserIcon },
-  { key: "notifications", label: "Notifications", icon: BellIcon },
-  { key: "privacy", label: "Privacy", icon: ShieldIcon },
-  { key: "apps", label: "Connected Apps", icon: LinkIcon },
-  { key: "appearance", label: "Appearance", icon: PaletteIcon },
   { key: "help", label: "Help & Support", icon: LifeBuoyIcon },
 ] as const;
 type TabKey = (typeof TABS)[number]["key"];
@@ -61,17 +59,6 @@ const TICKET_STATUS_LABEL: Record<string, string> = {
   RESOLVED: "Resolved",
   CLOSED: "Closed",
 };
-
-/** A section that's visually in place (matching the reference layout)
- * but genuinely has no backend behind it yet — shown honestly as
- * "coming soon" rather than a toggle that silently does nothing. */
-function ComingSoon({ text }: { text: string }) {
-  return (
-    <div className="card" style={{ textAlign: "center", padding: 32 }}>
-      <p className="helper-text" style={{ margin: 0 }}>{text}</p>
-    </div>
-  );
-}
 
 export default function SettingsPage() {
   const confirm = useConfirm();
@@ -350,6 +337,33 @@ export default function SettingsPage() {
             </form>
           </div>
 
+          {me.creator && (
+            <div className="card">
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+                <span className="icon-badge icon-badge-pink" aria-hidden="true"><InstagramIcon width={17} height={17} /></span>
+                <h3 style={{ margin: 0 }}>Instagram</h3>
+              </div>
+              <p className="helper-text" style={{ margin: "4px 0 16px" }}>Brands see your follower and reach numbers through this connection.</p>
+              {!instagram ? (
+                <PageLoader />
+              ) : instagram.status === "CONNECTED" ? (
+                <>
+                  <p style={{ margin: "0 0 16px" }}>
+                    Connected as <strong>@{instagram.username}</strong> <span className="badge badge-success">Connected</span>
+                  </p>
+                  <Button variant="danger" onClick={handleDisconnectInstagram} loading={disconnecting}>Disconnect</Button>
+                </>
+              ) : (
+                <>
+                  <p className="helper-text" style={{ margin: "0 0 16px" }}>
+                    {instagram.status === "NOT_CONNECTED" ? "Not connected." : "Disconnected — reconnect to sync data again."}
+                  </p>
+                  <Button onClick={handleConnectInstagram}>Connect Instagram</Button>
+                </>
+              )}
+            </div>
+          )}
+
           <div className="card" style={{ borderColor: "var(--color-danger)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
               <span className="icon-badge" style={{ background: "var(--color-danger-soft)", color: "var(--color-danger)" }} aria-hidden="true">
@@ -365,46 +379,6 @@ export default function SettingsPage() {
           </div>
         </div>
       )}
-
-      {tab === "notifications" && (
-        <ComingSoon text="Per-notification email preferences aren't available yet — you'll still get the notifications already built into the app (offers, messages) via the bell icon." />
-      )}
-
-      {tab === "privacy" && (
-        <ComingSoon text="Profile visibility and data controls aren't available yet. For a copy of your data or a privacy request, contact support." />
-      )}
-
-      {tab === "apps" && !me.creator && (
-        <ComingSoon text="Instagram connection is a creator feature — there's nothing for a brand account to connect here yet." />
-      )}
-
-      {tab === "apps" && me.creator && (
-        <div className="card" style={{ maxWidth: 480 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-            <span className="icon-badge icon-badge-pink" aria-hidden="true"><InstagramIcon width={17} height={17} /></span>
-            <h3 style={{ margin: 0 }}>Instagram</h3>
-          </div>
-          {!instagram ? (
-            <PageLoader />
-          ) : instagram.status === "CONNECTED" ? (
-            <>
-              <p style={{ margin: "8px 0 16px" }}>
-                Connected as <strong>@{instagram.username}</strong> <span className="badge badge-success">Connected</span>
-              </p>
-              <Button variant="danger" onClick={handleDisconnectInstagram} loading={disconnecting}>Disconnect</Button>
-            </>
-          ) : (
-            <>
-              <p className="helper-text" style={{ margin: "8px 0 16px" }}>
-                {instagram.status === "NOT_CONNECTED" ? "Not connected." : "Disconnected — reconnect to sync data again."}
-              </p>
-              <Button onClick={handleConnectInstagram}>Connect Instagram</Button>
-            </>
-          )}
-        </div>
-      )}
-
-      {tab === "appearance" && <ComingSoon text="Vidlix only offers the current look for now — a theme option may come later." />}
 
       {tab === "help" && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 20 }}>
@@ -428,7 +402,7 @@ export default function SettingsPage() {
           </div>
 
           <div className="card">
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 4, flexWrap: "wrap" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <span className="icon-badge icon-badge-purple" aria-hidden="true"><ChatIcon width={17} height={17} /></span>
                 <h3 style={{ margin: 0 }}>My Tickets</h3>
@@ -492,6 +466,7 @@ export default function SettingsPage() {
                       display: "flex",
                       justifyContent: "space-between",
                       alignItems: "center",
+                      gap: 10,
                       width: "100%",
                       textAlign: "left",
                       background: "none",
@@ -501,13 +476,13 @@ export default function SettingsPage() {
                       cursor: "pointer",
                     }}
                   >
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: 13.5 }}>{t.subject}</div>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontWeight: 600, fontSize: 13.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.subject}</div>
                       <div className="helper-text">
                         {t._count.messages} message{t._count.messages === 1 ? "" : "s"} · {new Date(t.updatedAt).toLocaleDateString()}
                       </div>
                     </div>
-                    <span className="badge">{TICKET_STATUS_LABEL[t.status] ?? t.status}</span>
+                    <span className="badge" style={{ flexShrink: 0 }}>{TICKET_STATUS_LABEL[t.status] ?? t.status}</span>
                   </button>
                 ))}
               </div>

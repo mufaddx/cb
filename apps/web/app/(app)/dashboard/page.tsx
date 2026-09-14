@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiFetch, ApiClientError } from "@/lib/apiClient";
 import { Button } from "@/components/Button";
+import { GreetingModal } from "@/components/GreetingModal";
 import { InstagramConnect } from "@/components/InstagramConnect";
 import { PageLoader } from "@/components/PageLoader";
 import { StatCard } from "@/components/StatCard";
@@ -198,10 +199,6 @@ export default function DashboardPage() {
   }
 
   const accountType = me.brand ? "BRAND" : "CREATOR";
-  const today = new Date();
-  // Local time of day, not a fixed string — this rendered "Good morning" at night.
-  const hour = today.getHours();
-  const greeting = hour >= 5 && hour < 12 ? "Good morning" : hour >= 12 && hour < 17 ? "Good afternoon" : "Good evening";
 
   const totalSpend = campaigns
     ?.filter((c) => SPENT_STATUSES.has(c.status))
@@ -221,23 +218,10 @@ export default function DashboardPage() {
 
     return (
       <main style={{ padding: "32px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, marginBottom: 24, flexWrap: "wrap" }}>
-          <div>
-            <h1>{greeting}, {me.brand?.companyName ?? me.name ?? me.email} 👋</h1>
-            <p className="helper-text" style={{ marginTop: -8, fontSize: 14.5 }}>Here&apos;s what&apos;s happening with your campaigns today.</p>
-          </div>
-          <div className="card" style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px" }}>
-            <span className="icon-badge icon-badge-blue" aria-hidden="true">
-              <CalendarIcon width={16} height={16} />
-            </span>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 13.5 }}>
-                {today.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "short", year: "numeric" })}
-              </div>
-              <div className="helper-text">Let&apos;s create something amazing today!</div>
-            </div>
-          </div>
-        </div>
+        <GreetingModal
+          name={me.brand?.companyName ?? me.name ?? me.email}
+          subtitle="Here's what's happening with your campaigns today."
+        />
 
         <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 }}>
           <StatCard
@@ -377,23 +361,10 @@ export default function DashboardPage() {
 
   return (
     <main style={{ padding: "32px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, marginBottom: 24, flexWrap: "wrap" }}>
-        <div>
-          <h1>{greeting}, {me.creator?.displayName ?? me.name ?? me.email} 👋</h1>
-          <p className="helper-text" style={{ marginTop: -8, fontSize: 14.5 }}>Ready to create something amazing today?</p>
-        </div>
-        <div className="card" style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px" }}>
-          <span className="icon-badge icon-badge-blue" aria-hidden="true">
-            <CalendarIcon width={16} height={16} />
-          </span>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 13.5 }}>
-              {today.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "short", year: "numeric" })}
-            </div>
-            <div className="helper-text">Consistency creates opportunities.</div>
-          </div>
-        </div>
-      </div>
+      <GreetingModal
+        name={me.creator?.displayName ?? me.name ?? me.email}
+        subtitle="Consistency creates opportunities."
+      />
 
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 }}>
         <StatCard
