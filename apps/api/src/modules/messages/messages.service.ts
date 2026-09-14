@@ -54,3 +54,13 @@ export async function listMessages(prisma: PrismaClient, campaignId: string, bra
   await assertCampaignParty(prisma, campaignId, brandId, creatorId);
   return prisma.message.findMany({ where: { campaignId }, orderBy: { createdAt: "asc" } });
 }
+
+/** Admin's read of a campaign's message thread — no brand/creator
+ * ownership check, since an admin reviewing a campaign (disputes,
+ * content review, or just "what's going on here") needs to see the
+ * whole conversation regardless of which side it belongs to. */
+export async function listMessagesForAdmin(prisma: PrismaClient, campaignId: string) {
+  const campaign = await prisma.campaign.findUnique({ where: { id: campaignId } });
+  if (!campaign) throw new NotFoundError("Campaign not found");
+  return prisma.message.findMany({ where: { campaignId }, orderBy: { createdAt: "asc" } });
+}

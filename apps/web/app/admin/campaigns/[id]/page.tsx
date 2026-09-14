@@ -36,6 +36,12 @@ interface AssignmentRow {
   payoutAmount: string;
   creator: { fullName: string; displayName: string };
 }
+interface CampaignMessage {
+  id: string;
+  senderType: string;
+  body: string;
+  createdAt: string;
+}
 interface CampaignDetail {
   id: string;
   code: string;
@@ -73,6 +79,7 @@ export default function AdminCampaignDetailPage() {
   const [busy, setBusy] = useState(false);
   const [sourceVideoUrl, setSourceVideoUrl] = useState<string | null>(null);
   const [sourceVideoError, setSourceVideoError] = useState<string | null>(null);
+  const [messages, setMessages] = useState<CampaignMessage[] | null>(null);
 
   function load() {
     apiFetch<CampaignDetail>(`/api/campaigns/${id}`)
@@ -80,6 +87,12 @@ export default function AdminCampaignDetailPage() {
       .catch((err) => setError(err instanceof ApiClientError ? err.message : "Failed to load this campaign."));
   }
   useEffect(load, [id]);
+
+  useEffect(() => {
+    apiFetch<CampaignMessage[]>(`/api/messages/${id}/admin`)
+      .then(setMessages)
+      .catch(() => setMessages([]));
+  }, [id]);
 
   // Clipping campaigns carry the brand's source video as briefJson's
   // sourceAssetKey — an admin reviewing/approving needs to actually
@@ -238,6 +251,56 @@ export default function AdminCampaignDetailPage() {
                   <StatusBadge status={a.status} />
                 </Link>
               ))
+            )}
+          </div>
+
+          <div className="adm-panel">
+            <div className="adm-panel-head">
+              <h3>Deal Room ({messages?.length ?? 0})</h3>
+            </div>
+            {!messages ? (
+              <p className="adm-panel-empty">Loading…</p>
+            ) : messages.length === 0 ? (
+              <p className="adm-panel-empty">No messages on this campaign yet.</p>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, padding: 16, maxHeight: 360, overflowY: "auto" }}>
+                {messages.map((m) => {
+                  const fromBrand = m.senderType === "BRAND";
+                  const isSystem = m.senderType === "SYSTEM";
+                  return (
+                    <div
+                      key={m.id}
+                      style={{
+                        alignSelf: isSystem ? "center" : fromBrand ? "flex-start" : "flex-end",
+                        maxWidth: isSystem ? "100%" : "78%",
+                      }}
+                    >
+                      {isSystem ? (
+                        <div className="helper-text" style={{ textAlign: "center", fontSize: 12 }}>{m.body}</div>
+                      ) : (
+                        <>
+                          <div
+                            style={{
+                              background: fromBrand ? "var(--color-bg-subtle)" : "var(--color-primary)",
+                              color: fromBrand ? "var(--color-text)" : "#fff",
+                              border: fromBrand ? "1px solid var(--color-border)" : "none",
+                              padding: "9px 13px",
+                              borderRadius: 12,
+                              fontSize: 13.5,
+                              whiteSpace: "pre-wrap",
+                            }}
+                          >
+                            {m.body}
+                          </div>
+                          <div className="helper-text" style={{ fontSize: 11, marginTop: 3, textAlign: fromBrand ? "left" : "right" }}>
+                            {humanize(m.senderType)} · {formatDate(m.createdAt)}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
         </div>

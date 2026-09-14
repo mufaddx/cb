@@ -9,7 +9,7 @@ import { sendSuccess } from "../../lib/apiResponse";
 import * as messagesService from "./messages.service";
 
 const router = Router();
-router.use(requireAuth, requirePermission(Permission.MESSAGE_READ_OWN));
+router.use(requireAuth);
 
 const SendMessageSchema = z.object({
   body: z.string().max(4000).default(""),
@@ -18,14 +18,27 @@ const SendMessageSchema = z.object({
 
 router.get(
   "/:campaignId",
+  requirePermission(Permission.MESSAGE_READ_OWN),
   asyncHandler(async (req, res) => {
     const messages = await messagesService.listMessages(prisma, req.params.campaignId, req.auth!.brandId, req.auth!.creatorId);
     sendSuccess(res, messages);
   })
 );
 
+// Admin's read-only view of the same thread — see
+// listMessagesForAdmin's comment for why "_OWN" doesn't apply here.
+router.get(
+  "/:campaignId/admin",
+  requirePermission(Permission.CAMPAIGN_REVIEW),
+  asyncHandler(async (req, res) => {
+    const messages = await messagesService.listMessagesForAdmin(prisma, req.params.campaignId);
+    sendSuccess(res, messages);
+  })
+);
+
 router.post(
   "/:campaignId",
+  requirePermission(Permission.MESSAGE_READ_OWN),
   asyncHandler(async (req, res) => {
     const { body, attachmentKey } = SendMessageSchema.parse(req.body);
     const senderType = req.auth!.brandId ? "BRAND" : "CREATOR";
