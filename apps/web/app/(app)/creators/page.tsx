@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/Button";
-import { usePageHeaderExtra } from "@/components/AppShell";
 import { ChatIcon, LockIcon, UserIcon } from "@/components/icons";
 import { PageHeading } from "@/components/PageHeading";
 import { PageLoader } from "@/components/PageLoader";
@@ -212,14 +211,6 @@ export default function TopCreatorsPage() {
     if (unlocked) startChat(c.id);
   }
 
-  usePageHeaderExtra(
-    <>
-      <span className="badge">{credits ?? "—"} credits left</span>
-      <Button variant="secondary" onClick={() => setShowBuy(true)}>Buy credits</Button>
-    </>,
-    [credits]
-  );
-
   if (error) return <main style={{ padding: 32 }}><p className="error-text">{error}</p></main>;
 
   return (
@@ -230,6 +221,16 @@ export default function TopCreatorsPage() {
         title="Top Creators"
         description="Discover and collaborate with amazing creators."
       />
+
+      {/* Credits live in the page body, not the shared header — that
+          bar already carries the page title, search, notifications and
+          account menu, and had no room left for a badge + button on a
+          phone-width screen. */}
+      <div className="card" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap", marginBottom: 16, padding: 16 }}>
+        <span className="badge">{credits ?? "—"} credits left</span>
+        <Button variant="secondary" onClick={() => setShowBuy(true)}>Buy credits</Button>
+      </div>
+
       <div className="card" style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end", marginBottom: 20, padding: 16 }}>
         <div>
           <label className="label">Category</label>
@@ -264,9 +265,11 @@ export default function TopCreatorsPage() {
       {!creators ? (
         <PageLoader />
       ) : creators.length === 0 ? (
-        <p className="helper-text">No creators match these filters.</p>
+        <div className="card" style={{ textAlign: "center", padding: 32 }}>
+          <p className="helper-text" style={{ margin: 0 }}>No creators match these filters.</p>
+        </div>
       ) : (
-        <div className="table-scroll">
+        <div className="card table-scroll" style={{ padding: 0 }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
             <thead>
               <tr style={{ textAlign: "left", borderBottom: "1px solid var(--color-border)" }}>

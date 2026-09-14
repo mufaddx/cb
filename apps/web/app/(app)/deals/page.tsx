@@ -213,39 +213,44 @@ export default function DealsPage() {
         {error && <p className="error-text" style={{ marginBottom: 16 }}>{error}</p>}
 
         {assignments.length === 0 ? (
-          <EmptyState
-            icon={CheckCircleIcon}
-            tint="green"
-            heading="No accepted deals yet."
-            description="Accept a campaign offer to see it here and start your collaboration journey."
-            primary={{ label: "Browse Campaigns", href: "/offers" }}
-            secondary={{ label: "View Offers", href: "/offers" }}
-          >
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, textAlign: "left", marginBottom: 32 }}>
-              <div style={{ display: "flex", gap: 10 }}>
-                <span className="icon-badge icon-badge-purple" aria-hidden="true"><HandshakeIcon width={16} height={16} /></span>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 13.5 }}>Collaborate with top brands</div>
-                  <div className="helper-text" style={{ fontSize: 12.5 }}>Work with verified brands and grow your audience.</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <EmptyState
+              icon={CheckCircleIcon}
+              tint="green"
+              heading="No accepted deals yet."
+              description="Accept a campaign offer to see it here and start your collaboration journey."
+              primary={{ label: "Browse Campaigns", href: "/offers" }}
+              secondary={{ label: "View Offers", href: "/offers" }}
+            >
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, textAlign: "left" }}>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <span className="icon-badge icon-badge-purple" aria-hidden="true"><HandshakeIcon width={16} height={16} /></span>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 13.5 }}>Collaborate with top brands</div>
+                    <div className="helper-text" style={{ fontSize: 12.5 }}>Work with verified brands and grow your audience.</div>
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <span className="icon-badge icon-badge-blue" aria-hidden="true"><TargetIcon width={16} height={16} /></span>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 13.5 }}>Track your progress</div>
+                    <div className="helper-text" style={{ fontSize: 12.5 }}>Manage deliverables and deadlines easily.</div>
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <span className="icon-badge icon-badge-green" aria-hidden="true"><WalletIcon width={16} height={16} /></span>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 13.5 }}>Get paid securely</div>
+                    <div className="helper-text" style={{ fontSize: 12.5 }}>Receive payments directly to your wallet.</div>
+                  </div>
                 </div>
               </div>
-              <div style={{ display: "flex", gap: 10 }}>
-                <span className="icon-badge icon-badge-blue" aria-hidden="true"><TargetIcon width={16} height={16} /></span>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 13.5 }}>Track your progress</div>
-                  <div className="helper-text" style={{ fontSize: 12.5 }}>Manage deliverables and deadlines easily.</div>
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: 10 }}>
-                <span className="icon-badge icon-badge-green" aria-hidden="true"><WalletIcon width={16} height={16} /></span>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 13.5 }}>Get paid securely</div>
-                  <div className="helper-text" style={{ fontSize: 12.5 }}>Receive payments directly to your wallet.</div>
-                </div>
-              </div>
-            </div>
+            </EmptyState>
 
-            <div style={{ textAlign: "left" }}>
+            {/* A separate card, not more children stacked into the
+                EmptyState box above — a hero + a 4-step guide are two
+                different things and read better as two containers. */}
+            <div className="card" style={{ textAlign: "left" }}>
               <h3 style={{ marginBottom: 12, fontSize: 15 }}>How it works?</h3>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 16 }}>
                 {[
@@ -278,7 +283,7 @@ export default function DealsPage() {
                 ))}
               </div>
             </div>
-          </EmptyState>
+          </div>
         ) : visible.length === 0 ? (
           <div className="card" style={{ textAlign: "center", padding: 40 }}>
             <XCircleIcon width={24} height={24} style={{ color: "var(--color-text-faint)", marginBottom: 8 }} />
