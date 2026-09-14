@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import { prisma } from "@antigravity/db";
 import { env } from "../../config/env";
 import { sendSuccess } from "../../lib/apiResponse";
-import { ValidationError } from "../../lib/errors";
+import { NotFoundError, ValidationError } from "../../lib/errors";
 import * as paymentsService from "./payments.service";
 import { buildMockWebhookRequest } from "../../services/payment";
 
@@ -39,6 +39,18 @@ export async function listPaymentsHandler(_req: Request, res: Response) {
     take: 200,
   });
   sendSuccess(res, payments);
+}
+
+/** Admin's "View" page for one payment: the full provider event
+ * timeline plus every refund issued against it, not just the summary
+ * row the table above shows. */
+export async function getPaymentForAdminHandler(req: Request, res: Response) {
+  const payment = await prisma.payment.findUnique({
+    where: { id: req.params.id },
+    include: { campaign: true, brand: true, refunds: { orderBy: { createdAt: "desc" } }, events: { orderBy: { receivedAt: "desc" } } },
+  });
+  if (!payment) throw new NotFoundError("Payment not found");
+  sendSuccess(res, payment);
 }
 
 /** Raw-body webhook receiver — signature is verified against the exact

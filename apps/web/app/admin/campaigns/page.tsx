@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Button } from "../../../components/Button";
 import { PageLoader } from "../../../components/PageLoader";
 import { AdminEmpty, AdminIntro, Avatar, DemoBanner, DemoTag, StatusBadge, formatDate, formatINR, humanize } from "../../../components/admin/AdminUI";
@@ -204,6 +205,7 @@ export default function CampaignReviewsPage() {
                   </div>
                   <div className="adm-row-side">
                     <span className="adm-amount">{c.pricingSnapshots[0] ? formatINR(c.pricingSnapshots[0].totalAmount) : "—"}</span>
+                    {!demo && <Link href={`/admin/campaigns/${c.id}`} className="adm-view-link">View →</Link>}
                     <Button variant="danger" disabled={demo} loading={actingOn === c.id} onClick={() => reject(c.id, c.title)}>
                       Reject
                     </Button>
@@ -265,6 +267,7 @@ export default function CampaignReviewsPage() {
                       </div>
                       <div className="helper-text" style={{ marginTop: 0 }}>creators matched</div>
                     </div>
+                    {!demo && <Link href={`/admin/campaigns/${c.id}`} className="adm-view-link">View →</Link>}
                     <Button disabled={demo || fullyMatched} loading={actingOn === c.id} onClick={() => runMatching(c.id, c.title)}>
                       {fullyMatched ? "Fully matched" : "Run matching"}
                     </Button>

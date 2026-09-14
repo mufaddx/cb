@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { PageLoader } from "../../../components/PageLoader";
 import { AdminEmpty, AdminIntro, Avatar, DemoBanner, DemoTag, StatusBadge } from "../../../components/admin/AdminUI";
 import { SearchIcon, UsersIcon } from "../../../components/icons";
@@ -88,6 +89,7 @@ export default function AdminCreatorsPage() {
                   <th>Quality</th>
                   <th>Completion</th>
                   <th>Risk</th>
+                  <th />
                 </tr>
               </thead>
               <tbody>
@@ -119,6 +121,13 @@ export default function AdminCreatorsPage() {
                     <td style={{ fontWeight: 650 }}>{c.qualityScore}</td>
                     <td style={{ fontWeight: 650 }}>{c.completionRate}%</td>
                     <td style={{ fontWeight: 700, color: riskTone(Number(c.riskScore)) }}>{c.riskScore}</td>
+                    <td>
+                      {isDemoId(c.id) ? (
+                        <span className="helper-text">—</span>
+                      ) : (
+                        <Link href={`/admin/creators/${c.id}`} className="adm-view-link">View →</Link>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

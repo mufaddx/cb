@@ -43,6 +43,12 @@ export async function getFlagsForEntity(prisma: PrismaClient, entityType: string
   return prisma.fraudFlag.findMany({ where: { entityType, entityId }, orderBy: { createdAt: "desc" } });
 }
 
+export async function getFlagById(prisma: PrismaClient, flagId: string) {
+  const flag = await prisma.fraudFlag.findUnique({ where: { id: flagId } });
+  if (!flag) throw new NotFoundError("Fraud flag not found");
+  return flag;
+}
+
 export async function reviewFlag(
   prisma: PrismaClient,
   flagId: string,

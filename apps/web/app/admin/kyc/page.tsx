@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Button } from "../../../components/Button";
 import { PageLoader } from "../../../components/PageLoader";
 import { AdminEmpty, AdminIntro, Avatar, DemoBanner, DemoTag, StatusBadge, formatDate, humanize } from "../../../components/admin/AdminUI";
@@ -97,6 +98,7 @@ export default function KycQueuePage() {
                   </div>
                 </div>
                 <div className="adm-row-side">
+                  {!demo && <Link href={`/admin/kyc/${item.id}`} className="adm-view-link">View →</Link>}
                   <Button variant="secondary" disabled={demo} loading={actingOn === item.id} onClick={() => decide(item.id, "RESUBMISSION_REQUIRED")}>
                     Ask to resubmit
                   </Button>

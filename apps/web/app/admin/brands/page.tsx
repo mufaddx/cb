@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { PageLoader } from "../../../components/PageLoader";
 import { AdminEmpty, AdminIntro, Avatar, DemoBanner, DemoTag, formatDate } from "../../../components/admin/AdminUI";
 import { BuildingIcon, SearchIcon } from "../../../components/icons";
@@ -79,6 +80,7 @@ export default function AdminBrandsPage() {
                   <th>Campaigns</th>
                   <th>Products</th>
                   <th>Joined</th>
+                  <th />
                 </tr>
               </thead>
               <tbody>
@@ -99,6 +101,13 @@ export default function AdminBrandsPage() {
                     <td style={{ fontWeight: 650 }}>{b._count.campaigns}</td>
                     <td style={{ fontWeight: 650 }}>{b._count.products}</td>
                     <td className="helper-text" style={{ whiteSpace: "nowrap" }}>{formatDate(b.createdAt)}</td>
+                    <td>
+                      {isDemoId(b.id) ? (
+                        <span className="helper-text">—</span>
+                      ) : (
+                        <Link href={`/admin/brands/${b.id}`} className="adm-view-link">View →</Link>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

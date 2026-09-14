@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Button } from "../../../components/Button";
 import { PageLoader } from "../../../components/PageLoader";
 import { AdminEmpty, AdminIntro, DemoBanner, DemoTag, IconAvatar, StatusBadge, formatDate, humanize } from "../../../components/admin/AdminUI";
@@ -102,6 +103,7 @@ export default function FraudQueuePage() {
                   </div>
                 </div>
                 <div className="adm-row-side">
+                  {!demo && <Link href={`/admin/fraud/${item.id}`} className="adm-view-link">View →</Link>}
                   <Button variant="secondary" disabled={demo} loading={actingOn === item.id} onClick={() => review(item.id, "CLEARED")}>
                     Clear flag
                   </Button>

@@ -36,6 +36,16 @@ router.get(
   })
 );
 
+// Fixed paths above are registered first for the same reason "/queue"
+// is — a literal segment always needs to win over "/:id" matching it.
+router.get(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    const flag = await fraudService.getFlagById(prisma, req.params.id);
+    sendSuccess(res, flag);
+  })
+);
+
 router.post(
   "/:id/review",
   asyncHandler(async (req, res) => {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Button } from "../../../components/Button";
 import { PageLoader } from "../../../components/PageLoader";
 import { AdminEmpty, AdminIntro, Avatar, DemoBanner, DemoTag, StatusBadge } from "../../../components/admin/AdminUI";
@@ -109,6 +110,7 @@ export default function ContentReviewQueuePage() {
                   </div>
                 </div>
                 <div className="adm-row-side">
+                  {!demo && <Link href={`/admin/assignments/${item.id}`} className="adm-view-link">View →</Link>}
                   <Button variant="danger" disabled={demo} loading={actingOn === item.id} onClick={() => decide(item.id, "REJECT")}>
                     Reject
                   </Button>

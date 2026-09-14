@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Button } from "../../../components/Button";
 import { PageLoader } from "../../../components/PageLoader";
 import { AdminEmpty, AdminIntro, Avatar, DemoBanner, DemoTag, StatusBadge, formatDate, formatINR } from "../../../components/admin/AdminUI";
@@ -115,6 +116,7 @@ export default function PaymentsPage() {
                   <th>Refunded</th>
                   <th>Date</th>
                   <th>Refund</th>
+                  <th />
                 </tr>
               </thead>
               <tbody>
@@ -168,6 +170,9 @@ export default function PaymentsPage() {
                         ) : (
                           <span className="helper-text">—</span>
                         )}
+                      </td>
+                      <td>
+                        {demo ? <span className="helper-text">—</span> : <Link href={`/admin/payments/${p.id}`} className="adm-view-link">View →</Link>}
                       </td>
                     </tr>
                   );

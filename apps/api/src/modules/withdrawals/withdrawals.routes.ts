@@ -52,6 +52,15 @@ router.get(
   })
 );
 
+router.get(
+  "/:id",
+  requirePermission(Permission.WITHDRAWAL_MANAGE_ALL),
+  asyncHandler(async (req, res) => {
+    const withdrawal = await withdrawalsService.getWithdrawalForAdmin(prisma, req.params.id);
+    sendSuccess(res, withdrawal);
+  })
+);
+
 router.post(
   "/:id/approve",
   requirePermission(Permission.WITHDRAWAL_MANAGE_ALL),

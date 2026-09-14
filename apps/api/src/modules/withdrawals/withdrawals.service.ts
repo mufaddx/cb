@@ -78,6 +78,20 @@ async function loadWithdrawal(prisma: PrismaClient, withdrawalId: string) {
   return withdrawal;
 }
 
+/** Admin's "View" page for one withdrawal — full creator + wallet
+ * context, not just the row fields the queue list already has. */
+export async function getWithdrawalForAdmin(prisma: PrismaClient, withdrawalId: string) {
+  const withdrawal = await prisma.withdrawal.findUnique({
+    where: { id: withdrawalId },
+    include: {
+      creator: { select: { id: true, fullName: true, displayName: true, kycStatus: true, phone: true } },
+      wallet: { select: { availableBalance: true, reservedBalance: true } },
+    },
+  });
+  if (!withdrawal) throw new NotFoundError("Withdrawal not found");
+  return withdrawal;
+}
+
 export async function approveWithdrawal(prisma: PrismaClient, withdrawalId: string, adminId: string) {
   const withdrawal = await loadWithdrawal(prisma, withdrawalId);
   if (withdrawal.status !== PrismaWithdrawalStatus.REQUESTED && withdrawal.status !== PrismaWithdrawalStatus.UNDER_REVIEW) {

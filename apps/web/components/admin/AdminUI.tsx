@@ -1,4 +1,6 @@
 import type { ReactNode, SVGProps } from "react";
+import Link from "next/link";
+import { ArrowLeftIcon } from "../icons";
 
 type Icon = (props: SVGProps<SVGSVGElement>) => JSX.Element;
 export type Tint = "purple" | "blue" | "green" | "pink" | "amber";
@@ -129,6 +131,30 @@ export function AdminEmpty({ icon: IconCmp, title, text }: { icon: Icon; title: 
   );
 }
 
+/** "← Back to X" link at the top of every admin detail ("View") page. */
+export function BackLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <Link href={href} className="adm-back-link">
+      <ArrowLeftIcon width={15} height={15} />
+      {children}
+    </Link>
+  );
+}
+
+/** One label/value pair in a detail ("View") page's field grid. */
+export function Field({ label, value, muted, full }: { label: string; value: ReactNode; muted?: boolean; full?: boolean }) {
+  return (
+    <div style={full ? { gridColumn: "1 / -1" } : undefined}>
+      <div className="adm-field-label">{label}</div>
+      <div className={`adm-field-value${muted ? " is-muted" : ""}`}>{value}</div>
+    </div>
+  );
+}
+
+export function FieldList({ children }: { children: ReactNode }) {
+  return <div className="adm-field-list">{children}</div>;
+}
+
 export function formatINR(value: number | string): string {
   return `₹${Number(value).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 }
@@ -136,4 +162,9 @@ export function formatINR(value: number | string): string {
 export function formatDate(iso: string | null | undefined): string {
   if (!iso) return "—";
   return new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+}
+
+export function formatDateTime(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" });
 }

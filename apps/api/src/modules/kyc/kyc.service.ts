@@ -3,6 +3,7 @@ import { AuditAction, KYC_TRANSITIONS, KycStatus, assertTransition } from "@anti
 import { ConflictError, NotFoundError } from "../../lib/errors";
 import { recordAudit } from "../audit/audit.service";
 import { decryptSecret, encryptSecret } from "../../lib/crypto";
+import { getStorageProvider } from "../../services/storage";
 import type { SubmitKycInput } from "./kyc.validation";
 
 /**
@@ -76,7 +77,10 @@ export async function getKycRecordForAdmin(prisma: PrismaClient, kycRecordId: st
     include: { creator: { select: { id: true, fullName: true, displayName: true } } },
   });
   if (!record) throw new NotFoundError("KYC record not found");
-  return { ...sanitize(record), documentNumber: decryptSecret(record.documentNumberEncrypted) };
+  // A KYC reviewer needs to actually see the uploaded document to make
+  // a real decision — sign its storage key so the admin page can render it.
+  const documentUrl = await getStorageProvider().getSignedDownloadUrl(record.documentKey);
+  return { ...sanitize(record), documentNumber: decryptSecret(record.documentNumberEncrypted), documentUrl };
 }
 
 export type KycDecision = "VERIFIED" | "REJECTED" | "RESUBMISSION_REQUIRED";

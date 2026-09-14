@@ -45,3 +45,9 @@ paymentsRouter.get(
   requirePermission(Permission.PAYMENT_MANAGE_ALL),
   asyncHandler(controller.listPaymentsHandler)
 );
+paymentsRouter.get(
+  "/admin/:id",
+  requireAuth,
+  requirePermission(Permission.PAYMENT_MANAGE_ALL),
+  asyncHandler(controller.getPaymentForAdminHandler)
+);

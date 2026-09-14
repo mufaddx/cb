@@ -52,13 +52,16 @@ export async function openDispute(
 export async function listDisputeQueue(prisma: PrismaClient) {
   return prisma.dispute.findMany({
     where: { status: { in: [PrismaDisputeStatus.OPEN, PrismaDisputeStatus.UNDER_REVIEW, PrismaDisputeStatus.EVIDENCE_REQUESTED] } },
-    include: { campaign: true },
+    include: { campaign: { include: { brand: true } } },
     orderBy: { createdAt: "asc" },
   });
 }
 
 async function loadDispute(prisma: PrismaClient, disputeId: string) {
-  const dispute = await prisma.dispute.findUnique({ where: { id: disputeId }, include: { campaign: true } });
+  const dispute = await prisma.dispute.findUnique({
+    where: { id: disputeId },
+    include: { campaign: { include: { brand: true, assignments: { include: { creator: true } } } } },
+  });
   if (!dispute) throw new NotFoundError("Dispute not found");
   return dispute;
 }

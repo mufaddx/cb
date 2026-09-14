@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import QRCode from "qrcode";
 import { Button } from "../../../components/Button";
 import { PageLoader } from "../../../components/PageLoader";
@@ -236,6 +237,7 @@ export default function WithdrawalsQueuePage() {
                 </div>
                 <div className="adm-row-side">
                   <span className="adm-amount">{formatINR(item.amount)}</span>
+                  {!demo && <Link href={`/admin/withdrawals/${item.id}`} className="adm-view-link">View →</Link>}
                   {item.status === "REQUESTED" && (
                     <>
                       <Button variant="danger" disabled={demo} loading={actingOn === item.id} onClick={() => reject(item.id)}>
