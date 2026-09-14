@@ -8,7 +8,9 @@
  * To turn it off: set ADMIN_DEMO_ENABLED to false. To remove it entirely,
  * delete this file and the withDemo / DEMO_* / isDemoId usages under app/admin.
  */
-export const ADMIN_DEMO_ENABLED = true;
+// Off: enough real accounts/campaigns/records now exist end-to-end that
+// every queue can show its own genuine empty state instead of a sample.
+export const ADMIN_DEMO_ENABLED = false;
 
 export const isDemoId = (id: string) => id.startsWith("demo-");
 
