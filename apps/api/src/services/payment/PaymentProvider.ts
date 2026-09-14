@@ -51,4 +51,15 @@ export interface PaymentProvider {
   verifyWebhookSignature(input: VerifyWebhookInput): boolean;
   parseWebhookEvent(rawBody: string | Buffer): WebhookEvent;
   createRefund(input: CreateRefundInput): Promise<CreateRefundResult>;
+  /**
+   * Rebuilds the checkout payload for an order created earlier in a
+   * previous request (the idempotent-reuse path in
+   * initiateCampaignPayment) — a fresh createPaymentIntent call would
+   * create a second, duplicate order with the provider for the same
+   * payment, which reusing the existing Payment row is specifically
+   * meant to avoid. Must return the exact same shape createPaymentIntent's
+   * checkoutPayload does, so the frontend's completeCheckout can't tell
+   * the difference between a fresh order and a reused one.
+   */
+  describeExistingIntent(providerOrderId: string, amount: number, currency: string): Record<string, unknown>;
 }

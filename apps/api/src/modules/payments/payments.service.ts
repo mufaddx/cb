@@ -44,13 +44,26 @@ export async function initiateCampaignPayment(prisma: PrismaClient, campaignId: 
   if (!snapshot) throw new ValidationError("Campaign has no pricing snapshot");
 
   // Idempotent: reuse an existing non-terminal payment intent instead
-  // of creating a duplicate order for the same campaign.
+  // of creating a duplicate order for the same campaign. This still
+  // has to return a complete checkoutPayload (key/order_id/amount/
+  // currency) — returning just {reused, providerOrderId} used to leave
+  // out `key`, which is exactly what completeCheckout on the frontend
+  // uses to decide whether to open real Razorpay Checkout at all; with
+  // it missing, a brand clicking "Pay Now" a second time (the exact
+  // path that reaches this branch) fell through to the dev-only
+  // simulate-webhook call and hit "This endpoint is only available in
+  // development" in production.
   const existing = await prisma.payment.findFirst({
     where: { campaignId, status: { in: [PrismaPaymentStatus.CREATED, PrismaPaymentStatus.PENDING, PrismaPaymentStatus.PROCESSING] } },
     orderBy: { createdAt: "desc" },
   });
   if (existing && existing.providerOrderId) {
-    return { payment: existing, checkoutPayload: { reused: true, providerOrderId: existing.providerOrderId } };
+    const checkoutPayload = getPaymentProvider().describeExistingIntent(
+      existing.providerOrderId,
+      Number(existing.amount),
+      existing.currency
+    );
+    return { payment: existing, checkoutPayload };
   }
 
   const attempt = (await prisma.payment.count({ where: { campaignId } })) + 1;

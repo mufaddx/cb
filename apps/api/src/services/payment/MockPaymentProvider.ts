@@ -27,13 +27,17 @@ export class MockPaymentProvider implements PaymentProvider {
     const providerOrderId = `mock_order_${randomUUID()}`;
     return {
       providerOrderId,
-      checkoutPayload: {
-        provider: "mock",
-        order_id: providerOrderId,
-        amount: input.amount,
-        currency: input.currency,
-        note: "PAYMENT_PROVIDER=mock — no real charge occurs. Use POST /api/payments/dev/simulate-webhook to advance this order in development.",
-      },
+      checkoutPayload: this.describeExistingIntent(providerOrderId, input.amount, input.currency),
+    };
+  }
+
+  describeExistingIntent(providerOrderId: string, amount: number, currency: string): Record<string, unknown> {
+    return {
+      provider: "mock",
+      order_id: providerOrderId,
+      amount,
+      currency,
+      note: "PAYMENT_PROVIDER=mock — no real charge occurs. Use POST /api/payments/dev/simulate-webhook to advance this order in development.",
     };
   }
 

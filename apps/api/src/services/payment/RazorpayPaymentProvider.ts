@@ -54,12 +54,16 @@ export class RazorpayPaymentProvider implements PaymentProvider {
     const order = (await res.json()) as { id: string };
     return {
       providerOrderId: order.id,
-      checkoutPayload: {
-        key: env.PAYMENT_PROVIDER_KEY,
-        order_id: order.id,
-        amount: Math.round(input.amount * 100),
-        currency: input.currency,
-      },
+      checkoutPayload: this.describeExistingIntent(order.id, input.amount, input.currency),
+    };
+  }
+
+  describeExistingIntent(providerOrderId: string, amount: number, currency: string): Record<string, unknown> {
+    return {
+      key: env.PAYMENT_PROVIDER_KEY,
+      order_id: providerOrderId,
+      amount: Math.round(amount * 100),
+      currency,
     };
   }
 
